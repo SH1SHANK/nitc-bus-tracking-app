@@ -11,7 +11,7 @@ class TrackletTheme {
   const TrackletTheme._();
 
   static ThemeData get lightTheme {
-    final textTheme = TextTheme(
+    const textTheme = TextTheme(
       displayLarge: TrackletTypography.displayLarge,
       displayMedium: TrackletTypography.displayMedium,
       headlineLarge: TrackletTypography.headlineLarge,
@@ -29,7 +29,8 @@ class TrackletTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: TrackletTypography.fontFamily,
+      fontFamily: TrackletTypography.primaryFontFamily,
+      fontFamilyFallback: TrackletTypography.fontFallbacks,
       colorScheme: const ColorScheme.light(
         primary: TrackletColors.primary,
         onPrimary: TrackletColors.textInverse,

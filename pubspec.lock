@@ -240,6 +240,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.3"
+  flutter_tabler_icons:
+    dependency: "direct main"
+    description:
+      name: flutter_tabler_icons
+      sha256: "657c2201e12fa9121a12ddb4edb74d69290f803868eb6526f04102e6d49ec882"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.43.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -335,14 +343,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "18.0.2"
-  google_fonts:
-    dependency: "direct main"
-    description:
-      name: google_fonts
-      sha256: fdbbfbbb1a62f376ab29fa9627561d389751fb984da0b630ce3326e272911c8a
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.0.0"
   gotrue:
     dependency: transitive
     description:
@@ -668,6 +668,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.2"
+  phosphor_flutter:
+    dependency: "direct main"
+    description:
+      name: phosphor_flutter
+      sha256: "8a14f238f28a0b54842c5a4dc20676598dd4811fcba284ed828bd5a262c11fde"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   platform:
     dependency: transitive
     description:

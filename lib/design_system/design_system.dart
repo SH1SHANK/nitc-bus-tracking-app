@@ -1,3 +1,5 @@
+export 'components/icons/tracklet_icon.dart';
+export 'components/icons/tracklet_icons.dart';
 export 'components/tracklet_app_bar.dart';
 export 'components/tracklet_button.dart';
 export 'components/tracklet_card.dart';

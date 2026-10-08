@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -29,19 +31,19 @@ class NotificationPreferencesTile extends StatelessWidget {
               color: TrackletColors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.notifications_active_outlined,
+            child: const TrackletIcon(
+              TrackletIcons.notifications,
               color: TrackletColors.primary,
               size: 20,
             ),
           ),
           const SizedBox(width: TrackletSpacing.md),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Transit Alerts', style: TrackletTypography.titleMedium),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   'Get notified when buses approach your stop',
                   style: TrackletTypography.bodySmall,

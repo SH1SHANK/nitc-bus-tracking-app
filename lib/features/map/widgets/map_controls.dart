@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -23,15 +25,13 @@ class MapControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _ControlButton(
-          icon: Icons.school_rounded,
+          icon: TrackletIcons.compass,
           tooltip: 'Recenter NITC Campus',
           onPressed: onRecenterCampus,
         ),
         const SizedBox(height: TrackletSpacing.sm),
         _ControlButton(
-          icon: isLocating
-              ? Icons.hourglass_top_rounded
-              : Icons.my_location_rounded,
+          icon: isLocating ? TrackletIcons.refresh : TrackletIcons.location,
           tooltip: 'Locate Me',
           onPressed: onLocateUser,
         ),
@@ -68,7 +68,13 @@ class _ControlButton extends StatelessWidget {
             borderRadius: TrackletRadii.roundedMd,
             border: Border.all(color: TrackletColors.border),
           ),
-          child: Icon(icon, size: 20, color: TrackletColors.textPrimary),
+          child: Center(
+            child: TrackletIcon(
+              icon,
+              size: 20,
+              color: TrackletColors.textPrimary,
+            ),
+          ),
         ),
       ),
     );

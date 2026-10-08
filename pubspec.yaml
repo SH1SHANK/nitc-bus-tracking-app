@@ -23,8 +23,9 @@ dependencies:
   moon_design: ^1.1.0
   shared_preferences: ^2.5.6
   onesignal_flutter: ^5.7.0
-  google_fonts: ^9.0.0
   cupertino_icons: ^1.0.8
+  flutter_tabler_icons: ^1.43.0
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -38,4 +39,14 @@ flutter:
 
   assets:
     - assets/icons/
-    - assets/images/
+  # Expected font assets:
+  # assets/fonts/Outfit-Variable.ttf (Primary)
+  # assets/fonts/Satoshi-Variable.ttf (Secondary)
+  # Uncomment below once font asset files are placed in assets/fonts/
+  # fonts:
+  #   - family: Outfit
+  #     fonts:
+  #       - asset: assets/fonts/Outfit-Variable.ttf
+  #   - family: Satoshi
+  #     fonts:
+  #       - asset: assets/fonts/Satoshi-Variable.ttf

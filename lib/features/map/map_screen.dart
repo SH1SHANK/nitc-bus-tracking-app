@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system/components/icons/tracklet_icon.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
@@ -162,8 +164,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.directions_bus_rounded,
+                  const TrackletIcon(
+                    TrackletIcons.bus,
                     color: TrackletColors.primary,
                     size: 20,
                   ),

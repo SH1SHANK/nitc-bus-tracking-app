@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
+import 'icons/tracklet_icon.dart';
+import 'icons/tracklet_icons.dart';
 import 'tracklet_button.dart';
 
 /// Reusable error state view with retry action.
@@ -28,8 +30,8 @@ class TrackletErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
+            const TrackletIcon(
+              TrackletIcons.error,
               size: 48,
               color: TrackletColors.busDelayed,
             ),

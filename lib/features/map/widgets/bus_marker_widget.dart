@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/transit/bus.dart';
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/colors.dart';
 
 /// Bus marker displayed on the campus map with live status indicator.
@@ -47,8 +49,8 @@ class BusMarkerWidget extends StatelessWidget {
           ],
         ),
         child: Center(
-          child: Icon(
-            Icons.directions_bus_rounded,
+          child: TrackletIcon(
+            TrackletIcons.bus,
             size: isSelected ? 24 : 20,
             color: isSelected ? TrackletColors.primary : statusColor,
           ),

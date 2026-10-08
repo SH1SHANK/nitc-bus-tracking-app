@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../design_system/components/icons/tracklet_icon.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/components/tracklet_error_state.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -55,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
                               style: TrackletTypography.displayMedium,
                             ),
                             const SizedBox(height: TrackletSpacing.xs),
-                            Text(
+                            const Text(
                               'Catch your next ride.',
                               style: TrackletTypography.bodyMedium,
                             ),
@@ -73,8 +75,8 @@ class HomeScreen extends ConsumerWidget {
                             shape: BoxShape.circle,
                             border: Border.all(color: TrackletColors.border),
                           ),
-                          child: const Icon(
-                            Icons.person_outline_rounded,
+                          child: const TrackletIcon(
+                            TrackletIcons.profile,
                             size: 20,
                             color: TrackletColors.textPrimary,
                           ),

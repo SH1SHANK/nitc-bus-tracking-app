@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../design_system/components/icons/tracklet_icon.dart';
+import '../design_system/components/icons/tracklet_icons.dart';
 import '../design_system/tokens/colors.dart';
 import '../design_system/tokens/spacing.dart';
 import '../design_system/tokens/typography.dart';
@@ -42,8 +44,7 @@ class AppShell extends StatelessWidget {
               children: [
                 // 1. Home
                 _NavBarItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
+                  icon: TrackletIcons.home,
                   label: 'Home',
                   isSelected: currentIndex == 0,
                   onTap: () => _onTabSelected(0),
@@ -57,8 +58,7 @@ class AppShell extends StatelessWidget {
 
                 // 3. Profile
                 _NavBarItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
+                  icon: TrackletIcons.profile,
                   label: 'Profile',
                   isSelected: currentIndex == 2,
                   onTap: () => _onTabSelected(2),
@@ -82,14 +82,12 @@ class AppShell extends StatelessWidget {
 class _NavBarItem extends StatelessWidget {
   const _NavBarItem({
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.isSelected,
     required this.onTap,
   });
 
   final IconData icon;
-  final IconData activeIcon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
@@ -109,7 +107,7 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(isSelected ? activeIcon : icon, color: color, size: 24),
+            TrackletIcon(icon, color: color, size: 24),
             const SizedBox(height: 2),
             Text(
               label,
@@ -155,8 +153,8 @@ class _CenterMapButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.map_rounded,
+            const TrackletIcon(
+              TrackletIcons.map,
               color: TrackletColors.textInverse,
               size: 20,
             ),

@@ -17,16 +17,16 @@ class AppInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('About Tracklet', style: TrackletTypography.titleMedium),
+          const Text('About Tracklet', style: TrackletTypography.titleMedium),
           const SizedBox(height: TrackletSpacing.sm),
-          Text(AppConfig.campusName, style: TrackletTypography.bodyMedium),
+          const Text(AppConfig.campusName, style: TrackletTypography.bodyMedium),
           const SizedBox(height: TrackletSpacing.md),
           const Divider(),
           const SizedBox(height: TrackletSpacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Version', style: TrackletTypography.bodySmall),
+              const Text('Version', style: TrackletTypography.bodySmall),
               Text(
                 '${AppConfig.appVersion} (${AppConfig.environment})',
                 style: TrackletTypography.bodySmall.copyWith(
@@ -40,7 +40,7 @@ class AppInfoCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Data Provider', style: TrackletTypography.bodySmall),
+              const Text('Data Provider', style: TrackletTypography.bodySmall),
               Text(
                 AppConfig.hasSupabaseCredentials
                     ? 'Supabase Realtime'

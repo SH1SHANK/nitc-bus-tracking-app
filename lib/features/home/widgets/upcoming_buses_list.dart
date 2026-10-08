@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/formatting/transit_formatter.dart';
 import '../../../data/transit/bus.dart';
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
@@ -24,7 +26,7 @@ class UpcomingBusesList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Upcoming Buses', style: TrackletTypography.headlineMedium),
+        const Text('Upcoming Buses', style: TrackletTypography.headlineMedium),
         const SizedBox(height: TrackletSpacing.md),
         ListView.separated(
           shrinkWrap: true,
@@ -49,8 +51,8 @@ class UpcomingBusesList extends StatelessWidget {
                       color: TrackletColors.surface,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.directions_bus_rounded,
+                    child: const TrackletIcon(
+                      TrackletIcons.bus,
                       color: TrackletColors.primary,
                       size: 20,
                     ),

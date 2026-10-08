@@ -4,6 +4,8 @@ import '../../../core/formatting/transit_formatter.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/stop.dart';
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
@@ -42,8 +44,8 @@ class NextBusCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.location_on_rounded,
+                  const TrackletIcon(
+                    TrackletIcons.busStop,
                     size: 18,
                     color: TrackletColors.primary,
                   ),
@@ -84,8 +86,9 @@ class NextBusCard extends StatelessWidget {
               children: [
                 Text(
                   TransitFormatter.formatEta(etaMinutes),
-                  style: TrackletTypography.displayLarge.copyWith(
+                  style: TrackletTypography.numericLarge.copyWith(
                     color: TrackletColors.primary,
+                    fontSize: 32,
                   ),
                 ),
                 const SizedBox(width: TrackletSpacing.md),
@@ -121,7 +124,7 @@ class NextBusCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: TrackletSpacing.xs),
-            Text(
+            const Text(
               'Next campus shuttle scheduled at 08:30 AM',
               style: TrackletTypography.bodyMedium,
             ),

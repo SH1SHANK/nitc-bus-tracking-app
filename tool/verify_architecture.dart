@@ -49,7 +49,18 @@ void main() {
         }
       }
 
-      // Check 3: Shared layers importing features
+      // Check 3: Icon & Font package isolation (only lib/design_system/ can import icon/font packages)
+      final isDesignSystem = relativePath.contains('lib/design_system/');
+      if (!isDesignSystem &&
+          (line.contains('package:flutter_tabler_icons') ||
+              line.contains('package:phosphor_flutter') ||
+              line.contains('package:google_fonts'))) {
+        violations.add(
+          '$relativePath:${i + 1} Direct icon/font package imports disallowed outside design_system (consume TrackletIcon/TrackletIcons): $line',
+        );
+      }
+
+      // Check 4: Shared layers importing features
       final isSharedLayer =
           relativePath.contains('lib/core/') ||
           relativePath.contains('lib/data/') ||
@@ -62,7 +73,7 @@ void main() {
         );
       }
 
-      // Check 4: Design system importing data, services, or features
+      // Check 5: Design system importing data, services, or features
       if (relativePath.contains('lib/design_system/')) {
         if (line.contains('/data/') ||
             line.contains('/services/') ||
@@ -73,7 +84,7 @@ void main() {
         }
       }
 
-      // Check 5: Web compatibility (no dart:io in general app code)
+      // Check 6: Web compatibility (no dart:io in general app code)
       if (line.contains("import 'dart:io'") ||
           line.contains('import "dart:io"')) {
         violations.add(

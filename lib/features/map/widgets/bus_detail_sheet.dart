@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../core/formatting/transit_formatter.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
@@ -53,7 +55,7 @@ class BusDetailSheet extends StatelessWidget {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded, size: 20),
+                icon: const TrackletIcon(TrackletIcons.close, size: 20),
                 onPressed: onClose,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -69,17 +71,17 @@ class BusDetailSheet extends StatelessWidget {
               _DetailStat(
                 label: 'Speed',
                 value: TransitFormatter.formatSpeed(bus.position.speedKmH),
-                icon: Icons.speed_rounded,
+                icon: TrackletIcons.speed,
               ),
               _DetailStat(
                 label: 'Occupancy',
                 value: bus.occupancy,
-                icon: Icons.airline_seat_recline_normal_rounded,
+                icon: TrackletIcons.seat,
               ),
               _DetailStat(
                 label: 'Updated',
                 value: TransitFormatter.formatLastUpdated(bus.lastUpdated),
-                icon: Icons.access_time_rounded,
+                icon: TrackletIcons.time,
               ),
             ],
           ),
@@ -104,7 +106,7 @@ class _DetailStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 18, color: TrackletColors.textSecondary),
+        TrackletIcon(icon, size: 18, color: TrackletColors.textSecondary),
         const SizedBox(height: TrackletSpacing.xs),
         Text(value, style: TrackletTypography.labelLarge),
         Text(label, style: TrackletTypography.bodySmall),
