@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
@@ -8,7 +9,7 @@ import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Step 1: Playful Welcome screen with 3D character hero and vibrant introductory branding.
+/// Step 0: Authentic Attendrix-styled Welcome & Sign In screen with layered 3D character banner.
 class OnboardingStepWelcome extends StatelessWidget {
   const OnboardingStepWelcome({
     super.key,
@@ -21,144 +22,169 @@ class OnboardingStepWelcome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TrackletSpacing.screenMargin,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: TrackletSpacing.sm),
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
-          // 3D Character Hero inside playful curved backdrop
-          Container(
-            height: 260,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Top 40% height container with stacked Attendrix background banner & 3D character
+          SizedBox(
+            height: screenHeight * 0.38,
             width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFEDE9FE), Color(0xFFF3F4F6)],
-              ),
-              borderRadius: BorderRadius.circular(32),
-            ),
             child: Stack(
-              alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
-                // Soft glow circle
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: TrackletColors.primary.withValues(alpha: 0.12),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(24.0),
+                      bottomRight: Radius.circular(24.0),
+                    ),
+                    child: Image.asset(
+                      'assets/images/Clean_Login_Design_Rectangle_10.png',
+                      width: double.infinity,
+                      height: 260.0,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        height: 260.0,
+                        color: TrackletColors.accent1,
+                      ),
+                    ),
                   ),
                 ),
-                Image.asset(
-                  'assets/images/Young_Man_Laptop_Clean_Login_Design.png',
-                  fit: BoxFit.contain,
-                  height: 240,
-                  errorBuilder: (_, _, _) => Image.asset(
-                    'assets/images/Young_Man_with_Laptop.png',
+                Align(
+                  alignment: const Alignment(0.0, 0.95),
+                  child: Image.asset(
+                    'assets/images/Young_Man_Laptop_Clean_Login_Design.png',
+                    width: 240.0,
+                    height: 240.0,
                     fit: BoxFit.contain,
-                    height: 240,
-                    errorBuilder: (_, _, _) => const Icon(
-                      Icons.directions_bus_rounded,
-                      size: 100,
-                      color: TrackletColors.primary,
+                    errorBuilder: (_, _, _) => Image.asset(
+                      'assets/images/Young_Man_with_Laptop.png',
+                      width: 240.0,
+                      height: 240.0,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.directions_bus_rounded,
+                        size: 90,
+                        color: TrackletColors.primary,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xl),
+          const SizedBox(height: TrackletSpacing.lg),
 
-          // App Title & Tagline
-          Text(
-            'Welcome to Tracklet',
-            style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 30,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
+          // Bottom card with Attendrix typography & action buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.screenMargin,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: TrackletSpacing.xs),
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFF2563EB), Color(0xFF8B5CF6)],
-            ).createShader(bounds),
-            child: Text(
-              'Transit, Reimagined.',
-              style: TrackletTypography.headlineLarge.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: TrackletSpacing.md),
-          Text(
-            'Built for NITC campus transit, live shuttle tracking, timetables, and everything in between.',
-            style: TrackletTypography.bodyLarge.copyWith(
-              color: TrackletColors.textSecondary,
-              height: 1.45,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: TrackletSpacing.xxl),
-
-          // Primary Actions
-          TrackletButton(
-            label: 'Get Started',
-            icon: const TrackletIcon(
-              TrackletIcons.chevronRight,
-              color: TrackletColors.textInverse,
-              size: 18,
-            ),
-            isFullWidth: true,
-            size: TrackletButtonSize.large,
-            onPressed: onGetStarted,
-          ),
-          const SizedBox(height: TrackletSpacing.md),
-
-          // Secondary Google / SSO Auth action
-          Material(
-            color: const Color(0xFF1E293B),
-            borderRadius: TrackletRadii.roundedMd,
-            child: InkWell(
-              onTap: onSignIn,
-              borderRadius: TrackletRadii.roundedMd,
-              child: Container(
-                width: double.infinity,
-                height: 52,
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'G',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: TrackletSpacing.md),
-                    Text(
-                      'Continue with NITC Google Account',
-                      style: TrackletTypography.labelLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome to Tracklet',
+                  style: TrackletTypography.headlineLarge,
                 ),
-              ),
+                const SizedBox(height: 6.0),
+                Text(
+                  'Transit, Reimagined. Built for NITC campus transit, live shuttle tracking, timetables, and everything in between.',
+                  style: TrackletTypography.bodyMedium.copyWith(
+                    color: TrackletColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.xxl),
+
+                // Primary "Get Started" button
+                TrackletButton(
+                  label: 'Get Started',
+                  icon: const TrackletIcon(
+                    TrackletIcons.chevronRight,
+                    color: TrackletColors.textInverse,
+                    size: 18,
+                  ),
+                  isFullWidth: true,
+                  size: TrackletButtonSize.large,
+                  onPressed: onGetStarted,
+                ),
+                const SizedBox(height: TrackletSpacing.md),
+
+                // Secondary Google / SSO Auth action matching Attendrix
+                Material(
+                  color: const Color(0xFF15161E),
+                  borderRadius: TrackletRadii.roundedMd,
+                  child: InkWell(
+                    onTap: onGetStarted,
+                    borderRadius: TrackletRadii.roundedMd,
+                    child: Container(
+                      width: double.infinity,
+                      height: 52,
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'G',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: TrackletSpacing.md),
+                          Text(
+                            'Continue with NITC Google Account',
+                            style: TrackletTypography.labelLarge.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.md),
+
+                // Already have an account? Sign In
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Already have an account? ',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF57636C),
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Sign In',
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6F61EF),
+                          ),
+                          recognizer: TapGestureRecognizer()..onTap = onSignIn,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.xl),
+              ],
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xl),
         ],
       ),
     );

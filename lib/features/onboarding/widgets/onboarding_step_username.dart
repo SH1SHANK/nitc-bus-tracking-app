@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import '../../../design_system/components/icons/tracklet_icon.dart';
-import '../../../design_system/components/icons/tracklet_icons.dart';
-import '../../../design_system/components/tracklet_button.dart';
-import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Step 6: Username setup with live availability check and magic wand randomizer.
+/// Step: Username setup with live availability check and magic wand randomizer.
+/// Exact Attendrix layout, gradient container, and styling.
 class OnboardingStepUsername extends StatefulWidget {
   const OnboardingStepUsername({
     super.key,
@@ -31,11 +28,13 @@ class OnboardingStepUsername extends StatefulWidget {
 
 class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialUsername);
+    _focusNode = FocusNode();
   }
 
   @override
@@ -50,6 +49,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -68,33 +68,54 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
         children: [
           const SizedBox(height: TrackletSpacing.sm),
 
-          // Illustration
+          // Top Illustration Banner with Gradient Background
           Center(
             child: Container(
-              height: 180,
-              width: 220,
+              height: 160,
+              width: double.infinity,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFE0E7FF), Color(0xFFEDE9FE)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF5AB2F7), Color(0xFF6F61EF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/Young_Man_with_Laptop.png',
-                    height: 160,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => const Icon(
-                      Icons.person_pin_rounded,
-                      size: 80,
-                      color: TrackletColors.primary,
-                    ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6F61EF).withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/Abstract_Gradient_Background_4K.jpg',
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                    Container(
+                      color: const Color(0xFF6F61EF).withValues(alpha: 0.35),
+                    ),
+                    Image.asset(
+                      'assets/images/Research_New_Pin_Crop.gif',
+                      width: 180,
+                      height: 130,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => Image.asset(
+                        'assets/images/Young_Man_with_Laptop.png',
+                        height: 130,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -103,73 +124,116 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           // Title
           Text(
             'Choose Your Username',
-            style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
+            style: TrackletTypography.headlineLarge.copyWith(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF14181B),
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xs),
+          const SizedBox(height: 6),
+
+          // Attendrix Subtitle RichText
           RichText(
-            text: const TextSpan(
-              style: TrackletTypography.bodyMedium,
+            text: TextSpan(
+              style: TrackletTypography.bodyMedium.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF57636C),
+                height: 1.4,
+              ),
               children: [
-                TextSpan(
-                  text: "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
+                const TextSpan(
+                  text:
+                      "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
                 ),
                 TextSpan(
-                  text: 'magic wand',
-                  style: TextStyle(
-                    color: Color(0xFFF97316),
+                  text: 'magic wand ',
+                  style: TrackletTypography.bodyMedium.copyWith(
+                    color: const Color(0xFF6F61EF),
                     fontWeight: FontWeight.w700,
+                    fontSize: 14,
                   ),
                 ),
-                TextSpan(text: ' for a suggestion.'),
+                const TextSpan(
+                  text: 'for a suggestion.',
+                ),
               ],
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xl),
+          const SizedBox(height: TrackletSpacing.lg),
 
-          // Username Field + Magic Wand Button
+          // Text Field & Magic Wand Button Row
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Container(
-                  height: 54,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: TrackletColors.surface,
-                    borderRadius: TrackletRadii.roundedMd,
+                    color: const Color(0xFFF1F4F8),
+                    borderRadius: BorderRadius.circular(12.0),
                     border: Border.all(
                       color: hasText
                           ? (isAvailable
-                                ? TrackletColors.primary
-                                : TrackletColors.busDelayed)
-                          : TrackletColors.border,
-                      width: 1.5,
+                              ? const Color(0xFF6F61EF)
+                              : const Color(0xFFFA000E))
+                          : Colors.transparent,
+                      width: 2.0,
                     ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TrackletSpacing.md,
                   ),
                   child: Row(
                     children: [
-                      Text(
-                        '@',
-                        style: TrackletTypography.titleLarge.copyWith(
-                          color: TrackletColors.primary,
-                          fontWeight: FontWeight.w700,
+                      const Padding(
+                        padding: EdgeInsets.only(left: 14, right: 6),
+                        child: Text(
+                          '@',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF6F61EF),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: TrackletSpacing.xs),
                       Expanded(
-                        child: TextField(
+                        child: TextFormField(
                           controller: _controller,
+                          focusNode: _focusNode,
+                          autofocus: false,
+                          textInputAction: TextInputAction.done,
+                          obscureText: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9_]'),
+                            ),
+                          ],
+                          maxLength: 16,
+                          buildCounter: (
+                            context, {
+                            required currentLength,
+                            required isFocused,
+                            maxLength,
+                          }) =>
+                              null,
                           decoration: const InputDecoration(
-                            hintText: 'username',
+                            hintText: 'Username',
+                            hintStyle: TextStyle(
+                              fontFamily: 'Outfit',
+                              color: Color(0xFF57636C),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                             border: InputBorder.none,
                             isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 0,
+                            ),
                           ),
-                          style: TrackletTypography.titleLarge.copyWith(
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            color: Color(0xFF14181B),
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                           onChanged: widget.onUsernameChanged,
@@ -179,87 +243,136 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   ),
                 ),
               ),
-              const SizedBox(width: TrackletSpacing.sm),
+              const SizedBox(width: 8),
 
-              // Magic Wand Button
+              // Attendrix Magic Wand Icon Button
               InkWell(
                 onTap: widget.onMagicWandPressed,
-                borderRadius: TrackletRadii.roundedMd,
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 54,
-                  height: 54,
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: TrackletColors.primary,
-                    borderRadius: TrackletRadii.roundedMd,
+                    color: const Color(0xFF6F61EF),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: TrackletColors.primary.withValues(alpha: 0.35),
+                        color: const Color(0xFF6F61EF).withValues(alpha: 0.35),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: Text('🪄', style: TextStyle(fontSize: 22)),
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/Magic_Icon_Pack.png',
+                      width: 26,
+                      height: 26,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.auto_awesome_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: TrackletSpacing.sm),
+          const SizedBox(height: 10),
 
-          // Live validation status
+          // Live Validation Feedback
           if (hasText) ...[
             if (!isAvailable)
-              Row(
-                children: [
-                  const TrackletIcon(
-                    TrackletIcons.warning,
-                    color: TrackletColors.busDelayed,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'sorry, username already taken ⚠️',
-                    style: TrackletTypography.labelSmall.copyWith(
-                      color: TrackletColors.busDelayed,
-                      fontWeight: FontWeight.w700,
+              const Padding(
+                padding: EdgeInsets.only(left: 6),
+                child: Row(
+                  children: [
+                    Text(
+                      'sorry, username already taken',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        color: Color(0xFFFF000F),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFFA000E),
+                      size: 16,
+                    ),
+                  ],
+                ),
               )
             else
-              Row(
-                children: [
-                  const TrackletIcon(
-                    TrackletIcons.check,
-                    color: Color(0xFF2563EB),
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'username available 🗹',
-                    style: TrackletTypography.labelSmall.copyWith(
-                      color: const Color(0xFF2563EB),
-                      fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Row(
+                  children: [
+                    const Text(
+                      'username available',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        color: Color(0xFF0F00FF),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Image.asset(
+                      'assets/images/Check_icon.png',
+                      width: 16,
+                      height: 16,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFF0033FA),
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
-          const SizedBox(height: TrackletSpacing.xxl * 1.5),
+          const SizedBox(height: TrackletSpacing.xxl),
 
-          // Continue button
-          TrackletButton(
-            label: 'Continue',
-            icon: const TrackletIcon(
-              TrackletIcons.chevronRight,
-              color: TrackletColors.textInverse,
-              size: 18,
+          // Continue Button
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: canContinue ? widget.onContinue : null,
+                iconAlignment: IconAlignment.end,
+                icon: const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  'Continue',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6F61EF),
+                  disabledBackgroundColor:
+                      const Color(0xFF6F61EF).withValues(alpha: 0.4),
+                  elevation: 3,
+                  shadowColor:
+                      const Color(0xFF6F61EF).withValues(alpha: 0.3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
-            isFullWidth: true,
-            size: TrackletButtonSize.large,
-            onPressed: canContinue ? widget.onContinue : null,
           ),
           const SizedBox(height: TrackletSpacing.lg),
         ],

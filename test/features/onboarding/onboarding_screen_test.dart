@@ -12,7 +12,7 @@ void main() {
 
       expect(find.text('Welcome to Tracklet'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);
-      expect(find.text('Transit, Reimagined.'), findsOneWidget);
+      expect(find.text('Continue with NITC Google Account'), findsOneWidget);
     });
 
     testWidgets('navigates from Welcome to Name step on tapping Get Started', (
@@ -27,7 +27,7 @@ void main() {
       await tester.tap(getStartedButton);
       await tester.pumpAndSettle();
 
-      expect(find.text("What's Your Name?"), findsOneWidget);
+      expect(find.text("Let's Set Up Your Academic Profile"), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
 

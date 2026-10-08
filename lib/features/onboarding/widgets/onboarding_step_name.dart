@@ -1,14 +1,14 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Step 2: Academic profile — Name entry with dynamic avatar initial preview.
+/// Step 2: Academic profile — Name entry with Attendrix aesthetic.
 class OnboardingStepName extends StatefulWidget {
   const OnboardingStepName({
     super.key,
@@ -42,10 +42,6 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
 
   @override
   Widget build(BuildContext context) {
-    final initial = _currentName.trim().isNotEmpty
-        ? _currentName.trim().substring(0, 1).toUpperCase()
-        : 'N';
-
     final isValid = _currentName.trim().length >= 2;
 
     return SingleChildScrollView(
@@ -55,79 +51,83 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: TrackletSpacing.lg),
+          const SizedBox(height: TrackletSpacing.md),
 
-          // Title & Description
+          // Title
           Text(
-            "What's Your Name?",
+            "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 28,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
+              color: TrackletColors.textPrimary,
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xs),
-          const Text(
-            'We use this to personalize your student pass, bus notifications, and campus profile.',
-            style: TrackletTypography.bodyMedium,
-          ),
-          const SizedBox(height: TrackletSpacing.xxl),
+          const SizedBox(height: 6),
 
-          // Live Avatar Initial Badge
-          Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.35),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+          // Subtitle with Attendrix "Tap to Learn More." link
+          RichText(
+            text: TextSpan(
+              style: TrackletTypography.bodySmall.copyWith(
+                color: TrackletColors.textSecondary,
+                fontSize: 12,
+                height: 1.4,
               ),
-              child: Center(
-                child: Text(
-                  initial,
-                  style: TrackletTypography.displayLarge.copyWith(
-                    color: Colors.white,
-                    fontSize: 36,
+              children: [
+                const TextSpan(
+                  text: 'Tell us your name so we can personalize your bus passes, notifications, and campus timetable. ',
+                ),
+                TextSpan(
+                  text: 'Tap to Learn More.',
+                  style: const TextStyle(
+                    color: TrackletColors.tertiary,
                     fontWeight: FontWeight.w800,
                   ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Your profile is kept safe locally and used for NITC campus transit personalization.',
+                          ),
+                          backgroundColor: TrackletColors.primary,
+                        ),
+                      );
+                    },
                 ),
-              ),
+              ],
             ),
           ),
           const SizedBox(height: TrackletSpacing.xxl),
 
-          // Name Input Field
+          // Input Label
           Text(
-            'Full Name',
-            style: TrackletTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
+            'What is your full name?',
+            style: TrackletTypography.titleSmall.copyWith(
+              color: TrackletColors.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xs),
+          const SizedBox(height: 8),
+
+          // Attendrix Styled Input Container
           Container(
+            height: 54,
             decoration: BoxDecoration(
-              color: TrackletColors.surface,
-              borderRadius: TrackletRadii.roundedMd,
+              color: TrackletColors.background,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isValid ? TrackletColors.primary : TrackletColors.border,
-                width: isValid ? 1.5 : 1.0,
+                width: 2.0,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: TrackletSpacing.md,
-              vertical: 4,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
               children: [
                 const TrackletIcon(
@@ -135,16 +135,26 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                   color: TrackletColors.textSecondary,
                   size: 20,
                 ),
-                const SizedBox(width: TrackletSpacing.md),
+                const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       hintText: 'e.g. Shashank Mergu',
+                      hintStyle: TextStyle(
+                        color: TrackletColors.textTertiary,
+                        fontSize: 16,
+                      ),
                       border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    style: TrackletTypography.titleLarge,
+                    style: TrackletTypography.titleMedium.copyWith(
+                      color: TrackletColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
                     onChanged: (val) => setState(() => _currentName = val),
                   ),
                 ),

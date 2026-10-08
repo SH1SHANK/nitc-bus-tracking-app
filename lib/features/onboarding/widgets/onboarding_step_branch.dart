@@ -1,16 +1,16 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
 import 'onboarding_selection_sheet.dart';
 
-/// Step 3: Academic profile — Branch selection inspired by the screenshot design.
+/// Step 3: Academic profile — Branch selection with Attendrix aesthetic.
 class OnboardingStepBranch extends StatelessWidget {
   const OnboardingStepBranch({
     super.key,
@@ -32,34 +32,65 @@ class OnboardingStepBranch extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: TrackletSpacing.lg),
+          const SizedBox(height: TrackletSpacing.md),
 
           // Header
           Text(
             "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: TrackletSpacing.xs),
-          const Text(
-            'Tell us a few details about your academic profile so we can personalize your timetable, lecture halls, and shuttle routes.',
-            style: TrackletTypography.bodyMedium,
-          ),
-          const SizedBox(height: TrackletSpacing.xl),
-
-          // Label
-          Text(
-            'Which branch do you belong to?',
-            style: TrackletTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
               color: TrackletColors.textPrimary,
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xs),
+          const SizedBox(height: 6),
 
-          // Dropdown Card
+          // Attendrix Subtitle with RichText link
+          RichText(
+            text: TextSpan(
+              style: TrackletTypography.bodySmall.copyWith(
+                color: TrackletColors.textSecondary,
+                fontSize: 12,
+                height: 1.4,
+              ),
+              children: [
+                const TextSpan(
+                  text: 'Tell us a few details about your academic profile so we can personalize your timetable, courses, and campus shuttle experience. Why do we ask for this information? ',
+                ),
+                TextSpan(
+                  text: 'Tap to Learn More.',
+                  style: const TextStyle(
+                    color: TrackletColors.tertiary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Branch information helps prioritize bus stops near your department buildings.',
+                          ),
+                          backgroundColor: TrackletColors.primary,
+                        ),
+                      );
+                    },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TrackletSpacing.xl),
+
+          // Form Label
+          Text(
+            'Which branch do you belong to?',
+            style: TrackletTypography.titleSmall.copyWith(
+              color: TrackletColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Attendrix Styled Dropdown Container
           InkWell(
             onTap: () {
               OnboardingSelectionSheet.show(
@@ -72,42 +103,49 @@ class OnboardingStepBranch extends StatelessWidget {
                 showSearch: true,
               );
             },
-            borderRadius: TrackletRadii.roundedMd,
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TrackletSpacing.md,
-                vertical: 16,
-              ),
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: TrackletColors.surface,
-                borderRadius: TrackletRadii.roundedMd,
-                border: Border.all(color: TrackletColors.border),
+                color: TrackletColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selectedBranch.isNotEmpty
+                      ? TrackletColors.primary
+                      : TrackletColors.border,
+                  width: 2.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  const TrackletIcon(
-                    TrackletIcons.route,
-                    color: TrackletColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: TrackletSpacing.md),
                   Expanded(
                     child: Text(
                       selectedBranch.isNotEmpty ? selectedBranch : 'Branch',
-                      style: TrackletTypography.titleMedium.copyWith(
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: selectedBranch.isNotEmpty
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: selectedBranch.isNotEmpty
                             ? TrackletColors.textPrimary
-                            : TrackletColors.textTertiary,
+                            : TrackletColors.textSecondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const TrackletIcon(
-                    TrackletIcons.chevronDown,
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
                     color: TrackletColors.textSecondary,
-                    size: 18,
+                    size: 24,
                   ),
                 ],
               ),
@@ -120,7 +158,7 @@ class OnboardingStepBranch extends StatelessWidget {
             'Quick Select',
             style: TrackletTypography.labelSmall.copyWith(
               color: TrackletColors.textSecondary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: TrackletSpacing.sm),
@@ -153,14 +191,18 @@ class OnboardingStepBranch extends StatelessWidget {
                       color: isSelected
                           ? Colors.white
                           : TrackletColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
-                    backgroundColor: TrackletColors.surface,
+                    backgroundColor: TrackletColors.background,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     side: BorderSide(
                       color: isSelected
                           ? TrackletColors.primary
                           : TrackletColors.border,
+                      width: 1.5,
                     ),
                     onSelected: (selected) {
                       if (selected) onBranchChanged(branch);

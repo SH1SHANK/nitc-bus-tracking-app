@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/create_account_screen.dart';
+import '../features/auth/forgot_password_screen.dart';
+import '../features/auth/login_screen.dart';
+import '../features/auth/reset_password_sent_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -32,6 +36,36 @@ GoRouter createRouter({String initialLocation = '/onboarding'}) {
         name: 'onboarding',
         pageBuilder: (context, state) =>
             const MaterialPage(child: OnboardingScreen()),
+      ),
+
+      // Auth Routes
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/login',
+        name: 'login',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: LoginScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/create-account',
+        name: 'createAccount',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: CreateAccountScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/forgot-password',
+        name: 'forgotPassword',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ForgotPasswordScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/reset-password-sent',
+        name: 'resetPasswordSent',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ResetPasswordSentScreen()),
       ),
 
       // Main Navigation Shell (Home, Map, Profile)

@@ -14,7 +14,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Shashank'), findsOneWidget);
-      expect(find.text('Catch your next ride.'), findsOneWidget);
+      expect(
+        find.textContaining('Next campus shuttle departing in'),
+        findsOneWidget,
+      );
       expect(find.byType(NextBusCard), findsOneWidget);
     });
   });

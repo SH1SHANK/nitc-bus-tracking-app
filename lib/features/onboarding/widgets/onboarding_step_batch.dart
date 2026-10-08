@@ -1,16 +1,16 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
 import 'onboarding_selection_sheet.dart';
 
-/// Step 4: Academic profile — Batch selection.
+/// Step 4: Academic profile — Batch selection with Attendrix aesthetic.
 class OnboardingStepBatch extends StatelessWidget {
   const OnboardingStepBatch({
     super.key,
@@ -32,71 +32,117 @@ class OnboardingStepBatch extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: TrackletSpacing.lg),
+          const SizedBox(height: TrackletSpacing.md),
 
           // Header
           Text(
-            'Which Batch Do You Belong To?',
+            "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
+              color: TrackletColors.textPrimary,
             ),
           ),
-          const SizedBox(height: TrackletSpacing.xs),
-          const Text(
-            'Helps us coordinate year-specific campus transit timings and hostel dispersal shuttles.',
-            style: TrackletTypography.bodyMedium,
+          const SizedBox(height: 6),
+
+          // Subtitle with Attendrix link
+          RichText(
+            text: TextSpan(
+              style: TrackletTypography.bodySmall.copyWith(
+                color: TrackletColors.textSecondary,
+                fontSize: 12,
+                height: 1.4,
+              ),
+              children: [
+                const TextSpan(
+                  text: 'Select your batch year so we can sync your timetable and bus schedules with your academic calendar. ',
+                ),
+                TextSpan(
+                  text: 'Tap to Learn More.',
+                  style: const TextStyle(
+                    color: TrackletColors.tertiary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Batch settings configure exam schedules and rush hour bus alerts.',
+                          ),
+                          backgroundColor: TrackletColors.primary,
+                        ),
+                      );
+                    },
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 
-          // Dropdown Card
+          // Form Label
+          Text(
+            'Which batch do you belong to?',
+            style: TrackletTypography.titleSmall.copyWith(
+              color: TrackletColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Dropdown Container
           InkWell(
             onTap: () {
               OnboardingSelectionSheet.show(
                 context: context,
                 title: 'Select Batch',
-                subtitle: 'Choose your graduation year or degree program',
+                subtitle: 'Choose your entry batch year at NITC',
                 items: kNitcBatches,
                 selectedItem: selectedBatch,
                 onSelected: onBatchChanged,
               );
             },
-            borderRadius: TrackletRadii.roundedMd,
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TrackletSpacing.md,
-                vertical: 16,
-              ),
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: TrackletColors.surface,
-                borderRadius: TrackletRadii.roundedMd,
-                border: Border.all(color: TrackletColors.border),
+                color: TrackletColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selectedBatch.isNotEmpty
+                      ? TrackletColors.primary
+                      : TrackletColors.border,
+                  width: 2.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  const TrackletIcon(
-                    TrackletIcons.calendar,
-                    color: TrackletColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: TrackletSpacing.md),
                   Expanded(
                     child: Text(
                       selectedBatch.isNotEmpty ? selectedBatch : 'Batch',
-                      style: TrackletTypography.titleMedium.copyWith(
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: selectedBatch.isNotEmpty
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: selectedBatch.isNotEmpty
                             ? TrackletColors.textPrimary
-                            : TrackletColors.textTertiary,
+                            : TrackletColors.textSecondary,
                       ),
                     ),
                   ),
-                  const TrackletIcon(
-                    TrackletIcons.chevronDown,
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
                     color: TrackletColors.textSecondary,
-                    size: 18,
+                    size: 24,
                   ),
                 ],
               ),
@@ -104,96 +150,53 @@ class OnboardingStepBatch extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.xl),
 
-          // Visual Cards for Batches
+          // Quick Selection Grid
           Text(
-            'Select Program Year',
+            'Undergraduate Batches',
             style: TrackletTypography.labelSmall.copyWith(
               color: TrackletColors.textSecondary,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: TrackletSpacing.sm),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: kNitcBatches.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: TrackletSpacing.sm),
-            itemBuilder: (context, index) {
-              final batch = kNitcBatches[index];
-              final isSelected = selectedBatch == batch;
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: ['B21', 'B22', 'B23', 'B24', 'B25'].map((batch) {
+              final isSelected = selectedBatch.startsWith(batch);
 
-              return InkWell(
-                onTap: () => onBatchChanged(batch),
-                borderRadius: TrackletRadii.roundedMd,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TrackletSpacing.md,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? TrackletColors.primary.withValues(alpha: 0.08)
-                        : TrackletColors.surface,
-                    borderRadius: TrackletRadii.roundedMd,
-                    border: Border.all(
-                      color: isSelected
-                          ? TrackletColors.primary
-                          : TrackletColors.border,
-                      width: isSelected ? 1.5 : 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? TrackletColors.primary
-                              : TrackletColors.surfaceElevated,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : TrackletColors.textPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: TrackletSpacing.md),
-                      Expanded(
-                        child: Text(
-                          batch,
-                          style: TrackletTypography.titleMedium.copyWith(
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: isSelected
-                                ? TrackletColors.primary
-                                : TrackletColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      if (isSelected)
-                        const TrackletIcon(
-                          TrackletIcons.check,
-                          color: TrackletColors.primary,
-                          size: 18,
-                        ),
-                    ],
-                  ),
+              return ChoiceChip(
+                label: Text(batch),
+                selected: isSelected,
+                selectedColor: TrackletColors.primary,
+                labelStyle: TextStyle(
+                  color: isSelected ? Colors.white : TrackletColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
+                backgroundColor: TrackletColors.background,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: BorderSide(
+                  color: isSelected
+                      ? TrackletColors.primary
+                      : TrackletColors.border,
+                  width: 1.5,
+                ),
+                onSelected: (selected) {
+                  if (selected) {
+                    final fullBatch = kNitcBatches.firstWhere(
+                      (b) => b.startsWith(batch),
+                      orElse: () => batch,
+                    );
+                    onBatchChanged(fullBatch);
+                  }
+                },
               );
-            },
+            }).toList(),
           ),
-          const SizedBox(height: TrackletSpacing.xxl),
+          const SizedBox(height: TrackletSpacing.xxl * 1.5),
 
           // Continue Button
           TrackletButton(

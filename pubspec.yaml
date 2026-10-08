@@ -39,14 +39,11 @@ flutter:
 
   assets:
     - assets/icons/
-  # Expected font assets:
-  # assets/fonts/Outfit-Variable.ttf (Primary)
-  # assets/fonts/Satoshi-Variable.ttf (Secondary)
-  # Uncomment below once font asset files are placed in assets/fonts/
-  # fonts:
-  #   - family: Outfit
-  #     fonts:
-  #       - asset: assets/fonts/Outfit-Variable.ttf
-  #   - family: Satoshi
-  #     fonts:
-  #       - asset: assets/fonts/Satoshi-Variable.ttf
+    - assets/images/
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-Variable.ttf
+    - family: Satoshi
+      fonts:
+        - asset: assets/fonts/Satoshi-Variable.ttf

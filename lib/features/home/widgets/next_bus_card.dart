@@ -1,19 +1,16 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/formatting/transit_formatter.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
-import '../../../design_system/components/tracklet_card.dart';
-import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/spacing.dart';
-import '../../../design_system/tokens/typography.dart';
-import 'route_progress_indicator.dart';
 
-/// Hero transit card on Home screen displaying immediate next bus arrival information.
+/// Authentic Attendrix-style Campus Transit Card (`BusTimeCardWidget`).
+/// Shows Next Bus, Walk Time pill, Nearest Stop pill, Available Buses list,
+/// and recommendation footer.
 class NextBusCard extends StatelessWidget {
   const NextBusCard({
     super.key,
@@ -32,105 +29,327 @@ class NextBusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TrackletCard(
-      onTap: onTrackPressed,
-      padding: const EdgeInsets.all(TrackletSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Nearest stop & walking time header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const TrackletIcon(
-                    TrackletIcons.busStop,
-                    size: 18,
-                    color: TrackletColors.primary,
-                  ),
-                  const SizedBox(width: TrackletSpacing.xs),
-                  Text(
-                    selectedStop.name,
-                    style: TrackletTypography.titleMedium,
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TrackletSpacing.sm,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: TrackletColors.surface,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  TransitFormatter.formatWalkingTime(
-                    selectedStop.walkingTimeMinutes,
-                  ),
-                  style: TrackletTypography.labelSmall.copyWith(
-                    color: TrackletColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: TrackletSpacing.lg),
+    if (nextBus != null) {
+      final routeName = route?.name ?? nextBus!.name;
+      final walkTime = selectedStop.walkingTimeMinutes;
 
-          // Next Bus Arrival Info
-          if (nextBus != null) ...[
+      return Container(
+        decoration: BoxDecoration(
+          color: TrackletColors.surface,
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(color: TrackletColors.border, width: 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Row: Next Bus Header + Walk Time & Nearest Stop Chips
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  TransitFormatter.formatEta(etaMinutes),
-                  style: TrackletTypography.numericLarge.copyWith(
-                    color: TrackletColors.primary,
-                    fontSize: 32,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Next Bus',
+                        style: TextStyle(
+                          color: TrackletColors.textSecondary,
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.bold,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        '$routeName (${nextBus!.name})',
+                        style: const TextStyle(
+                          color: TrackletColors.primary,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: TrackletSpacing.md),
-                TrackletStatusBadge(
-                  label: nextBus!.status.displayName,
-                  status: switch (nextBus!.status) {
-                    BusStatus.live => TrackletBadgeStatus.live,
-                    BusStatus.delayed => TrackletBadgeStatus.delayed,
-                    BusStatus.due => TrackletBadgeStatus.due,
-                    BusStatus.offline => TrackletBadgeStatus.offline,
-                  },
+                const SizedBox(width: 8.0),
+                // Chips Row
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Walk Time Chip
+                    Container(
+                      height: 28.0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 2.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: TrackletColors.background,
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(
+                          color: TrackletColors.border,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Walk Time',
+                            style: TextStyle(
+                              color: TrackletColors.tertiary,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            '$walkTime',
+                            style: const TextStyle(
+                              color: TrackletColors.textPrimary,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 2.0),
+                          const Text(
+                            'mins',
+                            style: TextStyle(
+                              color: TrackletColors.textSecondary,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6.0),
+
+                    // Nearest Stop Chip
+                    Container(
+                      height: 28.0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 2.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: TrackletColors.background,
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(
+                          color: TrackletColors.border,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const TrackletIcon(
+                            TrackletIcons.location,
+                            color: TrackletColors.primary,
+                            size: 14.0,
+                          ),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            selectedStop.name,
+                            style: const TextStyle(
+                              color: TrackletColors.textPrimary,
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: TrackletSpacing.xs),
-            Text(
-              route?.description ?? nextBus!.name,
-              style: TrackletTypography.bodyMedium,
-            ),
-            const SizedBox(height: TrackletSpacing.lg),
+            const SizedBox(height: 12.0),
 
-            // Route Progress
-            RouteProgressIndicator(
-              originName: selectedStop.name,
-              destinationName: 'Mega Hostel Hub',
-              progressPercent: 0.60,
-            ),
-          ] else ...[
-            Text(
-              'No active buses right now',
-              style: TrackletTypography.titleLarge.copyWith(
+            // Available Buses Section Header
+            const Text(
+              'Available Departures',
+              style: TextStyle(
                 color: TrackletColors.textSecondary,
+                fontSize: 11.0,
+                fontWeight: FontWeight.bold,
+                height: 1.0,
               ),
             ),
-            const SizedBox(height: TrackletSpacing.xs),
-            const Text(
-              'Next campus shuttle scheduled at 08:30 AM',
-              style: TrackletTypography.bodyMedium,
+            const SizedBox(height: 6.0),
+
+            // Mini Departure Item Container (Attendrix style)
+            Container(
+              height: 44.0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 4.0,
+              ),
+              decoration: BoxDecoration(
+                color: TrackletColors.background,
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(color: TrackletColors.border, width: 1.0),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${selectedStop.name} → East Campus Terminal',
+                      style: const TextStyle(
+                        color: TrackletColors.textPrimary,
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Arrival Countdown Pill
+                  Container(
+                    height: 26.0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 2.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TrackletColors.surface,
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(
+                        color: TrackletColors.border,
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'in ',
+                          style: TextStyle(
+                            color: TrackletColors.textSecondary,
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$etaMinutes',
+                          style: const TextStyle(
+                            color: TrackletColors.primary,
+                            fontSize: 13.0,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const Text(
+                          ' mins',
+                          style: TextStyle(
+                            color: TrackletColors.textSecondary,
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8.0),
+
+            // Footer Subtitle with "Tap to learn more."
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: TrackletColors.textSecondary,
+                      fontSize: 9.0,
+                      height: 1.3,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: 'Based on official NITC Bus timings. ',
+                      ),
+                      TextSpan(
+                        text: 'Tap to learn more.',
+                        style: const TextStyle(
+                          color: TrackletColors.tertiary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 9.0,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = onTrackPressed,
+                      ),
+                    ],
+                  ),
+                ),
+                const Text(
+                  'updated live',
+                  style: TextStyle(
+                    color: TrackletColors.textSecondary,
+                    fontSize: 9.0,
+                  ),
+                ),
+              ],
             ),
           ],
-        ],
-      ),
-    );
+        ),
+      );
+    } else {
+      // Empty state when no more buses
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: TrackletColors.background,
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(color: TrackletColors.border, width: 2.0),
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TrackletIcon(
+              TrackletIcons.bus,
+              color: TrackletColors.textSecondary,
+              size: 40.0,
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              'No More Scheduled Buses Today',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: TrackletColors.textPrimary,
+                fontSize: 16.0,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 4.0),
+            Text(
+              'Campus shuttle service resumes tomorrow morning at 08:00 AM.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: TrackletColors.textSecondary,
+                fontSize: 12.0,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

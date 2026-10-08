@@ -7,19 +7,19 @@ import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import 'providers/onboarding_provider.dart';
+import 'widgets/onboarding_academic_profile_page.dart';
 import 'widgets/onboarding_progress_bar.dart';
-import 'widgets/onboarding_step_batch.dart';
-import 'widgets/onboarding_step_branch.dart';
 import 'widgets/onboarding_step_loading.dart';
-import 'widgets/onboarding_step_location.dart';
-import 'widgets/onboarding_step_name.dart';
-import 'widgets/onboarding_step_notifications.dart';
-import 'widgets/onboarding_step_semester.dart';
-import 'widgets/onboarding_step_setup.dart';
+import 'widgets/onboarding_step_permissions.dart';
 import 'widgets/onboarding_step_username.dart';
 import 'widgets/onboarding_step_welcome.dart';
 
-/// Full interactive 11-step onboarding experience for Tracklet.
+/// Streamlined Onboarding Experience matching Attendrix Layout.
+/// 0: Welcome / Sign In
+/// 1: Academic Profile (All-in-One)
+/// 2: Username with Magic Wand Generator
+/// 3: Combined Permissions (Location & Notifications)
+/// 4: Final Welcome & Loading Sequence -> Home
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -29,6 +29,8 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final PageController _pageController;
+
+  static const int kTotalSteps = 3;
 
   @override
   void initState() {
@@ -56,8 +58,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final next = current + 1;
     _goToStep(next);
 
-    // If entering the final loading step, kick off initialization
-    if (next == 9) {
+    // If entering the final loading step (step 4), kick off initialization sequence
+    if (next == 4) {
       ref
           .read(onboardingProvider.notifier)
           .runInitializationSequence(
@@ -82,7 +84,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
 
-    final showTopNav = state.currentStep > 0 && state.currentStep < 9;
+    final showTopNav = state.currentStep > 0 && state.currentStep < 4;
 
     return Scaffold(
       backgroundColor: TrackletColors.background,
@@ -111,9 +113,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const Spacer(),
                         Text(
-                          'Step ${state.currentStep} of 8',
+                          'Step ${state.currentStep} of $kTotalSteps',
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontFamily: 'Outfit',
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: TrackletColors.textSecondary,
                           ),
@@ -126,7 +129,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: OnboardingProgressBar(
                         currentStep: state.currentStep - 1,
-                        totalSteps: 8,
+                        totalSteps: kTotalSteps,
                       ),
                     ),
                   ],
@@ -141,40 +144,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  // 1. Welcome
-                  OnboardingStepWelcome(onGetStarted: _next, onSignIn: _next),
-
-                  // 2. Academic profile — Name
-                  OnboardingStepName(
-                    initialName: state.name,
-                    onContinue: (name) {
-                      notifier.setName(name);
-                      _next();
-                    },
+                  // 0. Welcome / Sign In Entry
+                  OnboardingStepWelcome(
+                    onGetStarted: _next,
+                    onSignIn: () => context.push('/login'),
                   ),
 
-                  // 3. Academic profile — Branch
-                  OnboardingStepBranch(
-                    selectedBranch: state.branch,
+                  // 1. All-in-One Academic Profile (Name, Branch, Batch, Hostel)
+                  OnboardingAcademicProfilePage(
+                    name: state.name,
+                    branch: state.branch,
+                    batch: state.batch,
+                    hostel: state.hostel,
+                    onNameChanged: (n) => notifier.setName(n),
                     onBranchChanged: (b) => notifier.setBranch(b),
-                    onContinue: _next,
-                  ),
-
-                  // 4. Academic profile — Batch
-                  OnboardingStepBatch(
-                    selectedBatch: state.batch,
                     onBatchChanged: (b) => notifier.setBatch(b),
+                    onHostelChanged: (h) => notifier.setHostel(h),
                     onContinue: _next,
                   ),
 
-                  // 5. Academic profile — Semester
-                  OnboardingStepSemester(
-                    selectedSemester: state.semester,
-                    onSemesterChanged: (s) => notifier.setSemester(s),
-                    onContinue: _next,
-                  ),
-
-                  // 6. Username
+                  // 2. Username with Attendrix Gradient & Magic Generator
                   OnboardingStepUsername(
                     initialUsername: state.username,
                     isAvailable: state.isUsernameAvailable,
@@ -183,42 +172,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onContinue: _next,
                   ),
 
-                  // 7. Location permission
-                  OnboardingStepLocation(
-                    onEnableLocation: () {
-                      notifier.setLocationPermission(true);
+                  // 3. Combined Permissions (Location & Notifications)
+                  OnboardingStepPermissions(
+                    locationGranted: state.locationPermissionGranted,
+                    notificationsGranted: state.notificationPermissionGranted,
+                    onEnablePermissions: ({
+                      required bool enableLocation,
+                      required bool enableNotifications,
+                    }) async {
+                      notifier.setLocationPermission(enableLocation);
+                      notifier.setNotificationPermission(enableNotifications);
                       _next();
                     },
                     onSkip: () {
                       notifier.setLocationPermission(false);
-                      _next();
-                    },
-                  ),
-
-                  // 8. Notification permission
-                  OnboardingStepNotifications(
-                    onEnableNotifications: () {
-                      notifier.setNotificationPermission(true);
-                      _next();
-                    },
-                    onSkip: () {
                       notifier.setNotificationPermission(false);
                       _next();
                     },
                   ),
 
-                  // 9. Optional setup / preferences
-                  OnboardingStepSetup(
-                    selectedHostel: state.hostel,
-                    selectedStop: state.primaryStop,
-                    agreedToTerms: state.agreedToTerms,
-                    onHostelChanged: (h) => notifier.setHostel(h),
-                    onStopChanged: (s) => notifier.setPrimaryStop(s),
-                    onToggleTerms: (t) => notifier.toggleTerms(t),
-                    onContinue: _next,
-                  ),
-
-                  // 10 & 11. Final welcome / loading & Transition into Home
+                  // 4. Final Welcome & Animated Loading Sequence (`flow.gif`)
                   OnboardingStepLoading(
                     progress: state.loadingProgress,
                     statusText: state.loadingStatus,

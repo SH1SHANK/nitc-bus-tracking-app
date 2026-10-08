@@ -18,6 +18,7 @@ abstract final class TrackletIcons {
   static const IconData notifications = TablerIcons.bell;
   static const IconData search = TablerIcons.search;
   static const IconData filter = TablerIcons.adjustments_horizontal;
+  static const IconData menu = TablerIcons.menu_2;
 
   // Transit & Geo
   static const IconData bus = TablerIcons.bus;
