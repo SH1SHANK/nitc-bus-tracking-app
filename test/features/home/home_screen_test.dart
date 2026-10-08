@@ -36,7 +36,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Account Options'), findsOneWidget);
-      expect(find.text('Sync Timetable'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Report Errors/Bugs'), findsOneWidget);
       expect(find.text('Log Out'), findsOneWidget);
     });
   });
