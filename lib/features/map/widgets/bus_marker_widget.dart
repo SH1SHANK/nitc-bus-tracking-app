@@ -4,6 +4,7 @@ import '../../../data/transit/bus.dart';
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 /// Bus marker displayed on the campus map with live status indicator.
 class BusMarkerWidget extends StatelessWidget {
@@ -40,13 +41,7 @@ class BusMarkerWidget extends StatelessWidget {
             color: isSelected ? TrackletColors.primary : statusColor,
             width: isSelected ? 3.0 : 2.0,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
+          boxShadow: const [TrackletShadows.sm],
         ),
         child: Center(
           child: TrackletIcon(

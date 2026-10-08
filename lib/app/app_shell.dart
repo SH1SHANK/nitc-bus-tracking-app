@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../design_system/components/icons/tracklet_icon.dart';
 import '../design_system/components/icons/tracklet_icons.dart';
 import '../design_system/tokens/colors.dart';
+import '../design_system/tokens/shadows.dart';
 import '../design_system/tokens/spacing.dart';
 import '../design_system/tokens/typography.dart';
 
@@ -25,13 +26,7 @@ class AppShell extends StatelessWidget {
           border: Border(
             top: BorderSide(color: TrackletColors.border, width: 1.0),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 10,
-              offset: Offset(0, -2),
-            ),
-          ],
+          boxShadow: [TrackletShadows.sm],
         ),
         child: SafeArea(
           child: Padding(

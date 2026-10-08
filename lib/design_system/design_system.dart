@@ -9,5 +9,6 @@ export 'components/tracklet_status_badge.dart';
 export 'theme/tracklet_theme.dart';
 export 'tokens/colors.dart';
 export 'tokens/radii.dart';
+export 'tokens/shadows.dart';
 export 'tokens/spacing.dart';
 export 'tokens/typography.dart';

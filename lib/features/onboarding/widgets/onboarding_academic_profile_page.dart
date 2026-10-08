@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/components/bottom_sheets/why_do_we_need_your_info_bottom_sheet.dart';
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
@@ -79,7 +81,8 @@ class _OnboardingAcademicProfilePageState
     final isBranchValid = widget.branch.isNotEmpty;
     final isBatchValid = widget.batch.isNotEmpty;
     final isHostelValid = widget.hostel.isNotEmpty;
-    final isFormValid = isNameValid &&
+    final isFormValid =
+        isNameValid &&
         isBranchValid &&
         isBatchValid &&
         isHostelValid &&
@@ -97,10 +100,10 @@ class _OnboardingAcademicProfilePageState
           // Header Title
           Text(
             "Let's Set Up Your Academic Profile",
-            style: TrackletTypography.displayLarge.copyWith(
+            style: TrackletTypography.displaySmall.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF14181B),
+              color: TrackletColors.altPrimaryText,
             ),
           ),
           const SizedBox(height: 6),
@@ -109,20 +112,18 @@ class _OnboardingAcademicProfilePageState
           RichText(
             text: TextSpan(
               style: TrackletTypography.bodySmall.copyWith(
-                color: const Color(0xFF57636C),
+                color: TrackletColors.secondaryText,
                 fontSize: 11.5,
                 height: 1.45,
-                fontFamily: 'Outfit',
               ),
               children: [
                 const TextSpan(
-                  text:
-                      'Tell us a few details about your academic profile so we can personalize your transit timings and campus bus routes. Why do we ask for this information? ',
+                  text: 'Tell us a few details about your academic profile so we can personalize your transit timings and campus bus routes. Why do we ask for this information? ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',
                   style: const TextStyle(
-                    color: Color(0xFF6F61EF),
+                    color: TrackletColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                   recognizer: TapGestureRecognizer()
@@ -134,7 +135,7 @@ class _OnboardingAcademicProfilePageState
                 TextSpan(
                   text: 'Request here',
                   style: const TextStyle(
-                    color: Color(0xFF6F61EF),
+                    color: TrackletColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                   recognizer: TapGestureRecognizer()
@@ -143,9 +144,11 @@ class _OnboardingAcademicProfilePageState
                         const SnackBar(
                           content: Text(
                             'To request custom departments or hostels, contact transit-support@nitc.ac.in',
-                            style: TextStyle(fontFamily: 'Outfit'),
+                            style: TextStyle(
+                              fontFamily: TrackletTypography.primaryFontFamily,
+                            ),
                           ),
-                          backgroundColor: Color(0xFF6F61EF),
+                          backgroundColor: TrackletColors.primary,
                         ),
                       );
                     },
@@ -162,11 +165,11 @@ class _OnboardingAcademicProfilePageState
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F4F8),
-              borderRadius: BorderRadius.circular(12),
+              color: TrackletColors.primaryBackground,
+              borderRadius: BorderRadius.circular(TrackletRadii.card),
               border: Border.all(
                 color: isNameValid
-                    ? const Color(0xFF6F61EF)
+                    ? TrackletColors.primary
                     : Colors.transparent,
                 width: 2.0,
               ),
@@ -175,7 +178,7 @@ class _OnboardingAcademicProfilePageState
               children: [
                 const Icon(
                   Icons.person_outline_rounded,
-                  color: Color(0xFF57636C),
+                  color: TrackletColors.secondaryText,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -186,8 +189,8 @@ class _OnboardingAcademicProfilePageState
                     decoration: const InputDecoration(
                       hintText: 'Full Name',
                       hintStyle: TextStyle(
-                        fontFamily: 'Outfit',
-                        color: Color(0xFF57636C),
+                        fontFamily: TrackletTypography.primaryFontFamily,
+                        color: TrackletColors.secondaryText,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -196,10 +199,10 @@ class _OnboardingAcademicProfilePageState
                       contentPadding: EdgeInsets.zero,
                     ),
                     style: const TextStyle(
-                      fontFamily: 'Outfit',
+                      fontFamily: TrackletTypography.primaryFontFamily,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF14181B),
+                      color: TrackletColors.altPrimaryText,
                     ),
                     onChanged: (val) {
                       widget.onNameChanged(val);
@@ -217,7 +220,7 @@ class _OnboardingAcademicProfilePageState
                     child: const Icon(
                       Icons.close_rounded,
                       size: 18,
-                      color: Color(0xFF57636C),
+                      color: TrackletColors.secondaryText,
                     ),
                   ),
               ],
@@ -304,15 +307,15 @@ class _OnboardingAcademicProfilePageState
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0),
+                      borderRadius: BorderRadius.circular(TrackletRadii.xs),
                     ),
                   ),
-                  unselectedWidgetColor: const Color(0xFF57636C),
+                  unselectedWidgetColor: TrackletColors.secondaryText,
                 ),
                 child: Checkbox(
                   value: _agreedToTerms,
-                  activeColor: const Color(0xFF6F61EF),
-                  checkColor: Colors.white,
+                  activeColor: TrackletColors.primary,
+                  checkColor: TrackletColors.pure,
                   onChanged: (val) =>
                       setState(() => _agreedToTerms = val ?? false),
                 ),
@@ -324,9 +327,9 @@ class _OnboardingAcademicProfilePageState
                   child: RichText(
                     text: TextSpan(
                       style: const TextStyle(
-                        fontFamily: 'Outfit',
+                        fontFamily: TrackletTypography.primaryFontFamily,
                         fontSize: 12,
-                        color: Color(0xFF57636C),
+                        color: TrackletColors.secondaryText,
                         height: 1.3,
                       ),
                       children: [
@@ -336,7 +339,7 @@ class _OnboardingAcademicProfilePageState
                         TextSpan(
                           text: 'Terms of Service',
                           style: const TextStyle(
-                            color: Color(0xFF6F61EF),
+                            color: TrackletColors.primary,
                             fontWeight: FontWeight.w700,
                           ),
                           recognizer: TapGestureRecognizer()
@@ -348,7 +351,7 @@ class _OnboardingAcademicProfilePageState
                         TextSpan(
                           text: 'Privacy Policy',
                           style: const TextStyle(
-                            color: Color(0xFF6F61EF),
+                            color: TrackletColors.primary,
                             fontWeight: FontWeight.w700,
                           ),
                           recognizer: TapGestureRecognizer()
@@ -376,26 +379,26 @@ class _OnboardingAcademicProfilePageState
               icon: const Icon(
                 Icons.arrow_forward_rounded,
                 size: 18,
-                color: Colors.white,
+                color: TrackletColors.pure,
               ),
               label: const Text(
                 'Continue',
                 style: TextStyle(
-                  fontFamily: 'Outfit',
+                  fontFamily: TrackletTypography.primaryFontFamily,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: TrackletColors.pure,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6F61EF),
-                disabledBackgroundColor:
-                    const Color(0xFF6F61EF).withValues(alpha: 0.4),
+                backgroundColor: TrackletColors.primary,
+                disabledBackgroundColor: TrackletColors.primary.withValues(
+                  alpha: 0.4,
+                ),
                 elevation: 3,
-                shadowColor:
-                    const Color(0xFF6F61EF).withValues(alpha: 0.3),
+                shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TrackletRadii.card),
                 ),
               ),
             ),
@@ -410,10 +413,10 @@ class _OnboardingAcademicProfilePageState
     return Text(
       label,
       style: const TextStyle(
-        fontFamily: 'Outfit',
+        fontFamily: TrackletTypography.primaryFontFamily,
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF57636C),
+        color: TrackletColors.secondaryText,
       ),
     );
   }
@@ -427,17 +430,15 @@ class _OnboardingAcademicProfilePageState
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(TrackletRadii.card),
       child: Container(
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F4F8),
-          borderRadius: BorderRadius.circular(12),
+          color: TrackletColors.primaryBackground,
+          borderRadius: BorderRadius.circular(TrackletRadii.card),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF6F61EF)
-                : Colors.transparent,
+            color: isSelected ? TrackletColors.primary : Colors.transparent,
             width: 2.0,
           ),
         ),
@@ -447,12 +448,12 @@ class _OnboardingAcademicProfilePageState
               child: Text(
                 isSelected ? value : hint,
                 style: TextStyle(
-                  fontFamily: 'Outfit',
+                  fontFamily: TrackletTypography.primaryFontFamily,
                   fontSize: 15,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
-                      ? const Color(0xFF14181B)
-                      : const Color(0xFF57636C),
+                      ? TrackletColors.altPrimaryText
+                      : TrackletColors.secondaryText,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -460,7 +461,7 @@ class _OnboardingAcademicProfilePageState
             ),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF57636C),
+              color: TrackletColors.secondaryText,
               size: 24,
             ),
           ],

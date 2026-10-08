@@ -36,7 +36,10 @@ class OnboardingStepLocation extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFE0F2FE), Color(0xFFEFF6FF)],
+                colors: [
+                  TrackletColors.locationBlueBg,
+                  TrackletColors.permissionBlueBg,
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -84,15 +87,15 @@ class OnboardingStepLocation extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(TrackletSpacing.md),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: TrackletColors.locationGreenBg,
               borderRadius: TrackletRadii.roundedMd,
-              border: Border.all(color: const Color(0xFFBBF7D0)),
+              border: Border.all(color: TrackletColors.locationGreenBorder),
             ),
             child: Row(
               children: [
                 const TrackletIcon(
                   TrackletIcons.check,
-                  color: Color(0xFF16A34A),
+                  color: TrackletColors.locationGreenText,
                   size: 20,
                 ),
                 const SizedBox(width: TrackletSpacing.sm),
@@ -100,7 +103,7 @@ class OnboardingStepLocation extends StatelessWidget {
                   child: Text(
                     'Campus only: Location is used exclusively to find nearest stops.',
                     style: TrackletTypography.bodySmall.copyWith(
-                      color: const Color(0xFF15803D),
+                      color: TrackletColors.locationGreenDark,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

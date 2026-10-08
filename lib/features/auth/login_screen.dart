@@ -2,6 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/radii.dart';
+import '../../design_system/tokens/spacing.dart';
+import '../../design_system/tokens/typography.dart';
+
 /// Authentic Attendrix Login Screen layout and styling.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,9 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(
           content: Text(
             'Please enter your email and password.',
-            style: TextStyle(fontFamily: 'Outfit'),
+            style: TextStyle(fontFamily: TrackletTypography.primaryFontFamily),
           ),
-          backgroundColor: Color(0xFFFA000E),
+          backgroundColor: TrackletColors.errorBorder,
         ),
       );
       return;
@@ -60,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: TrackletColors.secondaryBackground,
         body: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.max,
@@ -76,7 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.topCenter,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius: BorderRadius.circular(
+                          TrackletRadii.input,
+                        ),
                         child: Image.asset(
                           'assets/images/Clean_Login_Design_Rectangle_10.png',
                           width: double.infinity,
@@ -84,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           fit: BoxFit.fitWidth,
                           errorBuilder: (_, _, _) => Container(
                             height: 320.0,
-                            color: const Color(0xFF5AB2F7).withValues(alpha: 0.2),
+                            color: TrackletColors.permissionHeaderGradientStart
+                                .withValues(alpha: 0.2),
                           ),
                         ),
                       ),
@@ -92,7 +100,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: const Alignment(0.0, 1.5),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius: BorderRadius.circular(
+                          TrackletRadii.input,
+                        ),
                         child: Image.asset(
                           'assets/images/Young_Man_Laptop_Clean_Login_Design.png',
                           width: 250.0,
@@ -113,42 +123,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login Form Area
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  TrackletSpacing.screenMargin,
+                  TrackletSpacing.screenMargin,
+                  TrackletSpacing.screenMargin,
+                  0.0,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title
-                    const Text(
+                    Text(
                       'Welcome Back!',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
+                      style: TrackletTypography.displaySmall.copyWith(
                         fontSize: 26.0,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF14181B),
-                        letterSpacing: 0.0,
+                        color: TrackletColors.altPrimaryText,
                       ),
                     ),
                     const SizedBox(height: 6.0),
 
                     // Subtitle
-                    const Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 18.0),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        18.0,
+                      ),
                       child: Text(
                         "Log in and pick up right where you left off. We've been saving your seat. ",
-                        style: TextStyle(
-                          fontFamily: 'Outfit',
+                        style: TrackletTypography.labelMedium.copyWith(
                           fontSize: 14.0,
-                          color: Color(0xFF57636C),
+                          color: TrackletColors.secondaryText,
                           fontWeight: FontWeight.w500,
-                          letterSpacing: 0.0,
                         ),
                       ),
                     ),
 
                     // Email Field
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        10.0,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         child: TextFormField(
@@ -160,53 +181,59 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             isDense: true,
                             hintText: 'Email ',
-                            hintStyle: const TextStyle(
-                              fontFamily: 'Outfit',
-                              fontSize: 16.0,
-                              color: Color(0xFF57636C),
+                            hintStyle: TrackletTypography.labelLarge.copyWith(
+                              color: TrackletColors.secondaryText,
                               fontWeight: FontWeight.w500,
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0x00000000),
+                                color: Colors.transparent,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFF6F61EF),
+                                color: TrackletColors.primary,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFFFA000E),
+                                color: TrackletColors.errorBorder,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFFFA000E),
+                                color: TrackletColors.errorBorder,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF1F4F8),
-                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                              14.0,
-                              18.0,
-                              14.0,
-                              18.0,
-                            ),
+                            fillColor: TrackletColors.primaryBackground,
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                                  14.0,
+                                  18.0,
+                                  14.0,
+                                  18.0,
+                                ),
                           ),
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
+                          style: TrackletTypography.bodyMedium.copyWith(
                             fontSize: 15.0,
-                            color: Color(0xFF14181B),
+                            color: TrackletColors.altPrimaryText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -215,7 +242,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Password Field
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 10.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        10.0,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         child: TextFormField(
@@ -228,48 +260,55 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             isDense: true,
                             hintText: 'Password',
-                            hintStyle: const TextStyle(
-                              fontFamily: 'Outfit',
-                              fontSize: 16.0,
-                              color: Color(0xFF57636C),
+                            hintStyle: TrackletTypography.labelLarge.copyWith(
+                              color: TrackletColors.secondaryText,
                               fontWeight: FontWeight.w500,
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0x00000000),
+                                color: Colors.transparent,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFF6F61EF),
+                                color: TrackletColors.primary,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFFFA000E),
+                                color: TrackletColors.errorBorder,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderSide: const BorderSide(
-                                color: Color(0xFFFA000E),
+                                color: TrackletColors.errorBorder,
                                 width: 2.0,
                               ),
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF1F4F8),
-                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
-                              14.0,
-                              18.0,
-                              14.0,
-                              18.0,
-                            ),
+                            fillColor: TrackletColors.primaryBackground,
+                            contentPadding:
+                                const EdgeInsetsDirectional.fromSTEB(
+                                  14.0,
+                                  18.0,
+                                  14.0,
+                                  18.0,
+                                ),
                             suffixIcon: InkWell(
                               onTap: () {
                                 setState(() {
@@ -280,15 +319,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _passwordVisibility
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: const Color(0xFF57636C),
+                                color: TrackletColors.secondaryText,
                                 size: 22.0,
                               ),
                             ),
                           ),
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
+                          style: TrackletTypography.bodyMedium.copyWith(
                             fontSize: 15.0,
-                            color: Color(0xFF14181B),
+                            color: TrackletColors.altPrimaryText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -299,18 +337,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: const AlignmentDirectional(1.0, 0.0),
                       child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0,
+                          0.0,
+                          0.0,
+                          16.0,
+                        ),
                         child: InkWell(
                           onTap: () {
                             context.push('/forgot-password');
                           },
-                          child: const Text(
+                          child: Text(
                             'perhaps, forgot your password?',
-                            style: TextStyle(
-                              fontFamily: 'Outfit',
+                            style: TrackletTypography.bodyMedium.copyWith(
                               fontSize: 15.0,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF14181B),
+                              color: TrackletColors.altPrimaryText,
                             ),
                           ),
                         ),
@@ -319,19 +361,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Login Button
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 12.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        12.0,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         height: 44.0,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6F61EF),
-                            foregroundColor: Colors.white,
+                            backgroundColor: TrackletColors.primary,
+                            foregroundColor: TrackletColors.pure,
                             elevation: 3.0,
-                            shadowColor: const Color(0xFF6F61EF).withValues(alpha: 0.35),
+                            shadowColor: TrackletColors.primary.withValues(
+                              alpha: 0.35,
+                            ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.card,
+                              ),
                             ),
                           ),
                           child: _isLoading
@@ -340,39 +391,43 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: TrackletColors.pure,
                                   ),
                                 )
-                              : const Text(
+                              : Text(
                                   'Login',
-                                  style: TextStyle(
-                                    fontFamily: 'Outfit',
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
+                                  style: TrackletTypography.titleMedium
+                                      .copyWith(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.w600,
+                                        color: TrackletColors.pure,
+                                      ),
                                 ),
                         ),
                       ),
                     ),
 
                     // -- OR -- Divider
-                    const Align(
-                      alignment: AlignmentDirectional(0.0, 0.0),
+                    Align(
+                      alignment: const AlignmentDirectional(0.0, 0.0),
                       child: Text(
                         '-- OR --',
-                        style: TextStyle(
-                          fontFamily: 'Outfit',
+                        style: TrackletTypography.caption.copyWith(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF57636C),
+                          color: TrackletColors.secondaryText,
                         ),
                       ),
                     ),
 
                     // Continue with Google Button
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        12.0,
+                        0.0,
+                        0.0,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         height: 45.0,
@@ -381,11 +436,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             context.go('/');
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF14181B),
-                            foregroundColor: Colors.white,
+                            backgroundColor: TrackletColors.altPrimaryText,
+                            foregroundColor: TrackletColors.pure,
                             elevation: 0.0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
                             ),
                           ),
                           child: Row(
@@ -398,17 +455,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 errorBuilder: (_, _, _) => const Icon(
                                   Icons.g_mobiledata_rounded,
                                   size: 24,
-                                  color: Colors.white,
+                                  color: TrackletColors.pure,
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              const Text(
+                              Text(
                                 'Continue with Google',
-                                style: TextStyle(
-                                  fontFamily: 'Outfit',
+                                style: TrackletTypography.titleSmall.copyWith(
                                   fontSize: 16.0,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: TrackletColors.pure,
                                 ),
                               ),
                             ],
@@ -421,26 +477,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: const AlignmentDirectional(0.0, 0.0),
                       child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 48.0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          0.0,
+                          16.0,
+                          0.0,
+                          48.0,
+                        ),
                         child: RichText(
                           text: TextSpan(
                             children: [
-                              const TextSpan(
+                              TextSpan(
                                 text: "Don't have an account? ",
-                                style: TextStyle(
-                                  fontFamily: 'Outfit',
+                                style: TrackletTypography.bodyMedium.copyWith(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16.0,
-                                  color: Color(0xFF14181B),
+                                  color: TrackletColors.altPrimaryText,
                                 ),
                               ),
                               TextSpan(
                                 text: 'Sign Up Here',
-                                style: const TextStyle(
-                                  fontFamily: 'Outfit',
+                                style: TrackletTypography.bodyMedium.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15.0,
-                                  color: Color(0xFF6F61EF),
+                                  color: TrackletColors.primary,
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {

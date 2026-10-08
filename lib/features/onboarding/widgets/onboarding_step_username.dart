@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -75,14 +77,17 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF5AB2F7), Color(0xFF6F61EF)],
+                  colors: [
+                    TrackletColors.permissionHeaderGradientStart,
+                    TrackletColors.primary,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6F61EF).withValues(alpha: 0.25),
+                    color: TrackletColors.primary.withValues(alpha: 0.25),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -101,7 +106,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                       errorBuilder: (_, _, _) => const SizedBox.shrink(),
                     ),
                     Container(
-                      color: const Color(0xFF6F61EF).withValues(alpha: 0.35),
+                      color: TrackletColors.primary.withValues(alpha: 0.35),
                     ),
                     Image.asset(
                       'assets/images/Research_New_Pin_Crop.gif',
@@ -127,7 +132,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
             style: TrackletTypography.headlineLarge.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF14181B),
+              color: TrackletColors.altPrimaryText,
             ),
           ),
           const SizedBox(height: 6),
@@ -138,25 +143,22 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               style: TrackletTypography.bodyMedium.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF57636C),
+                color: TrackletColors.secondaryText,
                 height: 1.4,
               ),
               children: [
                 const TextSpan(
-                  text:
-                      "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
+                  text: "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
                 ),
                 TextSpan(
                   text: 'magic wand ',
                   style: TrackletTypography.bodyMedium.copyWith(
-                    color: const Color(0xFF6F61EF),
+                    color: TrackletColors.primary,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
                 ),
-                const TextSpan(
-                  text: 'for a suggestion.',
-                ),
+                const TextSpan(text: 'for a suggestion.'),
               ],
             ),
           ),
@@ -170,13 +172,13 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 child: Container(
                   height: 50,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F4F8),
-                    borderRadius: BorderRadius.circular(12.0),
+                    color: TrackletColors.primaryBackground,
+                    borderRadius: BorderRadius.circular(TrackletRadii.card),
                     border: Border.all(
                       color: hasText
                           ? (isAvailable
-                              ? const Color(0xFF6F61EF)
-                              : const Color(0xFFFA000E))
+                                ? TrackletColors.primary
+                                : TrackletColors.errorBorder)
                           : Colors.transparent,
                       width: 2.0,
                     ),
@@ -188,10 +190,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                         child: Text(
                           '@',
                           style: TextStyle(
-                            fontFamily: 'Outfit',
+                            fontFamily: TrackletTypography.primaryFontFamily,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF6F61EF),
+                            color: TrackletColors.primary,
                           ),
                         ),
                       ),
@@ -213,13 +215,12 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                             required currentLength,
                             required isFocused,
                             maxLength,
-                          }) =>
-                              null,
+                          }) => null,
                           decoration: const InputDecoration(
                             hintText: 'Username',
                             hintStyle: TextStyle(
-                              fontFamily: 'Outfit',
-                              color: Color(0xFF57636C),
+                              fontFamily: TrackletTypography.primaryFontFamily,
+                              color: TrackletColors.secondaryText,
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                             ),
@@ -231,8 +232,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                             ),
                           ),
                           style: const TextStyle(
-                            fontFamily: 'Outfit',
-                            color: Color(0xFF14181B),
+                            fontFamily: TrackletTypography.primaryFontFamily,
+                            color: TrackletColors.altPrimaryText,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -248,16 +249,16 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               // Attendrix Magic Wand Icon Button
               InkWell(
                 onTap: widget.onMagicWandPressed,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
                 child: Container(
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6F61EF),
-                    borderRadius: BorderRadius.circular(12),
+                    color: TrackletColors.primary,
+                    borderRadius: BorderRadius.circular(TrackletRadii.card),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6F61EF).withValues(alpha: 0.35),
+                        color: TrackletColors.primary.withValues(alpha: 0.35),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -270,7 +271,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                       height: 26,
                       errorBuilder: (_, _, _) => const Icon(
                         Icons.auto_awesome_rounded,
-                        color: Colors.white,
+                        color: TrackletColors.pure,
                         size: 24,
                       ),
                     ),
@@ -284,23 +285,22 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           // Live Validation Feedback
           if (hasText) ...[
             if (!isAvailable)
-              const Padding(
-                padding: EdgeInsets.only(left: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
                 child: Row(
                   children: [
                     Text(
                       'sorry, username already taken',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        color: Color(0xFFFF000F),
+                      style: TrackletTypography.caption.copyWith(
+                        color: TrackletColors.errorBorder,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.warning_amber_rounded,
-                      color: Color(0xFFFA000E),
+                      color: TrackletColors.errorBorder,
                       size: 16,
                     ),
                   ],
@@ -311,11 +311,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 padding: const EdgeInsets.only(left: 6),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'username available',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        color: Color(0xFF0F00FF),
+                      style: TrackletTypography.caption.copyWith(
+                        color: TrackletColors.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -327,7 +326,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                       height: 16,
                       errorBuilder: (_, _, _) => const Icon(
                         Icons.check_circle_rounded,
-                        color: Color(0xFF0033FA),
+                        color: TrackletColors.primary,
                         size: 16,
                       ),
                     ),
@@ -349,26 +348,26 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 icon: const Icon(
                   Icons.arrow_forward_rounded,
                   size: 18,
-                  color: Colors.white,
+                  color: TrackletColors.pure,
                 ),
                 label: const Text(
                   'Continue',
                   style: TextStyle(
-                    fontFamily: 'Outfit',
+                    fontFamily: TrackletTypography.primaryFontFamily,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: TrackletColors.pure,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6F61EF),
-                  disabledBackgroundColor:
-                      const Color(0xFF6F61EF).withValues(alpha: 0.4),
+                  backgroundColor: TrackletColors.primary,
+                  disabledBackgroundColor: TrackletColors.primary.withValues(
+                    alpha: 0.4,
+                  ),
                   elevation: 3,
-                  shadowColor:
-                      const Color(0xFF6F61EF).withValues(alpha: 0.3),
+                  shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(TrackletRadii.card),
                   ),
                 ),
               ),

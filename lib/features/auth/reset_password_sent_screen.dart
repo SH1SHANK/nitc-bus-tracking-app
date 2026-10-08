@@ -1,75 +1,168 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
-import '../../design_system/components/tracklet_button.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/radii.dart';
+import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
 
 /// Authentic Attendrix Reset Password Sent confirmation screen.
 class ResetPasswordSentScreen extends StatelessWidget {
-  const ResetPasswordSentScreen({super.key});
+  const ResetPasswordSentScreen({super.key, this.email});
+
+  final String? email;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TrackletColors.background,
+      backgroundColor: TrackletColors.primaryBackground,
       body: SafeArea(
+        top: true,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TrackletSpacing.screenMargin,
+          ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // Check / Success Icon Container
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  color: TrackletColors.success.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: TrackletIcon(
-                    TrackletIcons.check,
-                    color: TrackletColors.success,
-                    size: 44,
+              const SizedBox(height: 80.0),
+
+              // Mail Icon / Illustration Container
+              Align(
+                alignment: AlignmentDirectional.center,
+                child: Container(
+                  width: 140.0,
+                  height: 140.0,
+                  decoration: BoxDecoration(
+                    color: TrackletColors.background2,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: TrackletColors.primary.withValues(alpha: 0.2),
+                      width: 3.0,
+                    ),
+                  ),
+                  child: const Center(
+                    child: TrackletIcon(
+                      TrackletIcons.notifications,
+                      color: TrackletColors.primary,
+                      size: 64.0,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: TrackletSpacing.xl),
 
-              // Title
-              Text(
-                'Check Your Inbox!',
+              // Main Notice RichText
+              RichText(
                 textAlign: TextAlign.center,
-                style: TrackletTypography.displayMedium.copyWith(
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.w800,
-                  color: TrackletColors.textPrimary,
+                text: TextSpan(
+                  style: TrackletTypography.bodyMedium.copyWith(
+                    color: TrackletColors.primaryText,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Your reset request is on its way!\n',
+                      style: TrackletTypography.titleMedium.copyWith(
+                        color: TrackletColors.primaryText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const TextSpan(
+                      text: 'It might be hiding in Promotions or Spam,\nso don’t forget to check there. \n',
+                      style: TextStyle(color: TrackletColors.secondaryText),
+                    ),
+                    const TextSpan(
+                      text: 'Still missing? No worries \n Just hit ',
+                      style: TextStyle(color: TrackletColors.secondaryText),
+                    ),
+                    TextSpan(
+                      text: '‘Resend’ ',
+                      style: TrackletTypography.bodyMedium.copyWith(
+                        color: TrackletColors.tertiary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const TextSpan(
+                      text: 'and we’ve got you covered.',
+                      style: TextStyle(color: TrackletColors.secondaryText),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: TrackletSpacing.md),
 
-              // Subtitle
-              const Text(
-                'We have dispatched a magic password reset link to your campus email address. Tap the link to set up your new credentials.',
+              // Resend CTA RichText
+              RichText(
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: TrackletColors.textSecondary,
-                  height: 1.45,
+                text: TextSpan(
+                  style: TrackletTypography.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Didn’t show up? ',
+                      style: TrackletTypography.bodyMedium.copyWith(
+                        color: TrackletColors.secondaryText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Resend Mail',
+                      style: TrackletTypography.bodyMedium.copyWith(
+                        color: TrackletColors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      mouseCursor: SystemMouseCursors.click,
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'A New Mail has Been Sent Successfully!',
+                                style: TextStyle(
+                                  color: TrackletColors.info,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              duration: Duration(milliseconds: 4000),
+                              backgroundColor: TrackletColors.success,
+                            ),
+                          );
+                        },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: TrackletSpacing.xxl),
 
               // Return to Login Button
-              TrackletButton(
-                label: 'Back to Sign In',
-                isFullWidth: true,
-                size: TrackletButtonSize.large,
-                onPressed: () => context.go('/login'),
+              SizedBox(
+                width: 257.0,
+                height: 44.0,
+                child: ElevatedButton(
+                  onPressed: () => context.go('/login'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TrackletColors.primaryText,
+                    foregroundColor: TrackletColors.primaryBackground,
+                    elevation: 3.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(TrackletRadii.button),
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Text(
+                    'Back to Login',
+                    style: TrackletTypography.titleSmall.copyWith(
+                      color: TrackletColors.primaryBackground,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

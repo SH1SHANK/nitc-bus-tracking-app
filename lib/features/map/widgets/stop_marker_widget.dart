@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/typography.dart';
 
 /// Bus stop marker displayed on the campus map.
@@ -37,13 +38,7 @@ class StopMarkerWidget extends StatelessWidget {
                     : TrackletColors.border,
                 width: 1.0,
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x15000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
+              boxShadow: const [TrackletShadows.sm],
             ),
             child: Text(
               stop.code,
@@ -65,7 +60,7 @@ class StopMarkerWidget extends StatelessWidget {
                   ? TrackletColors.primary
                   : TrackletColors.secondary,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: TrackletColors.pure, width: 2),
             ),
           ),
         ],

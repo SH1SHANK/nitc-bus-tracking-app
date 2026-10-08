@@ -3,11 +3,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
-import '../../design_system/components/tracklet_button.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/radii.dart';
+import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
 
-/// Authentic Attendrix Forgot Password screen.
+/// Authentic Attendrix-styled Forgot Password screen.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -17,20 +18,26 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _handleSendLink() {
-    if (_emailController.text.trim().isEmpty) {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter your email address.'),
-          backgroundColor: TrackletColors.error,
+          content: Text(
+            'We’ll need your email to help you reset your password.',
+            style: TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
         ),
       );
       return;
@@ -40,124 +47,216 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() => _isLoading = false);
-        context.push('/reset-password-sent');
+        context.push(
+          '/reset-password-sent?email=${Uri.encodeComponent(email)}',
+        );
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: TrackletColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const TrackletIcon(
-            TrackletIcons.chevronLeft,
-            color: TrackletColors.textPrimary,
-            size: 24,
-          ),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 30),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: TrackletColors.primaryBackground,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TrackletSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(height: 60.0),
 
-              // Title
-              Text(
-                'Forgot Password?',
-                textAlign: TextAlign.center,
-                style: TrackletTypography.displayMedium.copyWith(
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.w800,
-                  color: TrackletColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Subtitle
-              const Text(
-                'We’ve got you covered, no stress!\nJust drop your email below...',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15.0,
-                  color: TrackletColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Email Input Card
-              Container(
-                height: 52,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: TrackletColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: TrackletColors.border, width: 2.0),
-                ),
-                child: Row(
-                  children: [
-                    const TrackletIcon(
-                      TrackletIcons.profile,
-                      color: TrackletColors.textSecondary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: 'Your Email Address (e.g. user@nitc.ac.in)',
-                          hintStyle: TextStyle(
-                            color: TrackletColors.textSecondary,
-                            fontSize: 14,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: TrackletColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Send Magic Link Button
-              TrackletButton(
-                label: _isLoading ? 'Sending Link...' : 'Send Magic Link',
-                isFullWidth: true,
-                size: TrackletButtonSize.large,
-                onPressed: _isLoading ? null : _handleSendLink,
-              ),
-              const SizedBox(height: 20),
-
-              // Back to Sign In
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text(
-                  'Remember your password? Sign In',
-                  style: TextStyle(
-                    color: TrackletColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                // Title
+                const Align(
+                  alignment: AlignmentDirectional(0.0, -1.0),
+                  child: Text(
+                    'Forgot Password?',
+                    textAlign: TextAlign.center,
+                    style: TrackletTypography.displaySmall,
                   ),
                 ),
-              ),
-            ],
+
+                // Subtitle
+                const Align(
+                  alignment: AlignmentDirectional(0.0, -1.0),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: TrackletSpacing.xs,
+                      bottom: TrackletSpacing.xl,
+                    ),
+                    child: Text(
+                      'We’ve got you covered, no stress!\nJust drop your email below... ',
+                      textAlign: TextAlign.center,
+                      style: TrackletTypography.labelLarge,
+                    ),
+                  ),
+                ),
+
+                // Email Input Field
+                Padding(
+                  padding: const EdgeInsets.only(bottom: TrackletSpacing.sm),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextFormField(
+                      controller: _emailController,
+                      focusNode: _focusNode,
+                      autofocus: false,
+                      textInputAction: TextInputAction.done,
+                      keyboardType: TextInputType.emailAddress,
+                      cursorColor: TrackletColors.primaryText,
+                      style: TrackletTypography.bodyMedium.copyWith(
+                        color: TrackletColors.primaryText,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: false,
+                        labelText: 'Your Email Address:',
+                        labelStyle: TrackletTypography.labelMedium.copyWith(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: TrackletColors.secondaryText,
+                        ),
+                        hintText: 'joedoe@email.com',
+                        hintStyle: TrackletTypography.labelMedium.copyWith(
+                          fontWeight: FontWeight.normal,
+                          color: TrackletColors.secondaryText,
+                        ),
+                        filled: true,
+                        fillColor: TrackletColors.secondaryBackground,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: TrackletSpacing.md,
+                          vertical: TrackletSpacing.md,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: TrackletColors.inputBorder,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            TrackletRadii.input,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: TrackletColors.primary,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            TrackletRadii.input,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: TrackletColors.errorBorder,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            TrackletRadii.input,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: TrackletColors.errorBorder,
+                            width: 2.0,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            TrackletRadii.input,
+                          ),
+                        ),
+                      ),
+                      onFieldSubmitted: (_) => _handleSendLink(),
+                    ),
+                  ),
+                ),
+
+                // Send Magic Link Button
+                Align(
+                  alignment: const AlignmentDirectional(0.0, -0.8),
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: TrackletSpacing.xs,
+                      bottom: TrackletSpacing.sm,
+                    ),
+                    child: SizedBox(
+                      width: 257.0,
+                      height: 44.0,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleSendLink,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TrackletColors.primaryText,
+                          foregroundColor: TrackletColors.primaryBackground,
+                          elevation: 3.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              TrackletRadii.button,
+                            ),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: TrackletColors.primaryBackground,
+                                ),
+                              )
+                            : Text(
+                                'Send Magic Link',
+                                style: TrackletTypography.titleSmall.copyWith(
+                                  color: TrackletColors.primaryBackground,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Head Back To Login Link
+                Padding(
+                  padding: const EdgeInsets.only(top: TrackletSpacing.md),
+                  child: InkWell(
+                    splashColor: Colors.transparent,
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    onTap: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/login');
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Head Back To Login Page',
+                          style: TrackletTypography.bodyMedium.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: TrackletColors.secondaryText,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        const SizedBox(width: TrackletSpacing.sm),
+                        const TrackletIcon(
+                          TrackletIcons.chevronLeft,
+                          color: TrackletColors.secondaryText,
+                          size: 24.0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

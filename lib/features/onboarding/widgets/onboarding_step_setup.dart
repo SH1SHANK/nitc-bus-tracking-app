@@ -203,7 +203,7 @@ class OnboardingStepSetup extends StatelessWidget {
                             TextSpan(
                               text: 'Terms of Service',
                               style: TextStyle(
-                                color: Color(0xFFF97316),
+                                color: TrackletColors.tertiary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -211,7 +211,7 @@ class OnboardingStepSetup extends StatelessWidget {
                             TextSpan(
                               text: 'Privacy Policy',
                               style: TextStyle(
-                                color: Color(0xFFF97316),
+                                color: TrackletColors.tertiary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

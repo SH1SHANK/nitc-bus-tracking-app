@@ -41,7 +41,7 @@ class TrackletStatusBadge extends StatelessWidget {
       ),
       TrackletBadgeStatus.info => (
         TrackletColors.primary,
-        const Color(0xFFE8F1FC),
+        TrackletColors.permissionBlueBg,
       ),
     };
 

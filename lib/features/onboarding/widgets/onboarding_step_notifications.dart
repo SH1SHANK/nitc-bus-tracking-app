@@ -5,6 +5,7 @@ import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
+import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -36,7 +37,10 @@ class OnboardingStepNotifications extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFEF3C7), Color(0xFFFFFBEB)],
+                colors: [
+                  TrackletColors.notificationYellowBg,
+                  TrackletColors.notificationYellowBgLight,
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -49,14 +53,16 @@ class OnboardingStepNotifications extends StatelessWidget {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                    color: TrackletColors.notificationAmber.withValues(
+                      alpha: 0.15,
+                    ),
                     shape: BoxShape.circle,
                   ),
                 ),
                 const TrackletIcon(
                   TrackletIcons.notifications,
                   size: 64,
-                  color: Color(0xFFD97706),
+                  color: TrackletColors.notificationAmber,
                 ),
               ],
             ),
@@ -90,13 +96,7 @@ class OnboardingStepNotifications extends StatelessWidget {
               color: TrackletColors.surfaceElevated,
               borderRadius: TrackletRadii.roundedMd,
               border: Border.all(color: TrackletColors.border),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0A000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
+              boxShadow: const [TrackletShadows.sm],
             ),
             child: Row(
               children: [
@@ -105,7 +105,7 @@ class OnboardingStepNotifications extends StatelessWidget {
                   height: 36,
                   decoration: BoxDecoration(
                     color: TrackletColors.busLiveBg,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(TrackletRadii.sm),
                   ),
                   child: const TrackletIcon(
                     TrackletIcons.bus,

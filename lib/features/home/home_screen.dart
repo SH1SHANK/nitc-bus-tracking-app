@@ -62,7 +62,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF5AB2F7), TrackletColors.primary],
+                        colors: [
+                          TrackletColors.permissionHeaderGradientStart,
+                          TrackletColors.primary,
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),

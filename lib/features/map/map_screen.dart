@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/shadows.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
 import '../../services/maps/map_adapter.dart';
@@ -99,10 +100,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             decoration: BoxDecoration(
               color: TrackletColors.primary,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: const [
-                BoxShadow(color: Color(0x33000000), blurRadius: 6),
-              ],
+              border: Border.all(color: TrackletColors.pure, width: 3),
+              boxShadow: const [TrackletShadows.md],
             ),
           ),
         ),
@@ -154,13 +153,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 color: TrackletColors.surfaceElevated.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: TrackletColors.border),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                boxShadow: const [TrackletShadows.sm],
               ),
               child: Row(
                 children: [

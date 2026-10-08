@@ -56,7 +56,7 @@ class _ControlButton extends StatelessWidget {
     return Material(
       color: TrackletColors.surfaceElevated,
       elevation: 2,
-      shadowColor: const Color(0x20000000),
+      shadowColor: TrackletColors.primaryText.withValues(alpha: 0.15),
       borderRadius: TrackletRadii.roundedMd,
       child: InkWell(
         onTap: onPressed,

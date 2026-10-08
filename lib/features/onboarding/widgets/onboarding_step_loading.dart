@@ -45,7 +45,7 @@ class OnboardingStepLoading extends StatelessWidget {
                 Text(
                   'Transit, ',
                   style: TrackletTypography.headlineLarge.copyWith(
-                    color: const Color(0xFF10B981),
+                    color: TrackletColors.success,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -62,7 +62,7 @@ class OnboardingStepLoading extends StatelessWidget {
             Text(
               'Built for attendance, timetables, shuttles, and\neverything in between.',
               style: TrackletTypography.bodySmall.copyWith(
-                color: const Color(0xFFF97316),
+                color: TrackletColors.tertiary,
                 fontWeight: FontWeight.w600,
                 fontStyle: FontStyle.italic,
               ),
@@ -94,9 +94,9 @@ class OnboardingStepLoading extends StatelessWidget {
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         colors: [
-                          Color(0xFF8B5CF6),
-                          Color(0xFFEC4899),
-                          Color(0xFF3B82F6),
+                          TrackletColors.velvetSky,
+                          TrackletColors.permissionPinkIcon,
+                          TrackletColors.permissionBlueIcon,
                         ],
                       ),
                     ),

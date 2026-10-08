@@ -176,14 +176,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   OnboardingStepPermissions(
                     locationGranted: state.locationPermissionGranted,
                     notificationsGranted: state.notificationPermissionGranted,
-                    onEnablePermissions: ({
-                      required bool enableLocation,
-                      required bool enableNotifications,
-                    }) async {
-                      notifier.setLocationPermission(enableLocation);
-                      notifier.setNotificationPermission(enableNotifications);
-                      _next();
-                    },
+                    onEnablePermissions:
+                        ({
+                          required bool enableLocation,
+                          required bool enableNotifications,
+                        }) async {
+                          notifier.setLocationPermission(enableLocation);
+                          notifier.setNotificationPermission(
+                            enableNotifications,
+                          );
+                          _next();
+                        },
                     onSkip: () {
                       notifier.setLocationPermission(false);
                       notifier.setNotificationPermission(false);

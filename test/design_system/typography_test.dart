@@ -9,12 +9,12 @@ void main() {
       expect(TrackletTypography.primaryFontFamily, 'Outfit');
       expect(TrackletTypography.displayLarge.fontFamily, 'Outfit');
       expect(TrackletTypography.headlineMedium.fontFamily, 'Outfit');
-      expect(TrackletTypography.bodyLarge.fontFamily, 'Outfit');
+      expect(TrackletTypography.bodyMedium.fontFamily, 'Outfit');
     });
 
     test('secondary font family is Satoshi', () {
       expect(TrackletTypography.secondaryFontFamily, 'Satoshi');
-      expect(TrackletTypography.labelLarge.fontFamily, 'Satoshi');
+      expect(TrackletTypography.bodyLarge.fontFamily, 'Satoshi');
       expect(TrackletTypography.caption.fontFamily, 'Satoshi');
     });
 

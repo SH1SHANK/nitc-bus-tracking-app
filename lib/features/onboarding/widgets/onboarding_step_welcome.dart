@@ -118,7 +118,7 @@ class OnboardingStepWelcome extends StatelessWidget {
 
                 // Secondary Google / SSO Auth action matching Attendrix
                 Material(
-                  color: const Color(0xFF15161E),
+                  color: TrackletColors.textPrimary,
                   borderRadius: TrackletRadii.roundedMd,
                   child: InkWell(
                     onTap: onGetStarted,
@@ -135,14 +135,14 @@ class OnboardingStepWelcome extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                              color: TrackletColors.pure,
                             ),
                           ),
                           const SizedBox(width: TrackletSpacing.md),
                           Text(
                             'Continue with NITC Google Account',
                             style: TrackletTypography.labelLarge.copyWith(
-                              color: Colors.white,
+                              color: TrackletColors.pure,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -158,22 +158,20 @@ class OnboardingStepWelcome extends StatelessWidget {
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        const TextSpan(
+                        TextSpan(
                           text: 'Already have an account? ',
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
+                          style: TrackletTypography.bodyMedium.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF57636C),
+                            color: TrackletColors.secondaryText,
                           ),
                         ),
                         TextSpan(
                           text: 'Sign In',
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
+                          style: TrackletTypography.bodyMedium.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF6F61EF),
+                            color: TrackletColors.primary,
                           ),
                           recognizer: TapGestureRecognizer()..onTap = onSignIn,
                         ),

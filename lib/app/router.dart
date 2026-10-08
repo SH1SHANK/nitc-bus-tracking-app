@@ -64,8 +64,11 @@ GoRouter createRouter({String initialLocation = '/onboarding'}) {
         parentNavigatorKey: rootNavigatorKey,
         path: '/reset-password-sent',
         name: 'resetPasswordSent',
-        pageBuilder: (context, state) =>
-            const MaterialPage(child: ResetPasswordSentScreen()),
+        pageBuilder: (context, state) => MaterialPage(
+          child: ResetPasswordSentScreen(
+            email: state.uri.queryParameters['email'],
+          ),
+        ),
       ),
 
       // Main Navigation Shell (Home, Map, Profile)

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -17,12 +19,16 @@ class OnboardingStepPermissions extends StatefulWidget {
 
   final bool locationGranted;
   final bool notificationsGranted;
-  final Future<void> Function({required bool enableLocation, required bool enableNotifications})
-      onEnablePermissions;
+  final Future<void> Function({
+    required bool enableLocation,
+    required bool enableNotifications,
+  })
+  onEnablePermissions;
   final VoidCallback onSkip;
 
   @override
-  State<OnboardingStepPermissions> createState() => _OnboardingStepPermissionsState();
+  State<OnboardingStepPermissions> createState() =>
+      _OnboardingStepPermissionsState();
 }
 
 class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
@@ -67,14 +73,17 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF5AB2F7), Color(0xFF6F61EF)],
+                  colors: [
+                    TrackletColors.permissionHeaderGradientStart,
+                    TrackletColors.primary,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6F61EF).withValues(alpha: 0.25),
+                    color: TrackletColors.primary.withValues(alpha: 0.25),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -91,7 +100,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: TrackletColors.pure.withValues(alpha: 0.1),
                       ),
                     ),
                   ),
@@ -101,12 +110,12 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: TrackletColors.pure.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.notifications_active_rounded,
-                          color: Colors.white,
+                          color: TrackletColors.pure,
                           size: 36,
                         ),
                       ),
@@ -114,12 +123,12 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: TrackletColors.pure.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.location_on_rounded,
-                          color: Colors.white,
+                          color: TrackletColors.pure,
                           size: 36,
                         ),
                       ),
@@ -137,14 +146,14 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             style: TrackletTypography.displayLarge.copyWith(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF14181B),
+              color: TrackletColors.altPrimaryText,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Tracklet gives you real-time NITC transit updates. Select permissions to optimize your experience.',
             style: TrackletTypography.bodyMedium.copyWith(
-              color: const Color(0xFF57636C),
+              color: TrackletColors.secondaryText,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.4,
@@ -155,11 +164,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           // Location Permission Card
           _buildPermissionCard(
             icon: Icons.location_on_rounded,
-            iconBg: const Color(0xFFEFF6FF),
-            iconColor: const Color(0xFF3B82F6),
+            iconBg: TrackletColors.permissionBlueBg,
+            iconColor: TrackletColors.permissionBlueIcon,
             title: 'Campus Live Location',
-            subtitle:
-                'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
+            subtitle: 'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
             isSelected: _locationSelected,
             isGranted: widget.locationGranted,
             onChanged: widget.locationGranted
@@ -171,16 +179,16 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           // Notifications Permission Card
           _buildPermissionCard(
             icon: Icons.notifications_active_rounded,
-            iconBg: const Color(0xFFFDF2F8),
-            iconColor: const Color(0xFFEC4899),
+            iconBg: TrackletColors.permissionPinkBg,
+            iconColor: TrackletColors.permissionPinkIcon,
             title: 'Transit & Arrival Alerts',
-            subtitle:
-                'Get notified when your bus is approaching, departures are near, or schedules change.',
+            subtitle: 'Get notified when your bus is approaching, departures are near, or schedules change.',
             isSelected: _notificationsSelected,
             isGranted: widget.notificationsGranted,
             onChanged: widget.notificationsGranted
                 ? null
-                : (val) => setState(() => _notificationsSelected = val ?? false),
+                : (val) =>
+                      setState(() => _notificationsSelected = val ?? false),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 
@@ -191,12 +199,12 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             child: ElevatedButton(
               onPressed: _isProcessing ? null : _handleGrant,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6F61EF),
-                foregroundColor: Colors.white,
+                backgroundColor: TrackletColors.primary,
+                foregroundColor: TrackletColors.pure,
                 elevation: 3,
-                shadowColor: const Color(0xFF6F61EF).withValues(alpha: 0.3),
+                shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(TrackletRadii.card),
                 ),
               ),
               child: _isProcessing
@@ -205,13 +213,13 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       height: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        color: Colors.white,
+                        color: TrackletColors.pure,
                       ),
                     )
                   : Text(
                       'Allow Selected Permissions',
                       style: TrackletTypography.titleMedium.copyWith(
-                        color: Colors.white,
+                        color: TrackletColors.pure,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
@@ -225,13 +233,16 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             child: TextButton(
               onPressed: _isProcessing ? null : widget.onSkip,
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF57636C),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                foregroundColor: TrackletColors.secondaryText,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
               ),
               child: Text(
                 'Skip for now',
                 style: TrackletTypography.bodyMedium.copyWith(
-                  color: const Color(0xFF57636C),
+                  color: TrackletColors.secondaryText,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -256,14 +267,16 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
   }) {
     return InkWell(
       onTap: isGranted ? null : () => onChanged?.call(!isSelected),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(TrackletRadii.lg),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F4F8),
-          borderRadius: BorderRadius.circular(16),
+          color: TrackletColors.primaryBackground,
+          borderRadius: BorderRadius.circular(TrackletRadii.lg),
           border: Border.all(
-            color: isSelected ? const Color(0xFF6F61EF) : const Color(0xFFE0E3E7),
+            color: isSelected
+                ? TrackletColors.primary
+                : TrackletColors.cardBorder,
             width: isSelected ? 1.8 : 1.0,
           ),
         ),
@@ -275,7 +288,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               height: 44,
               decoration: BoxDecoration(
                 color: iconBg,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
               ),
               child: Icon(icon, color: iconColor, size: 24),
             ),
@@ -290,7 +303,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                         child: Text(
                           title,
                           style: TrackletTypography.titleSmall.copyWith(
-                            color: const Color(0xFF14181B),
+                            color: TrackletColors.altPrimaryText,
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
                           ),
@@ -303,13 +316,13 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD1FAE5),
+                            color: TrackletColors.permissionGreenBg,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
                             'Granted',
                             style: TextStyle(
-                              color: Color(0xFF065F46),
+                              color: TrackletColors.permissionGreenText,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -320,17 +333,20 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                           data: ThemeData(
                             checkboxTheme: CheckboxThemeData(
                               visualDensity: VisualDensity.compact,
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4.0),
+                                borderRadius: BorderRadius.circular(
+                                  TrackletRadii.xs,
+                                ),
                               ),
                             ),
-                            unselectedWidgetColor: const Color(0xFF57636C),
+                            unselectedWidgetColor: TrackletColors.secondaryText,
                           ),
                           child: Checkbox(
                             value: isSelected,
-                            activeColor: const Color(0xFF6F61EF),
-                            checkColor: Colors.white,
+                            activeColor: TrackletColors.primary,
+                            checkColor: TrackletColors.pure,
                             onChanged: onChanged,
                           ),
                         ),
@@ -340,7 +356,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   Text(
                     subtitle,
                     style: TrackletTypography.bodySmall.copyWith(
-                      color: const Color(0xFF57636C),
+                      color: TrackletColors.secondaryText,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
                       height: 1.35,

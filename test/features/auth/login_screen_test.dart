@@ -6,14 +6,18 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   group('LoginScreen Widget Tests', () {
-    testWidgets('renders all Attendrix login elements properly', (tester) async {
+    testWidgets('renders all Attendrix login elements properly', (
+      tester,
+    ) async {
       await tester.pumpTrackletWidget(const LoginScreen());
       await tester.pumpAndSettle();
 
       // Title & Subtitle
       expect(find.text('Welcome Back!'), findsOneWidget);
       expect(
-        find.text("Log in and pick up right where you left off. We've been saving your seat. "),
+        find.text(
+          "Log in and pick up right where you left off. We've been saving your seat. ",
+        ),
         findsOneWidget,
       );
 
@@ -34,7 +38,9 @@ void main() {
       expect(find.byType(RichText), findsWidgets);
     });
 
-    testWidgets('entering email and password updates field controllers', (tester) async {
+    testWidgets('entering email and password updates field controllers', (
+      tester,
+    ) async {
       await tester.pumpTrackletWidget(const LoginScreen());
       await tester.pumpAndSettle();
 
@@ -47,7 +53,9 @@ void main() {
       expect(find.text('password123'), findsOneWidget);
     });
 
-    testWidgets('toggling password visibility changes obscurity', (tester) async {
+    testWidgets('toggling password visibility changes obscurity', (
+      tester,
+    ) async {
       await tester.pumpTrackletWidget(const LoginScreen());
       await tester.pumpAndSettle();
 
