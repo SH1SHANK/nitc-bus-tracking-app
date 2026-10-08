@@ -33,9 +33,6 @@ class TrackletDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasSelection = initialItem != null && initialItem!.isNotEmpty;
-    final valid = isValid ?? hasSelection;
-
     final decoration = CustomDropdownDecoration(
       closedFillColor: TrackletColors.primaryBackground,
       expandedFillColor: TrackletColors.primaryBackground,

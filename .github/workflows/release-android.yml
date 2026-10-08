@@ -2,13 +2,6 @@ name: Android release
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Environment configuration to build
-        required: true
-        type: choice
-        options: [staging, production]
-        default: production
   push:
     tags:
       - 'v*.*.*'

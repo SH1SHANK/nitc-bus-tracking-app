@@ -46,5 +46,5 @@ linter:
     - unnecessary_string_interpolations
     - use_build_context_synchronously
     - use_rethrow_when_possible
-    - unnecessary_lambdas
+
     - unnecessary_null_checks
