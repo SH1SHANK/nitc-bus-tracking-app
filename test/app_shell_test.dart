@@ -33,7 +33,7 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
 
       // 2. Tap Map
-      await tester.tap(find.text('Map'));
+      await tester.tap(find.text('MAP'));
       await tester.pumpAndSettle();
       expect(find.byType(MapScreen), findsOneWidget);
 
