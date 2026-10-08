@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
+import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import 'app_shell.dart';
 
@@ -19,11 +20,21 @@ final GlobalKey<NavigatorState> _mapNavigatorKey = GlobalKey<NavigatorState>(
 final GlobalKey<NavigatorState> _profileNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'profileNav');
 
-final routerProvider = Provider<GoRouter>((ref) {
+GoRouter createRouter({String initialLocation = '/onboarding'}) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: '/',
+    initialLocation: initialLocation,
     routes: [
+      // Fullscreen Onboarding Flow
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/onboarding',
+        name: 'onboarding',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: OnboardingScreen()),
+      ),
+
+      // Main Navigation Shell (Home, Map, Profile)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell);
@@ -71,4 +82,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  return createRouter();
 });

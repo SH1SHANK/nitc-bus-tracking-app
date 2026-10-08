@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/app/app.dart';
+import 'package:tracklet/app/router.dart';
 import 'package:tracklet/data/transit/bus.dart';
 import 'package:tracklet/features/home/home_screen.dart';
 import 'package:tracklet/features/home/providers/home_provider.dart';
@@ -15,6 +16,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            routerProvider.overrideWithValue(
+              createRouter(initialLocation: '/'),
+            ),
             activeBusesStreamProvider.overrideWith(
               (ref) => Stream.value(<Bus>[]),
             ),

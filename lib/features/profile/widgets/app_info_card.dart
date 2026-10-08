@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../design_system/components/icons/tracklet_icon.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -19,7 +23,10 @@ class AppInfoCard extends StatelessWidget {
         children: [
           const Text('About Tracklet', style: TrackletTypography.titleMedium),
           const SizedBox(height: TrackletSpacing.sm),
-          const Text(AppConfig.campusName, style: TrackletTypography.bodyMedium),
+          const Text(
+            AppConfig.campusName,
+            style: TrackletTypography.bodyMedium,
+          ),
           const SizedBox(height: TrackletSpacing.md),
           const Divider(),
           const SizedBox(height: TrackletSpacing.md),
@@ -51,6 +58,14 @@ class AppInfoCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: TrackletSpacing.lg),
+          TrackletButton(
+            label: 'Replay Onboarding Tour',
+            variant: TrackletButtonVariant.secondary,
+            isFullWidth: true,
+            icon: const TrackletIcon(TrackletIcons.refresh, size: 18),
+            onPressed: () => context.go('/onboarding'),
           ),
         ],
       ),
