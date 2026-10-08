@@ -24,9 +24,9 @@ class MapConfig {
   /// Attribution text required by tile provider.
   static String get attributionText => AppConfig.mapAttribution;
 
-  /// NITC Campus Bounding Box for camera clamping
-  static const double minLat = 11.3150;
-  static const double maxLat = 11.3300;
-  static const double minLng = 75.9250;
-  static const double maxLng = 75.9450;
+  /// NITC Campus Region Bounding Box for camera clamping
+  static const double minLat = 11.2500;
+  static const double maxLat = 11.4000;
+  static const double minLng = 75.8500;
+  static const double maxLng = 76.0500;
 }

@@ -109,7 +109,7 @@ class TrackletMapView extends StatelessWidget {
         initialZoom: initialZoom,
         minZoom: MapConfig.minZoom,
         maxZoom: MapConfig.maxZoom,
-        cameraConstraint: CameraConstraint.contain(
+        cameraConstraint: CameraConstraint.containCenter(
           bounds: LatLngBounds(
             const ll.LatLng(MapConfig.minLat, MapConfig.minLng),
             const ll.LatLng(MapConfig.maxLat, MapConfig.maxLng),
