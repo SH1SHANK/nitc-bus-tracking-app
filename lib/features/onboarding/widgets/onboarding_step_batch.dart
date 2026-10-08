@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
-import 'onboarding_selection_sheet.dart';
 
 /// Step 4: Academic profile — Batch selection with Attendrix aesthetic.
 class OnboardingStepBatch extends StatelessWidget {
@@ -90,63 +90,12 @@ class OnboardingStepBatch extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Dropdown Container
-          InkWell(
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Batch',
-                subtitle: 'Choose your entry batch year at NITC',
-                items: kNitcBatches,
-                selectedItem: selectedBatch,
-                onSelected: onBatchChanged,
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: TrackletColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: selectedBatch.isNotEmpty
-                      ? TrackletColors.primary
-                      : TrackletColors.border,
-                  width: 2.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedBatch.isNotEmpty ? selectedBatch : 'Batch',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: selectedBatch.isNotEmpty
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: selectedBatch.isNotEmpty
-                            ? TrackletColors.textPrimary
-                            : TrackletColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: TrackletColors.textSecondary,
-                    size: 24,
-                  ),
-                ],
-              ),
-            ),
+          TrackletDropdown(
+            items: kNitcBatches,
+            initialItem: selectedBatch.isNotEmpty ? selectedBatch : null,
+            hintText: 'Select Batch',
+            isValid: selectedBatch.isNotEmpty,
+            onChanged: (val) => onBatchChanged(val ?? ''),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 

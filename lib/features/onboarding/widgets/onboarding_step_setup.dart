@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
-import 'onboarding_selection_sheet.dart';
 
 /// Step 9: Optional Transit & Hostel preferences with terms agreement.
 class OnboardingStepSetup extends StatelessWidget {
@@ -65,52 +65,14 @@ class OnboardingStepSetup extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TrackletSpacing.xs),
-          InkWell(
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Hostel',
-                subtitle: 'Choose your hostel or campus residence',
-                items: kNitcHostels,
-                selectedItem: selectedHostel,
-                onSelected: onHostelChanged,
-              );
-            },
-            borderRadius: TrackletRadii.roundedMd,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TrackletSpacing.md,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                color: TrackletColors.surface,
-                borderRadius: TrackletRadii.roundedMd,
-                border: Border.all(color: TrackletColors.border),
-              ),
-              child: Row(
-                children: [
-                  const TrackletIcon(
-                    TrackletIcons.home,
-                    color: TrackletColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: TrackletSpacing.md),
-                  Expanded(
-                    child: Text(
-                      selectedHostel,
-                      style: TrackletTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const TrackletIcon(
-                    TrackletIcons.chevronDown,
-                    color: TrackletColors.textSecondary,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
+          TrackletDropdown(
+            items: kNitcHostels,
+            initialItem: selectedHostel.isNotEmpty ? selectedHostel : null,
+            hintText: 'Select Hostel',
+            isSearchable: true,
+            searchHintText: 'Search hostel / residence...',
+            isValid: selectedHostel.isNotEmpty,
+            onChanged: (val) => onHostelChanged(val ?? ''),
           ),
           const SizedBox(height: TrackletSpacing.lg),
 
@@ -122,52 +84,14 @@ class OnboardingStepSetup extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TrackletSpacing.xs),
-          InkWell(
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Primary Stop',
-                subtitle: 'Where do you catch the shuttle most often?',
-                items: kNitcPrimaryStops,
-                selectedItem: selectedStop,
-                onSelected: onStopChanged,
-              );
-            },
-            borderRadius: TrackletRadii.roundedMd,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TrackletSpacing.md,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                color: TrackletColors.surface,
-                borderRadius: TrackletRadii.roundedMd,
-                border: Border.all(color: TrackletColors.border),
-              ),
-              child: Row(
-                children: [
-                  const TrackletIcon(
-                    TrackletIcons.busStop,
-                    color: TrackletColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: TrackletSpacing.md),
-                  Expanded(
-                    child: Text(
-                      selectedStop,
-                      style: TrackletTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const TrackletIcon(
-                    TrackletIcons.chevronDown,
-                    color: TrackletColors.textSecondary,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
+          TrackletDropdown(
+            items: kNitcPrimaryStops,
+            initialItem: selectedStop.isNotEmpty ? selectedStop : null,
+            hintText: 'Select Primary Stop',
+            isSearchable: true,
+            searchHintText: 'Search primary bus stop...',
+            isValid: selectedStop.isNotEmpty,
+            onChanged: (val) => onStopChanged(val ?? ''),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 

@@ -15,13 +15,13 @@ Tracklet is a modern, college-only public-transit tracking application designed 
 
 ## Stack
 
-- **Framework**: [Flutter](https://flutter.dev) (SDK `^3.47.5`, Dart `^3.13.4`)
+- **Framework**: [Flutter](https://flutter.dev) (SDK `3.47.5`, Dart `3.13.4`, pinned in `.fvmrc`)
 - **State Management**: [Riverpod](https://riverpod.dev) (`flutter_riverpod`)
 - **Routing**: [go_router](https://pub.dev/packages/go_router) with `StatefulShellRoute.indexedStack` and clean browser URL paths
 - **Backend & Realtime**: [Supabase](https://supabase.com) (`supabase_flutter`)
 - **Notifications**: [OneSignal](https://onesignal.com) (`onesignal_flutter`)
-- **Spatial / Maps**: [flutter_map](https://pub.dev/packages/flutter_map) + [latlong2](https://pub.dev/packages/latlong2)
-- **Design System**: [Moon Design System](https://moon.io) foundation (`moon_design`) + Tracklet design layer (DM Sans typography)
+- **Spatial / Maps**: [flutter_map](https://pub.dev/packages/flutter_map) + [latlong2](https://pub.dev/packages/latlong2), behind `services/maps`
+- **Design System**: [Moon Design System](https://moon.io) foundation (`moon_design`) + Tracklet design layer (Outfit and Satoshi typography)
 
 ---
 
@@ -85,15 +85,19 @@ Architectural boundary enforcement is automated via `dart run tool/verify_archit
 ```
 nitc-bus-tracking-app/
 ├── .github/
-│   └── workflows/
-│       └── ci.yml                 # Automated lint, boundary check, test & multi-platform build
+│   ├── workflows/                 # CI and manual release artifact workflows
+│   ├── dependabot.yml
+│   ├── CODEOWNERS
+│   └── pull_request_template.md
 ├── android/                       # Android native host project
 ├── assets/                        # Static application assets
 │   ├── fonts/
 │   ├── icons/
 │   └── images/
-├── config/
-│   └── env.json.example           # Configuration template
+├── config/                        # Committed templates; real files are ignored
+│   ├── dev.example.json
+│   ├── staging.example.json
+│   └── prod.example.json
 ├── docs/                          # Architecture & design documentation
 ├── integration_test/
 │   └── smoke_test.dart            # End-to-end integration smoke test
@@ -197,6 +201,11 @@ flutter build apk --debug
 
 ---
 
-## License
+## Engineering documentation
 
-Created for the National Institute of Technology Calicut (NITC).
+- [Architecture](docs/architecture.md)
+- [Development guide](docs/development.md)
+- [Release checklist](docs/release-checklist.md)
+- [Changelog](CHANGELOG.md)
+
+The repository has no `LICENSE` file yet. Licensing is a project-owner decision and has intentionally not been inferred.

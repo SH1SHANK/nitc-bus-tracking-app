@@ -3,6 +3,7 @@ export 'components/icons/tracklet_icons.dart';
 export 'components/tracklet_app_bar.dart';
 export 'components/tracklet_button.dart';
 export 'components/tracklet_card.dart';
+export 'components/tracklet_dropdown.dart';
 export 'components/tracklet_empty_state.dart';
 export 'components/tracklet_error_state.dart';
 export 'components/tracklet_status_badge.dart';

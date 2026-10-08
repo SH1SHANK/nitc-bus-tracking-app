@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,7 @@ import 'app.dart';
 /// Bootstraps the application services, Riverpod overrides, and clean URL strategy.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _installGlobalErrorHandlers();
 
   // Configure clean path URLs on Web (removes '#' fragment)
   if (kIsWeb) {
@@ -40,4 +43,26 @@ Future<void> bootstrap() async {
       child: const TrackletApp(),
     ),
   );
+}
+
+void _installGlobalErrorHandlers() {
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    AppLogger.error(
+      'Unhandled Flutter framework error',
+      error: details.exception,
+      stackTrace: details.stack,
+      tag: 'FlutterError',
+    );
+  };
+
+  ui.PlatformDispatcher.instance.onError = (error, stackTrace) {
+    AppLogger.error(
+      'Unhandled asynchronous error',
+      error: error,
+      stackTrace: stackTrace,
+      tag: 'PlatformDispatcher',
+    );
+    return true;
+  };
 }

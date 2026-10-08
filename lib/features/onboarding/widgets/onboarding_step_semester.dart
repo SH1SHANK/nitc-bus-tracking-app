@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
-import 'onboarding_selection_sheet.dart';
 
 /// Step 5: Academic profile — Semester selection with Attendrix aesthetic.
 class OnboardingStepSemester extends StatelessWidget {
@@ -90,65 +90,12 @@ class OnboardingStepSemester extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Dropdown Container
-          InkWell(
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Semester',
-                subtitle: 'Choose your active semester at NIT Calicut',
-                items: kNitcSemesters,
-                selectedItem: selectedSemester,
-                onSelected: onSemesterChanged,
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: TrackletColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: selectedSemester.isNotEmpty
-                      ? TrackletColors.primary
-                      : TrackletColors.border,
-                  width: 2.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedSemester.isNotEmpty
-                          ? selectedSemester
-                          : 'Semester',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: selectedSemester.isNotEmpty
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: selectedSemester.isNotEmpty
-                            ? TrackletColors.textPrimary
-                            : TrackletColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: TrackletColors.textSecondary,
-                    size: 24,
-                  ),
-                ],
-              ),
-            ),
+          TrackletDropdown(
+            items: kNitcSemesters,
+            initialItem: selectedSemester.isNotEmpty ? selectedSemester : null,
+            hintText: 'Select Semester',
+            isValid: selectedSemester.isNotEmpty,
+            onChanged: (val) => onSemesterChanged(val ?? ''),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 

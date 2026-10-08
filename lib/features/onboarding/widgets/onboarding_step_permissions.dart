@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
@@ -68,128 +69,148 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
 
           // Header Hero Banner
           Center(
-            child: Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    TrackletColors.permissionHeaderGradientStart,
-                    TrackletColors.primary,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: TrackletColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    right: -20,
-                    bottom: -20,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: TrackletColors.pure.withValues(alpha: 0.1),
-                      ),
+                child: Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        TrackletColors.permissionHeaderGradientStart,
+                        TrackletColors.primary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: TrackletColors.pure.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.notifications_active_rounded,
-                          color: TrackletColors.pure,
-                          size: 36,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: TrackletColors.pure.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.location_on_rounded,
-                          color: TrackletColors.pure,
-                          size: 36,
-                        ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: TrackletColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                ],
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        right: -20,
+                        bottom: -20,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: TrackletColors.pure.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: TrackletColors.pure.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.notifications_active_rounded,
+                              color: TrackletColors.pure,
+                              size: 36,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: TrackletColors.pure.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: TrackletColors.pure,
+                              size: 36,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .scale(
+                begin: const Offset(0.95, 0.95),
+                end: const Offset(1.0, 1.0),
+                duration: 400.ms,
+                curve: Curves.easeOutBack,
               ),
-            ),
-          ),
           const SizedBox(height: TrackletSpacing.xl),
 
           // Title & Subtitle
           Text(
-            'Permissions & Access',
-            style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: TrackletColors.altPrimaryText,
-            ),
-          ),
+                'Permissions & Access',
+                style: TrackletTypography.displayLarge.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: TrackletColors.altPrimaryText,
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 350.ms, delay: 50.ms)
+              .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
           const SizedBox(height: 6),
           Text(
-            'Tracklet gives you real-time NITC transit updates. Select permissions to optimize your experience.',
-            style: TrackletTypography.bodyMedium.copyWith(
-              color: TrackletColors.secondaryText,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              height: 1.4,
-            ),
-          ),
+                'Tracklet gives you real-time NITC transit updates. Select permissions to optimize your experience.',
+                style: TrackletTypography.bodyMedium.copyWith(
+                  color: TrackletColors.secondaryText,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.4,
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 100.ms)
+              .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
           const SizedBox(height: TrackletSpacing.lg),
 
           // Location Permission Card
           _buildPermissionCard(
-            icon: Icons.location_on_rounded,
-            iconBg: TrackletColors.permissionBlueBg,
-            iconColor: TrackletColors.permissionBlueIcon,
-            title: 'Campus Live Location',
-            subtitle: 'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
-            isSelected: _locationSelected,
-            isGranted: widget.locationGranted,
-            onChanged: widget.locationGranted
-                ? null
-                : (val) => setState(() => _locationSelected = val ?? false),
-          ),
+                icon: Icons.location_on_rounded,
+                iconBg: TrackletColors.permissionBlueBg,
+                iconColor: TrackletColors.permissionBlueIcon,
+                title: 'Campus Live Location',
+                subtitle: 'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
+                isSelected: _locationSelected,
+                isGranted: widget.locationGranted,
+                onChanged: widget.locationGranted
+                    ? null
+                    : (val) => setState(() => _locationSelected = val ?? false),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 150.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
           const SizedBox(height: 12),
 
           // Notifications Permission Card
           _buildPermissionCard(
-            icon: Icons.notifications_active_rounded,
-            iconBg: TrackletColors.permissionPinkBg,
-            iconColor: TrackletColors.permissionPinkIcon,
-            title: 'Transit & Arrival Alerts',
-            subtitle: 'Get notified when your bus is approaching, departures are near, or schedules change.',
-            isSelected: _notificationsSelected,
-            isGranted: widget.notificationsGranted,
-            onChanged: widget.notificationsGranted
-                ? null
-                : (val) =>
-                      setState(() => _notificationsSelected = val ?? false),
-          ),
+                icon: Icons.notifications_active_rounded,
+                iconBg: TrackletColors.permissionPinkBg,
+                iconColor: TrackletColors.permissionPinkIcon,
+                title: 'Transit & Arrival Alerts',
+                subtitle: 'Get notified when your bus is approaching, departures are near, or schedules change.',
+                isSelected: _notificationsSelected,
+                isGranted: widget.notificationsGranted,
+                onChanged: widget.notificationsGranted
+                    ? null
+                    : (val) =>
+                          setState(() => _notificationsSelected = val ?? false),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 200.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
           const SizedBox(height: TrackletSpacing.xl),
 
           // Primary Button: Grant Permissions
@@ -225,7 +246,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       ),
                     ),
             ),
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
           const SizedBox(height: 10),
 
           // Secondary Ghost Button: Skip for now
@@ -248,7 +269,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                 ),
               ),
             ),
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
           const SizedBox(height: TrackletSpacing.lg),
         ],
       ),

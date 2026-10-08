@@ -1,0 +1,67 @@
+name: Web release artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment configuration to build
+        required: true
+        type: choice
+        options: [staging, production]
+        default: production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-release-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Flutter Web release
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Web release
+        env:
+          ENVIRONMENT: ${{ vars.TRACKLET_ENVIRONMENT }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          MAPBOX_PUBLIC_TOKEN: ${{ vars.MAPBOX_PUBLIC_TOKEN }}
+          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
+          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+        run: |
+          flutter build web --release \
+            --dart-define=ENVIRONMENT="${ENVIRONMENT:-${{ inputs.environment }}}" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=ONESIGNAL_APP_ID="$ONESIGNAL_APP_ID" \
+            --dart-define=MAPBOX_PUBLIC_TOKEN="$MAPBOX_PUBLIC_TOKEN" \
+            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
+            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tracklet-web-${{ inputs.environment }}
+          path: build/web
+          if-no-files-found: error
+
+# Hosting is intentionally not selected here because this repository currently
+# has no Vercel, Firebase, Netlify, or GitHub Pages deployment configuration.
+# Add the provider-specific deploy step only after the production host is chosen.

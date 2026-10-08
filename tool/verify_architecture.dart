@@ -1,13 +1,7 @@
 import 'dart:io';
 
-/// Script to verify architectural layer import boundaries.
-///
-/// Rules:
-/// 1. Features cannot import other features.
-/// 2. Feature code cannot directly import `package:onesignal_flutter`, `package:supabase_flutter`, or `package:geolocator`.
-/// 3. Shared code (core, data, services, design_system) cannot import feature code.
-/// 4. Design system cannot import data, services, or features.
-/// 5. Shared application code must not import `dart:io` directly (to ensure web compatibility).
+/// Verifies the small set of import boundaries that keep Tracklet web-safe and
+/// prevent feature modules from coupling to infrastructure.
 void main() {
   final libDir = Directory('lib');
   if (!libDir.existsSync()) {
@@ -16,105 +10,108 @@ void main() {
   }
 
   final violations = <String>[];
-
   for (final entity in libDir.listSync(recursive: true)) {
     if (entity is! File || !entity.path.endsWith('.dart')) continue;
 
-    final relativePath = entity.path.replaceAll('\\', '/');
+    final path = entity.path.replaceAll('\\', '/');
     final lines = entity.readAsLinesSync();
-
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
+    for (var index = 0; index < lines.length; index++) {
+      final line = lines[index].trim();
       if (!line.startsWith('import ') && !line.startsWith('export ')) continue;
+      final location = '$path:${index + 1}';
 
-      // Check 1: Feature isolation (a feature cannot import another feature)
-      if (relativePath.contains('lib/features/')) {
-        final featureName = _extractFeatureName(relativePath);
-        if (featureName != null) {
-          final importedFeature = _extractImportedFeature(line);
-          if (importedFeature != null && importedFeature != featureName) {
-            violations.add(
-              '$relativePath:${i + 1} Feature "$featureName" cannot import feature "$importedFeature": $line',
-            );
-          }
-        }
-
-        // Check 2: Direct 3rd-party vendor imports inside features
-        if (line.contains('package:onesignal_flutter') ||
-            line.contains('package:supabase_flutter') ||
-            line.contains('package:geolocator/')) {
+      if (_isIn(path, 'features')) {
+        final feature = _featureName(path);
+        final importedFeature = _importedFeature(line);
+        if (feature != null &&
+            importedFeature != null &&
+            importedFeature != feature) {
           violations.add(
-            '$relativePath:${i + 1} Features cannot directly import external SDKs (use services/data layer): $line',
+            '$location Feature "$feature" cannot import feature '
+            '"$importedFeature": $line',
+          );
+        }
+        if (_containsAny(line, <String>[
+          'package:onesignal_flutter',
+          'package:supabase_flutter',
+          'package:geolocator',
+          'package:flutter_map',
+          'package:mapbox_maps_flutter',
+        ])) {
+          violations.add(
+            '$location Features cannot directly import vendor SDKs; use '
+            'data/services boundaries: $line',
           );
         }
       }
 
-      // Check 3: Icon & Font package isolation (only lib/design_system/ can import icon/font packages)
-      final isDesignSystem = relativePath.contains('lib/design_system/');
-      if (!isDesignSystem &&
-          (line.contains('package:flutter_tabler_icons') ||
-              line.contains('package:phosphor_flutter') ||
-              line.contains('package:google_fonts'))) {
+      if (_isIn(path, 'core') &&
+          _containsAnyLayer(line, <String>['features', 'data', 'services'])) {
         violations.add(
-          '$relativePath:${i + 1} Direct icon/font package imports disallowed outside design_system (consume TrackletIcon/TrackletIcons): $line',
+          '$location Core cannot depend on application layers: $line',
         );
       }
 
-      // Check 4: Shared layers importing features
-      final isSharedLayer =
-          relativePath.contains('lib/core/') ||
-          relativePath.contains('lib/data/') ||
-          relativePath.contains('lib/services/') ||
-          relativePath.contains('lib/design_system/');
-
-      if (isSharedLayer && line.contains('/features/')) {
+      if (_isIn(path, 'design_system') &&
+          _containsAnyLayer(line, <String>['features', 'data', 'services'])) {
         violations.add(
-          '$relativePath:${i + 1} Shared layers cannot import features: $line',
+          '$location Design system cannot depend on features, data, or services: $line',
         );
       }
 
-      // Check 5: Design system importing data, services, or features
-      if (relativePath.contains('lib/design_system/')) {
-        if (line.contains('/data/') ||
-            line.contains('/services/') ||
-            line.contains('/features/')) {
-          violations.add(
-            '$relativePath:${i + 1} Design system cannot depend on data/services/features: $line',
-          );
+      if (_isIn(path, 'core') ||
+          _isIn(path, 'data') ||
+          _isIn(path, 'services') ||
+          _isIn(path, 'design_system')) {
+        if (_containsLayer(line, 'features')) {
+          violations.add('$location Shared code cannot import features: $line');
         }
       }
 
-      // Check 6: Web compatibility (no dart:io in general app code)
+      if (!_isIn(path, 'design_system') &&
+          _containsAny(line, <String>[
+            'package:flutter_tabler_icons',
+            'package:phosphor_flutter',
+            'package:google_fonts',
+          ])) {
+        violations.add(
+          '$location Icon/font packages are only allowed in design_system: $line',
+        );
+      }
+
       if (line.contains("import 'dart:io'") ||
           line.contains('import "dart:io"')) {
-        violations.add(
-          '$relativePath:${i + 1} Disallowed dart:io import (breaks Web build): $line',
-        );
+        violations.add('$location dart:io is not allowed in app code: $line');
       }
     }
   }
 
   if (violations.isNotEmpty) {
-    stderr.writeln(
-      '=== ARCHITECTURE VIOLATIONS DETECTED (${violations.length}) ===',
-    );
-    for (final v in violations) {
-      stderr.writeln('  • $v');
+    stderr.writeln('=== ARCHITECTURE VIOLATIONS (${violations.length}) ===');
+    for (final violation in violations) {
+      stderr.writeln('  • $violation');
     }
     exit(1);
-  } else {
-    stdout.writeln(
-      '✓ Architecture verification passed: All layer boundaries respected.',
-    );
   }
+  stdout.writeln('✓ Architecture verification passed.');
 }
 
-String? _extractFeatureName(String path) {
-  final match = RegExp(r'lib/features/([^/]+)/').firstMatch(path);
-  return match?.group(1);
-}
+bool _isIn(String path, String layer) =>
+    path.startsWith('lib/$layer/') || path.contains('/lib/$layer/');
 
-String? _extractImportedFeature(String importLine) {
-  final match = RegExp(r'features/([^/]+)/').firstMatch(importLine);
-  return match?.group(1);
-}
+bool _containsAny(String value, List<String> needles) =>
+    needles.any(value.contains);
+
+bool _containsAnyLayer(String importLine, List<String> layers) =>
+    layers.any((layer) => _containsLayer(importLine, layer));
+
+bool _containsLayer(String importLine, String layer) =>
+    importLine.contains('/$layer/') ||
+    importLine.contains("'$layer/") ||
+    importLine.contains('"$layer/');
+
+String? _featureName(String path) =>
+    RegExp(r'/lib/features/([^/]+)/').firstMatch(path)?.group(1);
+
+String? _importedFeature(String importLine) =>
+    RegExp(r'features/([^/]+)/').firstMatch(importLine)?.group(1);

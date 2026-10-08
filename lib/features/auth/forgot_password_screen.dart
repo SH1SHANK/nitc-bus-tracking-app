@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
@@ -74,29 +75,35 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                 // Title
                 const Align(
-                  alignment: AlignmentDirectional(0.0, -1.0),
-                  child: Text(
-                    'Forgot Password?',
-                    textAlign: TextAlign.center,
-                    style: TrackletTypography.displaySmall,
-                  ),
-                ),
+                      alignment: AlignmentDirectional(0.0, -1.0),
+                      child: Text(
+                        'Forgot Password?',
+                        textAlign: TextAlign.center,
+                        style: TrackletTypography.displaySmall,
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 350.ms)
+                    .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
 
                 // Subtitle
                 const Align(
-                  alignment: AlignmentDirectional(0.0, -1.0),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: TrackletSpacing.xs,
-                      bottom: TrackletSpacing.xl,
-                    ),
-                    child: Text(
-                      'We’ve got you covered, no stress!\nJust drop your email below... ',
-                      textAlign: TextAlign.center,
-                      style: TrackletTypography.labelLarge,
-                    ),
-                  ),
-                ),
+                      alignment: AlignmentDirectional(0.0, -1.0),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: TrackletSpacing.xs,
+                          bottom: TrackletSpacing.xl,
+                        ),
+                        child: Text(
+                          'We’ve got you covered, no stress!\nJust drop your email below... ',
+                          textAlign: TextAlign.center,
+                          style: TrackletTypography.labelLarge,
+                        ),
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 50.ms)
+                    .slideY(begin: -0.05, end: 0, curve: Curves.easeOutCubic),
 
                 // Email Input Field
                 Padding(
@@ -172,51 +179,56 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       onFieldSubmitted: (_) => _handleSendLink(),
                     ),
                   ),
-                ),
+                ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
 
                 // Send Magic Link Button
                 Align(
-                  alignment: const AlignmentDirectional(0.0, -0.8),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: TrackletSpacing.xs,
-                      bottom: TrackletSpacing.sm,
-                    ),
-                    child: SizedBox(
-                      width: 257.0,
-                      height: 44.0,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleSendLink,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TrackletColors.primaryText,
-                          foregroundColor: TrackletColors.primaryBackground,
-                          elevation: 3.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              TrackletRadii.button,
-                            ),
-                          ),
-                          padding: EdgeInsets.zero,
+                      alignment: const AlignmentDirectional(0.0, -0.8),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: TrackletSpacing.xs,
+                          bottom: TrackletSpacing.sm,
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: TrackletColors.primaryBackground,
-                                ),
-                              )
-                            : Text(
-                                'Send Magic Link',
-                                style: TrackletTypography.titleSmall.copyWith(
-                                  color: TrackletColors.primaryBackground,
+                        child: SizedBox(
+                          width: 257.0,
+                          height: 44.0,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _handleSendLink,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: TrackletColors.primaryText,
+                              foregroundColor: TrackletColors.primaryBackground,
+                              elevation: 3.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  TrackletRadii.button,
                                 ),
                               ),
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: TrackletColors.primaryBackground,
+                                    ),
+                                  )
+                                : Text(
+                                    'Send Magic Link',
+                                    style: TrackletTypography.titleSmall
+                                        .copyWith(
+                                          color:
+                                              TrackletColors.primaryBackground,
+                                        ),
+                                  ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 150.ms)
+                    .slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
 
                 // Head Back To Login Link
                 Padding(
@@ -254,7 +266,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ],
                     ),
                   ),
-                ),
+                ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
               ],
             ),
           ),

@@ -61,8 +61,19 @@ web/build/
 # Local Environment, Secrets & Keys
 *.env
 *.env.*
+.env
+.env.*
+config/dev.json
+config/staging.json
+config/prod.json
 config/env.json
+!config/*.example.json
 !config/env.json.example
+credentials.json
+service-account*.json
+*.jks
+*.keystore
+key.properties
 
 # Supabase local generated state (keep migrations)
 supabase/.temp/

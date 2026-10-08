@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
-import 'onboarding_selection_sheet.dart';
 
 /// Step 3: Academic profile — Branch selection with Attendrix aesthetic.
 class OnboardingStepBranch extends StatelessWidget {
@@ -90,66 +90,14 @@ class OnboardingStepBranch extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Attendrix Styled Dropdown Container
-          InkWell(
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Branch',
-                subtitle: 'Choose your academic department at NIT Calicut',
-                items: kNitcBranches,
-                selectedItem: selectedBranch,
-                onSelected: onBranchChanged,
-                showSearch: true,
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: TrackletColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: selectedBranch.isNotEmpty
-                      ? TrackletColors.primary
-                      : TrackletColors.border,
-                  width: 2.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedBranch.isNotEmpty ? selectedBranch : 'Branch',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: selectedBranch.isNotEmpty
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: selectedBranch.isNotEmpty
-                            ? TrackletColors.textPrimary
-                            : TrackletColors.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: TrackletColors.textSecondary,
-                    size: 24,
-                  ),
-                ],
-              ),
-            ),
+          TrackletDropdown(
+            items: kNitcBranches,
+            initialItem: selectedBranch.isNotEmpty ? selectedBranch : null,
+            hintText: 'Select Branch',
+            isSearchable: true,
+            searchHintText: 'Search branch / department...',
+            isValid: selectedBranch.isNotEmpty,
+            onChanged: (val) => onBranchChanged(val ?? ''),
           ),
           const SizedBox(height: TrackletSpacing.xl),
 

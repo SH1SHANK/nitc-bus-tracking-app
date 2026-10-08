@@ -1,16 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../design_system/components/bottom_sheets/why_do_we_need_your_info_bottom_sheet.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
-import 'onboarding_selection_sheet.dart';
 
 /// All-in-One Academic Profile Setup Page matching Attendrix Onboarding Layout.
-/// Includes Full Name, Branch, Batch, and Hostel/Mess dropdowns + Terms checkbox in one screen.
+/// Includes Full Name, Branch, Batch, and Hostel/Mess animated dropdowns + Terms checkbox.
 class OnboardingAcademicProfilePage extends StatefulWidget {
   const OnboardingAcademicProfilePage({
     super.key,
@@ -105,7 +106,7 @@ class _OnboardingAcademicProfilePageState
               fontWeight: FontWeight.w700,
               color: TrackletColors.altPrimaryText,
             ),
-          ),
+          ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.1, end: 0),
           const SizedBox(height: 6),
 
           // RichText Subtitle with "Tap to Learn More." modal trigger
@@ -155,146 +156,138 @@ class _OnboardingAcademicProfilePageState
                 ),
               ],
             ),
-          ),
+          ).animate().fadeIn(duration: 350.ms, delay: 50.ms),
           const SizedBox(height: 18),
 
           // Field 1: Full Name
           _buildFieldLabel('What is your full name?'),
           const SizedBox(height: 6),
-          Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: TrackletColors.primaryBackground,
-              borderRadius: BorderRadius.circular(TrackletRadii.card),
-              border: Border.all(
-                color: isNameValid
-                    ? TrackletColors.primary
-                    : Colors.transparent,
-                width: 2.0,
+          TextFormField(
+            controller: _nameController,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            onChanged: (val) {
+              widget.onNameChanged(val);
+              setState(() {});
+            },
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: 'Full Name',
+              hintStyle: TrackletTypography.labelLarge.copyWith(
+                color: TrackletColors.secondaryText,
+                fontWeight: FontWeight.w500,
               ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.person_outline_rounded,
-                  color: TrackletColors.secondaryText,
-                  size: 20,
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: Colors.transparent,
+                  width: 2.0,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      hintText: 'Full Name',
-                      hintStyle: TextStyle(
-                        fontFamily: TrackletTypography.primaryFontFamily,
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: TrackletColors.primary,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: TrackletColors.errorBorder,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                  color: TrackletColors.errorBorder,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
+              ),
+              filled: true,
+              fillColor: TrackletColors.primaryBackground,
+              contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                14.0,
+                16.0,
+                14.0,
+                16.0,
+              ),
+              prefixIcon: const Icon(
+                Icons.person_outline_rounded,
+                color: TrackletColors.secondaryText,
+                size: 20,
+              ),
+              suffixIcon: _nameController.text.isNotEmpty
+                  ? InkWell(
+                      onTap: () {
+                        _nameController.clear();
+                        widget.onNameChanged('');
+                        setState(() {});
+                      },
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
                         color: TrackletColors.secondaryText,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
                       ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    style: const TextStyle(
-                      fontFamily: TrackletTypography.primaryFontFamily,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: TrackletColors.altPrimaryText,
-                    ),
-                    onChanged: (val) {
-                      widget.onNameChanged(val);
-                      setState(() {});
-                    },
-                  ),
-                ),
-                if (_nameController.text.isNotEmpty)
-                  InkWell(
-                    onTap: () {
-                      _nameController.clear();
-                      widget.onNameChanged('');
-                      setState(() {});
-                    },
-                    child: const Icon(
-                      Icons.close_rounded,
-                      size: 18,
-                      color: TrackletColors.secondaryText,
-                    ),
-                  ),
-              ],
+                    )
+                  : null,
             ),
-          ),
+            style: TrackletTypography.bodyMedium.copyWith(
+              fontSize: 15.0,
+              color: TrackletColors.altPrimaryText,
+              fontWeight: FontWeight.w600,
+            ),
+          ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
           const SizedBox(height: 14),
 
-          // Field 2: Branch Dropdown
+          // Field 2: Branch Animated Dropdown
           _buildFieldLabel('Which branch do you belong to?'),
           const SizedBox(height: 6),
-          _buildDropdownContainer(
-            value: widget.branch,
-            hint: 'Branch',
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Branch',
-                subtitle: 'Choose your academic department at NIT Calicut',
-                items: kNitcBranches,
-                selectedItem: widget.branch,
-                onSelected: (val) {
-                  widget.onBranchChanged(val);
-                  setState(() {});
-                },
-                showSearch: true,
-              );
+          TrackletDropdown(
+            items: kNitcBranches,
+            initialItem: widget.branch.isNotEmpty ? widget.branch : null,
+            hintText: 'Select Branch',
+            isSearchable: true,
+            searchHintText: 'Search branch / department...',
+            isValid: isBranchValid,
+            onChanged: (val) {
+              widget.onBranchChanged(val ?? '');
+              setState(() {});
             },
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
           const SizedBox(height: 14),
 
-          // Field 3: Batch Dropdown
+          // Field 3: Batch Animated Dropdown
           _buildFieldLabel('Which batch do you belong to?'),
           const SizedBox(height: 6),
-          _buildDropdownContainer(
-            value: widget.batch,
-            hint: 'Batch',
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Batch',
-                subtitle: 'Choose your entry batch year at NITC',
-                items: kNitcBatches,
-                selectedItem: widget.batch,
-                onSelected: (val) {
-                  widget.onBatchChanged(val);
-                  setState(() {});
-                },
-              );
+          TrackletDropdown(
+            items: kNitcBatches,
+            initialItem: widget.batch.isNotEmpty ? widget.batch : null,
+            hintText: 'Select Batch',
+            isValid: isBatchValid,
+            onChanged: (val) {
+              widget.onBatchChanged(val ?? '');
+              setState(() {});
             },
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
           const SizedBox(height: 14),
 
-          // Field 4: Hostel / Mess Dropdown
+          // Field 4: Hostel / Mess Animated Dropdown
           _buildFieldLabel('Which hostel or mess do you belong to?'),
           const SizedBox(height: 6),
-          _buildDropdownContainer(
-            value: widget.hostel,
-            hint: 'Hostel / Residence',
-            onTap: () {
-              OnboardingSelectionSheet.show(
-                context: context,
-                title: 'Select Hostel / Mess',
-                subtitle:
-                    'Used to calculate walk times to nearest shuttle stop',
-                items: kNitcHostels,
-                selectedItem: widget.hostel,
-                onSelected: (val) {
-                  widget.onHostelChanged(val);
-                  setState(() {});
-                },
-                showSearch: true,
-              );
+          TrackletDropdown(
+            items: kNitcHostels,
+            initialItem: widget.hostel.isNotEmpty ? widget.hostel : null,
+            hintText: 'Select Hostel / Residence',
+            isSearchable: true,
+            searchHintText: 'Search hostel / residence...',
+            isValid: isHostelValid,
+            onChanged: (val) {
+              widget.onHostelChanged(val ?? '');
+              setState(() {});
             },
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
           const SizedBox(height: 14),
 
           // Terms & Conditions Checkbox (Attendrix style)
@@ -366,7 +359,7 @@ class _OnboardingAcademicProfilePageState
                 ),
               ),
             ],
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
           const SizedBox(height: 20),
 
           // Continue Button
@@ -402,7 +395,7 @@ class _OnboardingAcademicProfilePageState
                 ),
               ),
             ),
-          ),
+          ).animate().fadeIn(duration: 400.ms, delay: 350.ms),
           const SizedBox(height: TrackletSpacing.lg),
         ],
       ),
@@ -417,55 +410,6 @@ class _OnboardingAcademicProfilePageState
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: TrackletColors.secondaryText,
-      ),
-    );
-  }
-
-  Widget _buildDropdownContainer({
-    required String value,
-    required String hint,
-    required VoidCallback onTap,
-  }) {
-    final isSelected = value.isNotEmpty;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(TrackletRadii.card),
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: TrackletColors.primaryBackground,
-          borderRadius: BorderRadius.circular(TrackletRadii.card),
-          border: Border.all(
-            color: isSelected ? TrackletColors.primary : Colors.transparent,
-            width: 2.0,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                isSelected ? value : hint,
-                style: TextStyle(
-                  fontFamily: TrackletTypography.primaryFontFamily,
-                  fontSize: 15,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? TrackletColors.altPrimaryText
-                      : TrackletColors.secondaryText,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: TrackletColors.secondaryText,
-              size: 24,
-            ),
-          ],
-        ),
       ),
     );
   }

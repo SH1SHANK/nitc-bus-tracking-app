@@ -12,14 +12,12 @@ import 'widgets/onboarding_progress_bar.dart';
 import 'widgets/onboarding_step_loading.dart';
 import 'widgets/onboarding_step_permissions.dart';
 import 'widgets/onboarding_step_username.dart';
-import 'widgets/onboarding_step_welcome.dart';
 
 /// Streamlined Onboarding Experience matching Attendrix Layout.
-/// 0: Welcome / Sign In
-/// 1: Academic Profile (All-in-One)
-/// 2: Username with Magic Wand Generator
-/// 3: Combined Permissions (Location & Notifications)
-/// 4: Final Welcome & Loading Sequence -> Home
+/// 0: Academic Profile (All-in-One: Name, Branch, Batch, Hostel)
+/// 1: Username with Magic Wand Generator
+/// 2: Combined Permissions (Location & Notifications)
+/// 3: Final Welcome & Loading Sequence -> Home
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -58,8 +56,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final next = current + 1;
     _goToStep(next);
 
-    // If entering the final loading step (step 4), kick off initialization sequence
-    if (next == 4) {
+    // If entering the final loading step (step 3), kick off initialization sequence
+    if (next == 3) {
       ref
           .read(onboardingProvider.notifier)
           .runInitializationSequence(
@@ -76,6 +74,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final current = ref.read(onboardingProvider).currentStep;
     if (current > 0) {
       _goToStep(current - 1);
+    } else {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/login');
+      }
     }
   }
 
@@ -84,7 +88,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
 
-    final showTopNav = state.currentStep > 0 && state.currentStep < 4;
+    final showTopNav = state.currentStep < 3;
 
     return Scaffold(
       backgroundColor: TrackletColors.background,
@@ -113,7 +117,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const Spacer(),
                         Text(
-                          'Step ${state.currentStep} of $kTotalSteps',
+                          'Step ${state.currentStep + 1} of $kTotalSteps',
                           style: const TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: 13,
@@ -128,7 +132,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: OnboardingProgressBar(
-                        currentStep: state.currentStep - 1,
+                        currentStep: state.currentStep,
                         totalSteps: kTotalSteps,
                       ),
                     ),
@@ -144,13 +148,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  // 0. Welcome / Sign In Entry
-                  OnboardingStepWelcome(
-                    onGetStarted: _next,
-                    onSignIn: () => context.push('/login'),
-                  ),
-
-                  // 1. All-in-One Academic Profile (Name, Branch, Batch, Hostel)
+                  // 0. All-in-One Academic Profile (Name, Branch, Batch, Hostel)
                   OnboardingAcademicProfilePage(
                     name: state.name,
                     branch: state.branch,
@@ -163,7 +161,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onContinue: _next,
                   ),
 
-                  // 2. Username with Attendrix Gradient & Magic Generator
+                  // 1. Username with Attendrix Gradient & Magic Generator
                   OnboardingStepUsername(
                     initialUsername: state.username,
                     isAvailable: state.isUsernameAvailable,
@@ -172,7 +170,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onContinue: _next,
                   ),
 
-                  // 3. Combined Permissions (Location & Notifications)
+                  // 2. Combined Permissions (Location & Notifications)
                   OnboardingStepPermissions(
                     locationGranted: state.locationPermissionGranted,
                     notificationsGranted: state.notificationPermissionGranted,
@@ -194,7 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     },
                   ),
 
-                  // 4. Final Welcome & Animated Loading Sequence (`flow.gif`)
+                  // 3. Final Welcome & Animated Loading Sequence (`flow.gif`)
                   OnboardingStepLoading(
                     progress: state.loadingProgress,
                     statusText: state.loadingStatus,

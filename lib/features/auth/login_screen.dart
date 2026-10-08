@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/tokens/colors.dart';
@@ -135,32 +136,46 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     // Title
                     Text(
-                      'Welcome Back!',
-                      style: TrackletTypography.displaySmall.copyWith(
-                        fontSize: 26.0,
-                        fontWeight: FontWeight.bold,
-                        color: TrackletColors.altPrimaryText,
-                      ),
-                    ),
+                          'Welcome Back!',
+                          style: TrackletTypography.displaySmall.copyWith(
+                            fontSize: 26.0,
+                            fontWeight: FontWeight.bold,
+                            color: TrackletColors.altPrimaryText,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 350.ms)
+                        .slideY(
+                          begin: -0.1,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        ),
                     const SizedBox(height: 6.0),
 
                     // Subtitle
                     Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        0.0,
-                        0.0,
-                        18.0,
-                      ),
-                      child: Text(
-                        "Log in and pick up right where you left off. We've been saving your seat. ",
-                        style: TrackletTypography.labelMedium.copyWith(
-                          fontSize: 14.0,
-                          color: TrackletColors.secondaryText,
-                          fontWeight: FontWeight.w500,
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            0.0,
+                            0.0,
+                            18.0,
+                          ),
+                          child: Text(
+                            "Log in and pick up right where you left off. We've been saving your seat. ",
+                            style: TrackletTypography.labelMedium.copyWith(
+                              fontSize: 14.0,
+                              color: TrackletColors.secondaryText,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms, delay: 50.ms)
+                        .slideY(
+                          begin: -0.05,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
                         ),
-                      ),
-                    ),
 
                     // Email Field
                     Padding(

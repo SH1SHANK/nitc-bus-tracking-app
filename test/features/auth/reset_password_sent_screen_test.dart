@@ -11,6 +11,7 @@ void main() {
           home: ResetPasswordSentScreen(email: 'student@nitc.ac.in'),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Verify Title & Instructional copy inside RichText
       expect(

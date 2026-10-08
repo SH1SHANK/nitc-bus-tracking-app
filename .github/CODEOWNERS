@@ -1,0 +1,5 @@
+# Critical engineering infrastructure requires repository-owner review.
+.github/ @SH1SHANK
+supabase/ @SH1SHANK
+tool/ @SH1SHANK
+android/ @SH1SHANK
