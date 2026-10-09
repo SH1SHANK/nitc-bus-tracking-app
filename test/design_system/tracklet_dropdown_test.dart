@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/design_system/components/tracklet_dropdown.dart';
 
@@ -45,13 +46,11 @@ void main() {
       expect(find.text('Computer Science'), findsOneWidget);
     });
 
-    testWidgets('renders searchable dropdown correctly', (tester) async {
+    testWidgets('shows every option without a search field', (tester) async {
       await tester.pumpTrackletWidget(
         TrackletDropdown(
           items: const ['Mega Hostel', 'Ladies Hostel', 'PG 1 Hostel'],
           hintText: 'Select Hostel',
-          isSearchable: true,
-          searchHintText: 'Search hostel...',
           onChanged: (_) {},
         ),
       );
@@ -62,7 +61,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Mega Hostel'), findsOneWidget);
-      expect(find.text('Search hostel...'), findsOneWidget);
+      expect(find.text('Ladies Hostel'), findsOneWidget);
+      expect(find.text('PG 1 Hostel'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
     });
   });
 }

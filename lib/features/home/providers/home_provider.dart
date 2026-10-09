@@ -5,6 +5,7 @@ import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
+import '../../../data/transit/scheduled_departure.dart';
 import '../../../data/transit/stop.dart';
 import '../../../data/transit/transit_repository.dart';
 
@@ -12,40 +13,45 @@ class HomeTransitState {
   const HomeTransitState({
     required this.userProfile,
     required this.selectedStop,
-    required this.nextBus,
-    required this.nextBusRoute,
-    required this.etaMinutes,
-    required this.upcomingBuses,
+    required this.stops,
+    required this.routes,
+    required this.buses,
+    required this.scheduledDepartures,
+    required this.usesSimulatedTelemetry,
     required this.isLoading,
     this.errorMessage,
   });
 
   final Profile userProfile;
   final Stop selectedStop;
-  final Bus? nextBus;
-  final BusRoute? nextBusRoute;
-  final int etaMinutes;
-  final List<Bus> upcomingBuses;
+  final List<Stop> stops;
+  final List<BusRoute> routes;
+  final List<Bus> buses;
+  final List<ScheduledDeparture> scheduledDepartures;
+  final bool usesSimulatedTelemetry;
   final bool isLoading;
   final String? errorMessage;
 
   HomeTransitState copyWith({
     Profile? userProfile,
     Stop? selectedStop,
-    Bus? nextBus,
-    BusRoute? nextBusRoute,
-    int? etaMinutes,
-    List<Bus>? upcomingBuses,
+    List<Stop>? stops,
+    List<BusRoute>? routes,
+    List<Bus>? buses,
+    List<ScheduledDeparture>? scheduledDepartures,
+    bool? usesSimulatedTelemetry,
     bool? isLoading,
     String? errorMessage,
   }) {
     return HomeTransitState(
       userProfile: userProfile ?? this.userProfile,
       selectedStop: selectedStop ?? this.selectedStop,
-      nextBus: nextBus ?? this.nextBus,
-      nextBusRoute: nextBusRoute ?? this.nextBusRoute,
-      etaMinutes: etaMinutes ?? this.etaMinutes,
-      upcomingBuses: upcomingBuses ?? this.upcomingBuses,
+      stops: stops ?? this.stops,
+      routes: routes ?? this.routes,
+      buses: buses ?? this.buses,
+      scheduledDepartures: scheduledDepartures ?? this.scheduledDepartures,
+      usesSimulatedTelemetry:
+          usesSimulatedTelemetry ?? this.usesSimulatedTelemetry,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
     );
@@ -67,34 +73,33 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
   final stops = await transitRepo.getStops();
   final routes = await transitRepo.getRoutes();
   final activeBuses = await transitRepo.getActiveBuses();
+  final scheduledDepartures = await transitRepo.getScheduledDepartures();
 
-  final selectedStop = stops.isNotEmpty
-      ? stops.first
-      : const Stop(
-          id: 'stop-default',
-          name: 'Main Gate',
-          code: 'MG',
-          location: GeoPoint(latitude: 11.3216, longitude: 75.9337),
-          walkingTimeMinutes: 2,
-        );
-
-  final nextBus = activeBuses.isNotEmpty ? activeBuses.first : null;
-  BusRoute? nextBusRoute;
-  if (nextBus?.routeId != null) {
-    try {
-      nextBusRoute = routes.firstWhere((r) => r.id == nextBus!.routeId);
-    } catch (_) {}
-  }
-
-  final upcoming = activeBuses.length > 1 ? activeBuses.sublist(1) : <Bus>[];
+  final selectedStop =
+      stops
+          .where(
+            (stop) =>
+                stop.sourceStopId == 'main_gate' || stop.name == 'Main Gate',
+          )
+          .firstOrNull ??
+      (stops.isNotEmpty
+          ? stops.first
+          : const Stop(
+              id: 'stop-default',
+              name: 'Main Gate',
+              code: 'MG',
+              location: GeoPoint(latitude: 11.320083, longitude: 75.932722),
+              walkingTimeMinutes: 2,
+            ));
 
   return HomeTransitState(
     userProfile: profile,
     selectedStop: selectedStop,
-    nextBus: nextBus,
-    nextBusRoute: nextBusRoute,
-    etaMinutes: 3,
-    upcomingBuses: upcoming,
+    stops: stops,
+    routes: routes,
+    buses: activeBuses,
+    scheduledDepartures: scheduledDepartures,
+    usesSimulatedTelemetry: transitRepo.usesSimulatedTelemetry,
     isLoading: false,
   );
 });

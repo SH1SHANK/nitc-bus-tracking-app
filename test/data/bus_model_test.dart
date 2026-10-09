@@ -17,6 +17,8 @@ void main() {
           point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
           heading: 90.0,
           speedKmH: 25.0,
+          accuracyMeters: 3.5,
+          sequenceNumber: 42,
           timestamp: now,
         ),
         occupancy: 'Seats Available',
@@ -31,6 +33,9 @@ void main() {
       expect(fromJson.status, equals(BusStatus.live));
       expect(fromJson.isLive, isTrue);
       expect(fromJson.position.point.latitude, equals(11.3216));
+      expect(fromJson.position.accuracyMeters, equals(3.5));
+      expect(fromJson.position.sequenceNumber, equals(42));
+      expect(fromJson.position.timestamp, equals(now));
     });
 
     test('parses fallback status as offline', () {

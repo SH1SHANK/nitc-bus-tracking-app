@@ -94,8 +94,11 @@ class OnboardingStepBranch extends StatelessWidget {
             items: kNitcBranches,
             initialItem: selectedBranch.isNotEmpty ? selectedBranch : null,
             hintText: 'Select Branch',
-            isSearchable: true,
-            searchHintText: 'Search branch / department...',
+            prefixIcon: const Icon(
+              Icons.account_tree_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: selectedBranch.isNotEmpty,
             onChanged: (val) => onBranchChanged(val ?? ''),
           ),

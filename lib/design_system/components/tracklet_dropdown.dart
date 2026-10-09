@@ -14,8 +14,6 @@ class TrackletDropdown extends StatelessWidget {
     required this.onChanged,
     this.initialItem,
     this.hintText = 'Select option',
-    this.isSearchable = false,
-    this.searchHintText = 'Search...',
     this.validator,
     this.prefixIcon,
     this.isValid,
@@ -25,8 +23,6 @@ class TrackletDropdown extends StatelessWidget {
   final ValueChanged<String?> onChanged;
   final String? initialItem;
   final String hintText;
-  final bool isSearchable;
-  final String searchHintText;
   final String? Function(String?)? validator;
   final Widget? prefixIcon;
   final bool? isValid;
@@ -38,7 +34,12 @@ class TrackletDropdown extends StatelessWidget {
       expandedFillColor: TrackletColors.primaryBackground,
       closedBorderRadius: BorderRadius.circular(TrackletRadii.card),
       expandedBorderRadius: BorderRadius.circular(TrackletRadii.card),
-      closedBorder: Border.all(color: Colors.transparent, width: 2.0),
+      closedBorder: Border.all(
+        color: isValid == true
+            ? TrackletColors.primary.withValues(alpha: 0.45)
+            : TrackletColors.alternate,
+        width: 1.5,
+      ),
       expandedBorder: Border.all(color: TrackletColors.primary, width: 2.0),
       closedErrorBorder: Border.all(
         color: TrackletColors.errorBorder,
@@ -65,7 +66,7 @@ class TrackletDropdown extends StatelessWidget {
       hintStyle: const TextStyle(
         fontFamily: TrackletTypography.primaryFontFamily,
         fontSize: 15,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         color: TrackletColors.secondaryText,
       ),
       headerStyle: const TextStyle(
@@ -80,33 +81,9 @@ class TrackletDropdown extends StatelessWidget {
         fontWeight: FontWeight.w500,
         color: TrackletColors.altPrimaryText,
       ),
-      searchFieldDecoration: SearchFieldDecoration(
-        fillColor: TrackletColors.secondaryBackground,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TrackletRadii.xs),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(TrackletRadii.xs),
-          borderSide: const BorderSide(
-            color: TrackletColors.primary,
-            width: 1.5,
-          ),
-        ),
-        hintStyle: const TextStyle(
-          fontFamily: TrackletTypography.primaryFontFamily,
-          color: TrackletColors.secondaryText,
-          fontSize: 14,
-        ),
-        textStyle: const TextStyle(
-          fontFamily: TrackletTypography.primaryFontFamily,
-          color: TrackletColors.altPrimaryText,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+
       listItemDecoration: ListItemDecoration(
-        selectedColor: TrackletColors.primary.withValues(alpha: 0.08),
+        selectedColor: TrackletColors.primary.withValues(alpha: 0.12),
         highlightColor: TrackletColors.secondaryBackground,
       ),
     );
@@ -114,19 +91,6 @@ class TrackletDropdown extends StatelessWidget {
     final safeInitial = (initialItem != null && items.contains(initialItem))
         ? initialItem
         : null;
-
-    if (isSearchable) {
-      return CustomDropdown<String>.search(
-        items: items,
-        initialItem: safeInitial,
-        hintText: hintText,
-        searchHintText: searchHintText,
-        decoration: decoration,
-        validator: validator,
-        onChanged: onChanged,
-        excludeSelected: false,
-      );
-    }
 
     return CustomDropdown<String>(
       items: items,

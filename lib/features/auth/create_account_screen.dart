@@ -1,22 +1,27 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
+import '../onboarding/providers/onboarding_provider.dart';
+import 'auth_field_decoration.dart';
 
 /// Authentic Attendrix Create Account Screen layout and styling.
-class CreateAccountScreen extends StatefulWidget {
+class CreateAccountScreen extends ConsumerStatefulWidget {
   const CreateAccountScreen({super.key});
 
   @override
-  State<CreateAccountScreen> createState() => _CreateAccountScreenState();
+  ConsumerState<CreateAccountScreen> createState() =>
+      _CreateAccountScreenState();
 }
 
-class _CreateAccountScreenState extends State<CreateAccountScreen> {
+class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -40,23 +45,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   }
 
   void _handleCreateAccount() {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please fill in all fields.',
-            style: TextStyle(fontFamily: TrackletTypography.primaryFontFamily),
-          ),
-          backgroundColor: TrackletColors.errorBorder,
-        ),
-      );
-      return;
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() => _passwordMismatch = true);
+      _confirmPasswordFocusNode.requestFocus();
       return;
     }
 
@@ -68,6 +61,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() => _isLoading = false);
+        ref.read(onboardingProvider.notifier).reset();
         context.go('/onboarding');
       }
     });
@@ -139,517 +133,426 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
 
               // Form Area
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  TrackletSpacing.screenMargin,
-                  TrackletSpacing.screenMargin,
-                  TrackletSpacing.screenMargin,
-                  0.0,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Text(
-                          'Create Your Account',
-                          style: TrackletTypography.displaySmall.copyWith(
-                            fontSize: 26.0,
-                            fontWeight: FontWeight.bold,
-                            color: TrackletColors.altPrimaryText,
+              AuthEntrance(
+                delay: 40.ms,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    TrackletSpacing.screenMargin,
+                    TrackletSpacing.screenMargin,
+                    TrackletSpacing.screenMargin,
+                    0.0,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        AuthEntrance(
+                          child: Text(
+                            'Create Your Account',
+                            style: TrackletTypography.displaySmall.copyWith(
+                              fontSize: 26.0,
+                              fontWeight: FontWeight.bold,
+                              color: TrackletColors.altPrimaryText,
+                            ),
                           ),
-                        )
-                        .animate()
-                        .fadeIn(duration: 350.ms)
-                        .slideY(
-                          begin: -0.1,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
                         ),
-                    const SizedBox(height: 6.0),
+                        const SizedBox(height: 6.0),
 
-                    // Subtitle
-                    Padding(
+                        // Subtitle
+                        AuthEntrance(
+                          delay: 50.ms,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                              0.0,
+                              0.0,
+                              0.0,
+                              18.0,
+                            ),
+                            child: Text(
+                              "Let's get started by filling out the form below.",
+                              style: TrackletTypography.labelMedium.copyWith(
+                                fontSize: 14.0,
+                                color: TrackletColors.secondaryText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Email Field
+                        Padding(
                           padding: const EdgeInsetsDirectional.fromSTEB(
                             0.0,
                             0.0,
                             0.0,
-                            18.0,
+                            8.0,
                           ),
-                          child: Text(
-                            "Let's get started by filling out the form below.",
-                            style: TrackletTypography.labelMedium.copyWith(
-                              fontSize: 14.0,
-                              color: TrackletColors.secondaryText,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        )
-                        .animate()
-                        .fadeIn(duration: 400.ms, delay: 50.ms)
-                        .slideY(
-                          begin: -0.05,
-                          end: 0,
-                          curve: Curves.easeOutCubic,
-                        ),
-
-                    // Email Field
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        0.0,
-                        0.0,
-                        8.0,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: TextFormField(
-                          controller: _emailController,
-                          focusNode: _emailFocusNode,
-                          autofocus: false,
-                          textInputAction: TextInputAction.next,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            hintText: 'Email',
-                            hintStyle: TrackletTypography.labelLarge.copyWith(
-                              color: TrackletColors.secondaryText,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Colors.transparent,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.primary,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: TrackletColors.primaryBackground,
-                            contentPadding:
-                                const EdgeInsetsDirectional.fromSTEB(
-                                  14.0,
-                                  18.0,
-                                  14.0,
-                                  18.0,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: AuthEntrance(
+                              delay: 90.ms,
+                              child: TextFormField(
+                                controller: _emailController,
+                                focusNode: _emailFocusNode,
+                                textInputAction: TextInputAction.next,
+                                keyboardType: TextInputType.emailAddress,
+                                textCapitalization: TextCapitalization.none,
+                                autocorrect: false,
+                                autofillHints: const [
+                                  AutofillHints.newUsername,
+                                  AutofillHints.email,
+                                ],
+                                onFieldSubmitted: (_) =>
+                                    _passwordFocusNode.requestFocus(),
+                                validator: (value) {
+                                  final email = value?.trim() ?? '';
+                                  if (email.isEmpty) {
+                                    return 'Enter your email address.';
+                                  }
+                                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                      .hasMatch(email)) {
+                                    return 'Enter a valid email address.';
+                                  }
+                                  if (!email.toLowerCase().endsWith(
+                                    '@nitc.ac.in',
+                                  )) {
+                                    return 'Use your NITC institute email ending in @nitc.ac.in.';
+                                  }
+                                  return null;
+                                },
+                                decoration: authInputDecoration(
+                                  label: 'Email address',
+                                  hint: 'name@nitc.ac.in',
+                                  icon: Icons.mail_outline_rounded,
                                 ),
-                          ),
-                          style: TrackletTypography.bodyMedium.copyWith(
-                            fontSize: 15.0,
-                            color: TrackletColors.altPrimaryText,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Password Field
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        0.0,
-                        0.0,
-                        8.0,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: TextFormField(
-                          controller: _passwordController,
-                          focusNode: _passwordFocusNode,
-                          autofocus: false,
-                          obscureText: !_passwordVisibility,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) {
-                            if (_passwordMismatch) {
-                              setState(() => _passwordMismatch = false);
-                            }
-                          },
-                          decoration: InputDecoration(
-                            isDense: true,
-                            hintText: 'Password',
-                            hintStyle: TrackletTypography.labelLarge.copyWith(
-                              color: TrackletColors.secondaryText,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Colors.transparent,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.primary,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: TrackletColors.primaryBackground,
-                            contentPadding:
-                                const EdgeInsetsDirectional.fromSTEB(
-                                  14.0,
-                                  18.0,
-                                  14.0,
-                                  18.0,
-                                ),
-                            suffixIcon: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _passwordVisibility = !_passwordVisibility;
-                                });
-                              },
-                              child: Icon(
-                                _passwordVisibility
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: TrackletColors.secondaryText,
-                                size: 22.0,
-                              ),
-                            ),
-                          ),
-                          style: TrackletTypography.bodyMedium.copyWith(
-                            fontSize: 15.0,
-                            color: TrackletColors.altPrimaryText,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Confirm Password Field
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        0.0,
-                        0.0,
-                        4.0,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: TextFormField(
-                          controller: _confirmPasswordController,
-                          focusNode: _confirmPasswordFocusNode,
-                          autofocus: false,
-                          obscureText: !_confirmPasswordVisibility,
-                          textInputAction: TextInputAction.done,
-                          onChanged: (_) {
-                            if (_passwordMismatch) {
-                              setState(() => _passwordMismatch = false);
-                            }
-                          },
-                          onFieldSubmitted: (_) => _handleCreateAccount(),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            hintText: 'Confirm Password',
-                            hintStyle: TrackletTypography.labelLarge.copyWith(
-                              color: TrackletColors.secondaryText,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: Colors.transparent,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.primary,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: TrackletColors.errorBorder,
-                                width: 2.0,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: TrackletColors.primaryBackground,
-                            contentPadding:
-                                const EdgeInsetsDirectional.fromSTEB(
-                                  14.0,
-                                  18.0,
-                                  14.0,
-                                  18.0,
-                                ),
-                            suffixIcon: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _confirmPasswordVisibility =
-                                      !_confirmPasswordVisibility;
-                                });
-                              },
-                              child: Icon(
-                                _confirmPasswordVisibility
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: TrackletColors.secondaryText,
-                                size: 22.0,
-                              ),
-                            ),
-                          ),
-                          style: TrackletTypography.bodyMedium.copyWith(
-                            fontSize: 15.0,
-                            color: TrackletColors.altPrimaryText,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Password Mismatch Error Indicator
-                    if (_passwordMismatch)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          4.0,
-                          4.0,
-                          0.0,
-                          6.0,
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.warning_amber_rounded,
-                              color: TrackletColors.errorBorder,
-                              size: 16.0,
-                            ),
-                            const SizedBox(width: 4.0),
-                            Text(
-                              'Passwords do not match.',
-                              style: TrackletTypography.caption.copyWith(
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w600,
-                                color: TrackletColors.errorBorder,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 12.0),
-
-                    // Create Account Button
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        0.0,
-                        0.0,
-                        12.0,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 44.0,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _handleCreateAccount,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TrackletColors.primary,
-                            foregroundColor: TrackletColors.pure,
-                            elevation: 3.0,
-                            shadowColor: TrackletColors.primary.withValues(
-                              alpha: 0.35,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.card,
-                              ),
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: TrackletColors.pure,
-                                  ),
-                                )
-                              : Text(
-                                  'Create Account',
-                                  style: TrackletTypography.titleMedium
-                                      .copyWith(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.w600,
-                                        color: TrackletColors.pure,
-                                      ),
-                                ),
-                        ),
-                      ),
-                    ),
-
-                    // -- OR -- Divider
-                    Align(
-                      alignment: const AlignmentDirectional(0.0, 0.0),
-                      child: Text(
-                        '-- OR --',
-                        style: TrackletTypography.caption.copyWith(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w500,
-                          color: TrackletColors.secondaryText,
-                        ),
-                      ),
-                    ),
-
-                    // Continue with Google Button
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                        0.0,
-                        12.0,
-                        0.0,
-                        0.0,
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 45.0,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            context.go('/onboarding');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TrackletColors.altPrimaryText,
-                            foregroundColor: TrackletColors.pure,
-                            elevation: 0.0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                TrackletRadii.input,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/images/favicon.png',
-                                width: 20,
-                                height: 20,
-                                errorBuilder: (_, _, _) => const Icon(
-                                  Icons.g_mobiledata_rounded,
-                                  size: 24,
-                                  color: TrackletColors.pure,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Continue with Google',
-                                style: TrackletTypography.titleSmall.copyWith(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
-                                  color: TrackletColors.pure,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Already have an account? Sign In Link
-                    Align(
-                      alignment: const AlignmentDirectional(0.0, 0.0),
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          0.0,
-                          16.0,
-                          0.0,
-                          48.0,
-                        ),
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Already have an account? ',
                                 style: TrackletTypography.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16.0,
-                                  color: TrackletColors.altPrimaryText,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'Sign In',
-                                style: TrackletTypography.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.bold,
                                   fontSize: 15.0,
-                                  color: TrackletColors.primary,
+                                  color: TrackletColors.altPrimaryText,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    context.push('/login');
-                                  },
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
+
+                        // Password Field
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            0.0,
+                            0.0,
+                            8.0,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: AuthEntrance(
+                              delay: 150.ms,
+                              child: TextFormField(
+                                controller: _passwordController,
+                                focusNode: _passwordFocusNode,
+                                obscureText: !_passwordVisibility,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [
+                                  AutofillHints.newPassword,
+                                ],
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                    ? 'Create a password.'
+                                    : null,
+                                onChanged: (_) {
+                                  if (_passwordMismatch) {
+                                    setState(() => _passwordMismatch = false);
+                                  }
+                                },
+                                onFieldSubmitted: (_) =>
+                                    _confirmPasswordFocusNode.requestFocus(),
+                                decoration: authInputDecoration(
+                                  label: 'Password',
+                                  hint: 'Create a password',
+                                  icon: Icons.lock_outline_rounded,
+                                  suffixIcon: IconButton(
+                                    tooltip: _passwordVisibility
+                                        ? 'Hide password'
+                                        : 'Show password',
+                                    onPressed: () => setState(() {
+                                      _passwordVisibility =
+                                          !_passwordVisibility;
+                                    }),
+                                    icon: Icon(
+                                      _passwordVisibility
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: TrackletColors.secondaryText,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                                style: TrackletTypography.bodyMedium.copyWith(
+                                  fontSize: 15.0,
+                                  color: TrackletColors.altPrimaryText,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Confirm Password Field
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            0.0,
+                            0.0,
+                            4.0,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: AuthEntrance(
+                              delay: 210.ms,
+                              child: TextFormField(
+                                controller: _confirmPasswordController,
+                                focusNode: _confirmPasswordFocusNode,
+                                obscureText: !_confirmPasswordVisibility,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [
+                                  AutofillHints.newPassword,
+                                ],
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                    ? 'Confirm your password.'
+                                    : null,
+                                onChanged: (_) {
+                                  if (_passwordMismatch) {
+                                    setState(() => _passwordMismatch = false);
+                                  }
+                                },
+                                onFieldSubmitted: (_) => _handleCreateAccount(),
+                                decoration: authInputDecoration(
+                                  label: 'Confirm password',
+                                  hint: 'Re-enter your password',
+                                  icon: Icons.lock_reset_rounded,
+                                  suffixIcon: IconButton(
+                                    tooltip: _confirmPasswordVisibility
+                                        ? 'Hide password'
+                                        : 'Show password',
+                                    onPressed: () => setState(() {
+                                      _confirmPasswordVisibility =
+                                          !_confirmPasswordVisibility;
+                                    }),
+                                    icon: Icon(
+                                      _confirmPasswordVisibility
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: TrackletColors.secondaryText,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                                style: TrackletTypography.bodyMedium.copyWith(
+                                  fontSize: 15.0,
+                                  color: TrackletColors.altPrimaryText,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Password Mismatch Error Indicator
+                        if (_passwordMismatch)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                              4.0,
+                              4.0,
+                              0.0,
+                              6.0,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: TrackletColors.errorBorder,
+                                  size: 16.0,
+                                ),
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  'Passwords do not match.',
+                                  style: TrackletTypography.caption.copyWith(
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: TrackletColors.errorBorder,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 12.0),
+
+                        // Create Account Button
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            0.0,
+                            0.0,
+                            12.0,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 48.0,
+                            child: AuthEntrance(
+                              delay: 260.ms,
+                              child: ElevatedButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : _handleCreateAccount,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TrackletColors.primary,
+                                  foregroundColor: TrackletColors.pure,
+                                  elevation: 3.0,
+                                  shadowColor: TrackletColors.primary
+                                      .withValues(alpha: 0.35),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      TrackletRadii.card,
+                                    ),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: TrackletColors.pure,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Create Account',
+                                        style: TrackletTypography.titleMedium
+                                            .copyWith(
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600,
+                                              color: TrackletColors.pure,
+                                            ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // -- OR -- Divider
+                        Align(
+                          alignment: const AlignmentDirectional(0.0, 0.0),
+                          child: Text(
+                            '-- OR --',
+                            style: TrackletTypography.caption.copyWith(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.w500,
+                              color: TrackletColors.secondaryText,
+                            ),
+                          ),
+                        ),
+
+                        // Continue with Google Button
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            12.0,
+                            0.0,
+                            0.0,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 45.0,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                context.go('/onboarding');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: TrackletColors.altPrimaryText,
+                                foregroundColor: TrackletColors.pure,
+                                elevation: 0.0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    TrackletRadii.input,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/favicon.png',
+                                    width: 20,
+                                    height: 20,
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.g_mobiledata_rounded,
+                                      size: 24,
+                                      color: TrackletColors.pure,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TrackletTypography.titleSmall
+                                        .copyWith(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w600,
+                                          color: TrackletColors.pure,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Already have an account? Sign In Link
+                        Align(
+                          alignment: const AlignmentDirectional(0.0, 0.0),
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                              0.0,
+                              16.0,
+                              0.0,
+                              48.0,
+                            ),
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Already have an account? ',
+                                    style: TrackletTypography.bodyMedium
+                                        .copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 16.0,
+                                          color: TrackletColors.altPrimaryText,
+                                        ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Sign In',
+                                    style: TrackletTypography.bodyMedium
+                                        .copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15.0,
+                                          color: TrackletColors.primary,
+                                        ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        context.push('/login');
+                                      },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],

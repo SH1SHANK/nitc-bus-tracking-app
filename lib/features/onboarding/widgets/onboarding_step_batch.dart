@@ -94,6 +94,11 @@ class OnboardingStepBatch extends StatelessWidget {
             items: kNitcBatches,
             initialItem: selectedBatch.isNotEmpty ? selectedBatch : null,
             hintText: 'Select Batch',
+            prefixIcon: const Icon(
+              Icons.groups_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: selectedBatch.isNotEmpty,
             onChanged: (val) => onBatchChanged(val ?? ''),
           ),

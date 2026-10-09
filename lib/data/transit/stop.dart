@@ -5,11 +5,15 @@ class Stop {
   const Stop({
     required this.id,
     required this.name,
-    required this.code,
+    this.code = '',
     required this.location,
     this.walkingTimeMinutes = 5,
     this.isMajorHub = false,
     this.orderIndex = 0,
+    this.sourceStopId,
+    this.nearestNodeId,
+    this.description,
+    this.isActive = true,
   });
 
   final String id;
@@ -19,8 +23,16 @@ class Stop {
   final int walkingTimeMinutes;
   final bool isMajorHub;
   final int orderIndex;
+  final String? sourceStopId;
+  final String? nearestNodeId;
+  final String? description;
+  final bool isActive;
 
   Stop copyWith({
+    String? sourceStopId,
+    String? nearestNodeId,
+    String? description,
+    bool? isActive,
     String? id,
     String? name,
     String? code,
@@ -37,6 +49,10 @@ class Stop {
       walkingTimeMinutes: walkingTimeMinutes ?? this.walkingTimeMinutes,
       isMajorHub: isMajorHub ?? this.isMajorHub,
       orderIndex: orderIndex ?? this.orderIndex,
+      sourceStopId: sourceStopId ?? this.sourceStopId,
+      nearestNodeId: nearestNodeId ?? this.nearestNodeId,
+      description: description ?? this.description,
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -49,20 +65,29 @@ class Stop {
     'walking_time_minutes': walkingTimeMinutes,
     'is_major_hub': isMajorHub,
     'order_index': orderIndex,
+    'stop_id': sourceStopId,
+    'nearest_node_id': nearestNodeId,
+    'description': description,
+    'is_active': isActive,
   };
 
   factory Stop.fromJson(Map<String, dynamic> json) {
     return Stop(
-      id: json['id'] as String,
+      id: (json['id'] ?? json['stop_id']) as String,
       name: json['name'] as String,
-      code: json['code'] as String? ?? 'STP',
+      code: json['code'] as String? ?? '',
       location: GeoPoint(
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
+        latitude: ((json['latitude'] ?? json['lat']) as num).toDouble(),
+        longitude: ((json['longitude'] ?? json['lng'] ?? json['lon']) as num)
+            .toDouble(),
       ),
       walkingTimeMinutes: (json['walking_time_minutes'] as num?)?.toInt() ?? 5,
       isMajorHub: (json['is_major_hub'] as bool?) ?? false,
       orderIndex: (json['order_index'] as num?)?.toInt() ?? 0,
+      sourceStopId: json['stop_id'] as String?,
+      nearestNodeId: json['nearest_node_id']?.toString(),
+      description: json['description'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
@@ -9,13 +10,14 @@ import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
+import '../../onboarding/providers/onboarding_provider.dart';
 
 /// App information, campus build version, and system credentials summary.
-class AppInfoCard extends StatelessWidget {
+class AppInfoCard extends ConsumerWidget {
   const AppInfoCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return TrackletCard(
       padding: const EdgeInsets.all(TrackletSpacing.lg),
       child: Column(
@@ -65,7 +67,10 @@ class AppInfoCard extends StatelessWidget {
             variant: TrackletButtonVariant.secondary,
             isFullWidth: true,
             icon: const TrackletIcon(TrackletIcons.refresh, size: 18),
-            onPressed: () => context.go('/onboarding'),
+            onPressed: () {
+              ref.read(onboardingProvider.notifier).reset();
+              context.go('/onboarding');
+            },
           ),
         ],
       ),

@@ -7,7 +7,7 @@ import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Reusable modal selection sheet for academic choices (Branch, Batch, Semester, Hostel).
+/// Reusable modal selection sheet for academic choices (Branch, Batch, Hostel).
 class OnboardingSelectionSheet extends StatefulWidget {
   const OnboardingSelectionSheet({
     super.key,

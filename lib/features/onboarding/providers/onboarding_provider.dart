@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
@@ -15,81 +16,75 @@ const List<String> kNitcBranches = [
   'Mechanical Engineering',
   'Civil Engineering',
   'Chemical Engineering',
-  'Architecture & Planning',
+  'Architecture',
   'Biotechnology',
   'Materials Science & Engineering',
-  'Production & Industrial Engineering',
-  'Mathematics & Computing',
+  'Production Engineering',
+  'Energy Engineering',
 ];
 
 /// Available Batches
 const List<String> kNitcBatches = [
-  'Batch of 2029 (1st Year)',
-  'Batch of 2028 (2nd Year)',
-  'Batch of 2027 (3rd Year)',
-  'Batch of 2026 (Final Year)',
-  'Postgraduate (M.Tech / MCA / MBA / M.Sc)',
+  'B26',
+  'B25',
+  'B24',
+  'B23',
+  'M26',
+  'M25',
   'Doctoral Research Scholar (Ph.D)',
-];
-
-/// Available Semesters
-const List<String> kNitcSemesters = [
-  'Semester 1 (Monsoon)',
-  'Semester 2 (Winter)',
-  'Semester 3 (Monsoon)',
-  'Semester 4 (Winter)',
-  'Semester 5 (Monsoon)',
-  'Semester 6 (Winter)',
-  'Semester 7 (Monsoon)',
-  'Semester 8 (Winter)',
-  'Summer Term / Research Session',
 ];
 
 /// Available Hostels / Campus Hubs
 const List<String> kNitcHostels = [
-  'Mega Hostel Hub (MBH I & II)',
-  'Ladies Hostel Complex (LH)',
-  'A & B Hostel Cluster',
-  'C & D Hostel Cluster',
-  'PG & Research Scholars Hostel',
-  'East Campus Residential Quarters',
+  'Mega Hostel Boys (MBH II)',
+  'Old Mega Hostel Boys (MBH I)',
+  'Ladies Hostel (LH)',
+  'Mega Hostel Ladies (MLH)',
+  'A Hostel',
+  'B Hostel',
+  'C Hostel',
+  'D Hostel',
+  'E Hostel',
+  'F Hostel',
+  'G Hostel',
+  'PG I',
+  'PG II',
   'Day Scholar / Off-Campus Stay',
 ];
 
 /// Available Primary Bus Stops
 const List<String> kNitcPrimaryStops = [
-  'Main Gate Central Hub',
-  'Mega Hostel Terminal (MBH)',
-  'East Campus & Architecture',
-  'ELHC & NLHC Lecture Halls',
-  'Central Library & Admin Circle',
+  'Main Building',
+  'Main Gate',
+  'ATM Circle',
+  'Architecture Building',
+  'East Campus',
+  'MHB II Hostel',
+  'LH Hostel',
 ];
 
 class OnboardingState {
   const OnboardingState({
     this.currentStep = 0,
-    this.name = 'Shashank Mergu',
-    this.branch = 'Computer Science & Engineering',
-    this.batch = 'Batch of 2026 (Final Year)',
-    this.semester = 'Semester 6 (Winter)',
-    this.username = 'shashank',
-    this.isUsernameAvailable = true,
+    this.name = '',
+    this.branch = '',
+    this.batch = '',
+    this.username = '',
+    this.isUsernameAvailable,
     this.isCheckingUsername = false,
     this.locationPermissionGranted = false,
     this.notificationPermissionGranted = false,
-    this.hostel = 'Mega Hostel Hub (MBH I & II)',
-    this.primaryStop = 'Main Gate Central Hub',
-    this.agreedToTerms = true,
+    this.hostel = '',
+    this.primaryStop = '',
+    this.agreedToTerms = false,
     this.loadingProgress = 0.0,
-    this.loadingStatus =
-        'Initializing your personalized campus transit feed...',
+    this.loadingStatus = 'Preparing your campus profile...',
   });
 
   final int currentStep;
   final String name;
   final String branch;
   final String batch;
-  final String semester;
   final String username;
   final bool? isUsernameAvailable;
   final bool isCheckingUsername;
@@ -106,7 +101,6 @@ class OnboardingState {
     String? name,
     String? branch,
     String? batch,
-    String? semester,
     String? username,
     bool? isUsernameAvailable,
     bool? isCheckingUsername,
@@ -123,7 +117,6 @@ class OnboardingState {
       name: name ?? this.name,
       branch: branch ?? this.branch,
       batch: batch ?? this.batch,
-      semester: semester ?? this.semester,
       username: username ?? this.username,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
@@ -140,11 +133,10 @@ class OnboardingState {
   }
 }
 
-class OnboardingNotifier extends Notifier<OnboardingState> {
-  @override
-  OnboardingState build() {
-    return const OnboardingState();
-  }
+class OnboardingNotifier extends StateNotifier<OnboardingState> {
+  OnboardingNotifier(this._ref) : super(const OnboardingState());
+
+  final Ref _ref;
 
   void nextStep() {
     if (state.currentStep < 10) {
@@ -162,6 +154,10 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     state = state.copyWith(currentStep: step);
   }
 
+  void reset() {
+    state = const OnboardingState();
+  }
+
   void setName(String name) {
     state = state.copyWith(name: name);
   }
@@ -172,10 +168,6 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
 
   void setBatch(String batch) {
     state = state.copyWith(batch: batch);
-  }
-
-  void setSemester(String semester) {
-    state = state.copyWith(semester: semester);
   }
 
   void setHostel(String hostel) {
@@ -202,11 +194,11 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     final cleaned = text.replaceAll('@', '').trim().toLowerCase();
     final takenUsernames = ['admin', 'root', 'support', 'nitc', 'tracklet'];
 
+    final hasValidLength = cleaned.length >= 3 && cleaned.length <= 16;
     state = state.copyWith(
       username: cleaned,
       isCheckingUsername: false,
-      isUsernameAvailable:
-          cleaned.isNotEmpty && !takenUsernames.contains(cleaned),
+      isUsernameAvailable: hasValidLength && !takenUsernames.contains(cleaned),
     );
   }
 
@@ -216,9 +208,9 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       'mega_cruiser',
       'campus_surfer',
       'monsoon_coder',
-      'calicut_transit',
+      'calicut_bus',
       'shuttle_champ',
-      'east_campus_ace',
+      'east_campus',
       'elhc_commuter',
       'nitc_voyager',
     ];
@@ -236,21 +228,11 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   Future<void> runInitializationSequence({
     required void Function() onComplete,
   }) async {
-    final steps = [
-      (0.20, 'Connecting to NITC Supabase Realtime Network...'),
-      (0.45, 'Syncing campus shuttle routes & timetable...'),
-      (0.70, 'Calculating real-time walking distances...'),
-      (0.90, 'Preparing your personalized transit card...'),
-      (1.00, 'All systems ready! Launching Tracklet...'),
-    ];
-
-    for (final step in steps) {
-      await Future<void>.delayed(const Duration(milliseconds: 600));
-      state = state.copyWith(loadingProgress: step.$1, loadingStatus: step.$2);
-    }
-
-    // Persist finalized profile
-    final repo = ref.read(profileRepositoryProvider);
+    final repo = _ref.read(profileRepositoryProvider);
+    state = state.copyWith(
+      loadingProgress: 0.15,
+      loadingStatus: 'Preparing your campus profile...',
+    );
     final profile = Profile(
       id: 'user-${state.username}',
       name: state.name,
@@ -259,23 +241,31 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       department: state.branch,
       branch: state.branch,
       batch: state.batch,
-      semester: state.semester,
+      semester: '',
       hostel: state.hostel,
       notificationsEnabled: state.notificationPermissionGranted,
       locationPermissionGranted: state.locationPermissionGranted,
       hasCompletedOnboarding: true,
     );
 
+    state = state.copyWith(
+      loadingProgress: 0.55,
+      loadingStatus: 'Saving your profile and preferences...',
+    );
     await repo.saveProfile(profile);
     await repo.setOnboardingCompleted(true);
-    ref.invalidate(profileStateProvider);
+    _ref.invalidate(profileStateProvider);
 
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    state = state.copyWith(
+      loadingProgress: 1.0,
+      loadingStatus: 'You’re all set. Welcome to Tracklet.',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 280));
     onComplete();
   }
 }
 
 final onboardingProvider =
-    NotifierProvider<OnboardingNotifier, OnboardingState>(() {
-      return OnboardingNotifier();
+    StateNotifierProvider<OnboardingNotifier, OnboardingState>((ref) {
+      return OnboardingNotifier(ref);
     });

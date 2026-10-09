@@ -71,14 +71,11 @@ class Bus {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    ...position.toJson(),
     'number_plate': numberPlate,
     'name': name,
     'route_id': routeId,
     'status': status.name,
-    'latitude': position.point.latitude,
-    'longitude': position.point.longitude,
-    'heading': position.heading,
-    'speed_kmh': position.speedKmH,
     'occupancy': occupancy,
     'last_updated': lastUpdated.toIso8601String(),
   };

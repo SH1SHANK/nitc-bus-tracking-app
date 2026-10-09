@@ -34,6 +34,8 @@ class AppConfig {
     defaultValue: '',
   );
 
+  static bool get hasMapboxToken => mapboxPublicToken.trim().isNotEmpty;
+
   // OneSignal Configuration
   static const String onesignalAppId = String.fromEnvironment(
     'ONESIGNAL_APP_ID',

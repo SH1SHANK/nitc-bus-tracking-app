@@ -1,7 +1,7 @@
 import '../../core/config/app_config.dart';
 import '../../core/geo/geo_point.dart';
 
-/// Configuration boundary for map tile providers and spatial bounds.
+/// Configuration boundary for map providers, Mapbox styles, and spatial bounds.
 class MapConfig {
   const MapConfig._();
 
@@ -12,13 +12,22 @@ class MapConfig {
   );
 
   static const double defaultZoom = AppConfig.defaultZoom;
-  static const double minZoom = 14.0;
-  static const double maxZoom = 18.5;
+  static const double minZoom = 13.0;
+  static const double maxZoom = 19.0;
 
-  /// Tile URL template with `{z}/{x}/{y}` placeholders.
-  ///
-  /// Boundary note: For production deployments, replace with your dedicated tile service
-  /// endpoint (e.g., MapTiler, Stadia, Protomaps, AWS Location Service) via compile-time `--dart-define`.
+  /// Mapbox public token from environment.
+  static String get mapboxPublicToken => AppConfig.mapboxPublicToken;
+
+  /// Whether a valid Mapbox public token is present.
+  static bool get hasMapboxToken => AppConfig.hasMapboxToken;
+
+  /// Default Mapbox Style URI.
+  static const String mapboxStreetsStyle = 'mapbox://styles/mapbox/streets-v12';
+  static const String mapboxOutdoorsStyle =
+      'mapbox://styles/mapbox/outdoors-v12';
+  static const String mapboxLightStyle = 'mapbox://styles/mapbox/light-v11';
+
+  /// Tile URL template with `{z}/{x}/{y}` placeholders for fallback tile rendering.
   static String get tileUrlTemplate => AppConfig.mapTileUrlTemplate;
 
   /// Attribution text required by tile provider.

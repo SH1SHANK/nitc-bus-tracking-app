@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/logging/app_logger.dart';
 import '../data/supabase/supabase_client_provider.dart';
+import '../services/maps/mapbox_initializer.dart';
 import '../services/notifications/notification_service.dart';
 import '../services/storage/storage_service.dart';
 import 'app.dart';
@@ -33,6 +34,9 @@ Future<void> bootstrap() async {
   // Initialize OneSignal
   final notificationService = OneSignalNotificationService();
   await notificationService.initialize();
+
+  // Initialize Mapbox Maps SDK access token
+  await MapboxInitializer.initialize();
 
   runApp(
     ProviderScope(

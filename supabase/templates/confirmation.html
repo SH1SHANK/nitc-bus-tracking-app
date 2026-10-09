@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Confirm your Tracklet account</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#F1F4F8; font-family:Arial, Helvetica, sans-serif; color:#15161E;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+      One quick step to finish creating your Tracklet account.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F1F4F8;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;">
+            <tr>
+              <td align="center" style="padding:0 0 20px;">
+                <span style="display:inline-block; padding:9px 16px; border-radius:999px; background-color:#6F61EF; color:#FFFFFF; font-size:16px; font-weight:700; letter-spacing:0.3px;">Tracklet</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 32px; background-color:#FFFFFF; border:1px solid #E5E9F0; border-radius:16px;">
+                <h1 style="margin:0 0 16px; color:#15161E; font-size:26px; line-height:1.25; font-weight:700;">Confirm your email address</h1>
+                <p style="margin:0 0 24px; color:#606A85; font-size:16px; line-height:1.6;">Thanks for signing up for Tracklet. Confirm your email address to finish creating your account and get started.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px;">
+                  <tr>
+                    <td align="center" bgcolor="#6F61EF" style="border-radius:10px;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block; padding:14px 24px; border:1px solid #6F61EF; border-radius:10px; color:#FFFFFF; font-size:16px; line-height:1.2; font-weight:700; text-decoration:none;">Confirm email address</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 8px; color:#606A85; font-size:14px; line-height:1.6;">If the button doesn’t work, copy and paste this link into your browser:</p>
+                <p style="margin:0; font-size:13px; line-height:1.6; word-break:break-all;">
+                  <a href="{{ .ConfirmationURL }}" style="color:#6F61EF; text-decoration:underline;">{{ .ConfirmationURL }}</a>
+                </p>
+                <hr style="height:1px; margin:28px 0 20px; border:0; background-color:#E5E9F0;" />
+                <p style="margin:0; color:#606A85; font-size:13px; line-height:1.6;">If you didn’t create a Tracklet account, you can safely ignore this email.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:20px 16px 0; color:#8790A5; font-size:12px; line-height:1.5;">
+                Tracklet · Campus transit, made easier
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

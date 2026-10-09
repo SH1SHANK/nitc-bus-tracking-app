@@ -9,9 +9,10 @@ import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../providers/onboarding_provider.dart';
+import 'onboarding_entrance.dart';
 
 /// All-in-One Academic Profile Setup Page matching Attendrix Onboarding Layout.
-/// Includes Full Name, Branch, Batch, and Hostel/Mess animated dropdowns + Terms checkbox.
+/// Includes name, branch, batch, hostel, and an information acknowledgement.
 class OnboardingAcademicProfilePage extends StatefulWidget {
   const OnboardingAcademicProfilePage({
     super.key,
@@ -19,10 +20,12 @@ class OnboardingAcademicProfilePage extends StatefulWidget {
     required this.branch,
     required this.batch,
     required this.hostel,
+    required this.agreedToTerms,
     required this.onNameChanged,
     required this.onBranchChanged,
     required this.onBatchChanged,
     required this.onHostelChanged,
+    required this.onAgreementChanged,
     required this.onContinue,
   });
 
@@ -30,10 +33,12 @@ class OnboardingAcademicProfilePage extends StatefulWidget {
   final String branch;
   final String batch;
   final String hostel;
+  final bool agreedToTerms;
   final ValueChanged<String> onNameChanged;
   final ValueChanged<String> onBranchChanged;
   final ValueChanged<String> onBatchChanged;
   final ValueChanged<String> onHostelChanged;
+  final ValueChanged<bool> onAgreementChanged;
   final VoidCallback onContinue;
 
   @override
@@ -44,7 +49,8 @@ class OnboardingAcademicProfilePage extends StatefulWidget {
 class _OnboardingAcademicProfilePageState
     extends State<OnboardingAcademicProfilePage> {
   late final TextEditingController _nameController;
-  bool _agreedToTerms = true;
+  late final TapGestureRecognizer _learnMoreRecognizer;
+  late final TapGestureRecognizer _requestRecognizer;
 
   static const List<String> kNitcHostels = [
     'Mega Hostel (MBH - Phase 1)',
@@ -68,11 +74,33 @@ class _OnboardingAcademicProfilePageState
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
+    _learnMoreRecognizer = TapGestureRecognizer()
+      ..onTap = _showInformationSheet;
+    _requestRecognizer = TapGestureRecognizer()
+      ..onTap = _showRequestInstructions;
+  }
+
+  void _showInformationSheet() {
+    WhyDoWeNeedYourInfoBottomSheet.show(context);
+  }
+
+  void _showRequestInstructions() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'To request custom departments or hostels, contact transit-support@nitc.ac.in',
+          style: TextStyle(fontFamily: TrackletTypography.primaryFontFamily),
+        ),
+        backgroundColor: TrackletColors.primary,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _learnMoreRecognizer.dispose();
+    _requestRecognizer.dispose();
     super.dispose();
   }
 
@@ -87,7 +115,7 @@ class _OnboardingAcademicProfilePageState
         isBranchValid &&
         isBatchValid &&
         isHostelValid &&
-        _agreedToTerms;
+        widget.agreedToTerms;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -106,13 +134,13 @@ class _OnboardingAcademicProfilePageState
               fontWeight: FontWeight.w700,
               color: TrackletColors.altPrimaryText,
             ),
-          ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.1, end: 0),
+          ).enterOnboarding(context),
           const SizedBox(height: 6),
 
           // RichText Subtitle with "Tap to Learn More." modal trigger
           RichText(
             text: TextSpan(
-              style: TrackletTypography.bodySmall.copyWith(
+              style: TrackletTypography.labelSmall.copyWith(
                 color: TrackletColors.secondaryText,
                 fontSize: 11.5,
                 height: 1.45,
@@ -124,39 +152,23 @@ class _OnboardingAcademicProfilePageState
                 TextSpan(
                   text: 'Tap to Learn More.',
                   style: const TextStyle(
-                    color: TrackletColors.primary,
+                    color: TrackletColors.tertiaryText,
                     fontWeight: FontWeight.w700,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      WhyDoWeNeedYourInfoBottomSheet.show(context);
-                    },
+                  recognizer: _learnMoreRecognizer,
                 ),
                 const TextSpan(text: " Can't find your branch or batch? "),
                 TextSpan(
                   text: 'Request here',
                   style: const TextStyle(
-                    color: TrackletColors.primary,
+                    color: TrackletColors.tertiaryText,
                     fontWeight: FontWeight.w700,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'To request custom departments or hostels, contact transit-support@nitc.ac.in',
-                            style: TextStyle(
-                              fontFamily: TrackletTypography.primaryFontFamily,
-                            ),
-                          ),
-                          backgroundColor: TrackletColors.primary,
-                        ),
-                      );
-                    },
+                  recognizer: _requestRecognizer,
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 350.ms, delay: 50.ms),
+          ).enterOnboarding(context, delay: 50.ms),
           const SizedBox(height: 18),
 
           // Field 1: Full Name
@@ -165,6 +177,8 @@ class _OnboardingAcademicProfilePageState
           TextFormField(
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
+            autocorrect: false,
+            autofillHints: const [AutofillHints.name],
             textInputAction: TextInputAction.next,
             onChanged: (val) {
               widget.onNameChanged(val);
@@ -175,11 +189,11 @@ class _OnboardingAcademicProfilePageState
               hintText: 'Full Name',
               hintStyle: TrackletTypography.labelLarge.copyWith(
                 color: TrackletColors.secondaryText,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
               ),
               enabledBorder: OutlineInputBorder(
                 borderSide: const BorderSide(
-                  color: Colors.transparent,
+                  color: TrackletColors.alternate,
                   width: 2.0,
                 ),
                 borderRadius: BorderRadius.circular(TrackletRadii.card),
@@ -219,13 +233,14 @@ class _OnboardingAcademicProfilePageState
                 size: 20,
               ),
               suffixIcon: _nameController.text.isNotEmpty
-                  ? InkWell(
-                      onTap: () {
+                  ? IconButton(
+                      tooltip: 'Clear name',
+                      onPressed: () {
                         _nameController.clear();
                         widget.onNameChanged('');
                         setState(() {});
                       },
-                      child: const Icon(
+                      icon: const Icon(
                         Icons.close_rounded,
                         size: 18,
                         color: TrackletColors.secondaryText,
@@ -238,7 +253,7 @@ class _OnboardingAcademicProfilePageState
               color: TrackletColors.altPrimaryText,
               fontWeight: FontWeight.w600,
             ),
-          ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
+          ).enterOnboarding(context, delay: 90.ms),
           const SizedBox(height: 14),
 
           // Field 2: Branch Animated Dropdown
@@ -248,14 +263,17 @@ class _OnboardingAcademicProfilePageState
             items: kNitcBranches,
             initialItem: widget.branch.isNotEmpty ? widget.branch : null,
             hintText: 'Select Branch',
-            isSearchable: true,
-            searchHintText: 'Search branch / department...',
+            prefixIcon: const Icon(
+              Icons.account_tree_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: isBranchValid,
             onChanged: (val) {
               widget.onBranchChanged(val ?? '');
               setState(() {});
             },
-          ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+          ).enterOnboarding(context, delay: 130.ms),
           const SizedBox(height: 14),
 
           // Field 3: Batch Animated Dropdown
@@ -265,40 +283,46 @@ class _OnboardingAcademicProfilePageState
             items: kNitcBatches,
             initialItem: widget.batch.isNotEmpty ? widget.batch : null,
             hintText: 'Select Batch',
+            prefixIcon: const Icon(
+              Icons.groups_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: isBatchValid,
             onChanged: (val) {
               widget.onBatchChanged(val ?? '');
               setState(() {});
             },
-          ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+          ).enterOnboarding(context, delay: 170.ms),
           const SizedBox(height: 14),
 
-          // Field 4: Hostel / Mess Animated Dropdown
-          _buildFieldLabel('Which hostel or mess do you belong to?'),
+          // Field 4: Hostel
+          _buildFieldLabel('Which hostel do you belong to?'),
           const SizedBox(height: 6),
           TrackletDropdown(
             items: kNitcHostels,
             initialItem: widget.hostel.isNotEmpty ? widget.hostel : null,
-            hintText: 'Select Hostel / Residence',
-            isSearchable: true,
-            searchHintText: 'Search hostel / residence...',
+            hintText: 'Select Hostel',
+            prefixIcon: const Icon(
+              Icons.home_work_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: isHostelValid,
             onChanged: (val) {
               widget.onHostelChanged(val ?? '');
               setState(() {});
             },
-          ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
+          ).enterOnboarding(context, delay: 250.ms),
           const SizedBox(height: 14),
 
-          // Terms & Conditions Checkbox (Attendrix style)
+          // Information acknowledgement checkbox
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Theme(
                 data: ThemeData(
                   checkboxTheme: CheckboxThemeData(
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(TrackletRadii.xs),
                     ),
@@ -306,61 +330,53 @@ class _OnboardingAcademicProfilePageState
                   unselectedWidgetColor: TrackletColors.secondaryText,
                 ),
                 child: Checkbox(
-                  value: _agreedToTerms,
+                  value: widget.agreedToTerms,
                   activeColor: TrackletColors.primary,
                   checkColor: TrackletColors.pure,
-                  onChanged: (val) =>
-                      setState(() => _agreedToTerms = val ?? false),
+                  onChanged: (value) =>
+                      widget.onAgreementChanged(value ?? false),
                 ),
               ),
               const SizedBox(width: 4),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontFamily: TrackletTypography.primaryFontFamily,
-                        fontSize: 12,
-                        color: TrackletColors.secondaryText,
-                        height: 1.3,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'I confirm that I have read and agree to the ',
-                        ),
-                        TextSpan(
-                          text: 'Terms of Service',
-                          style: const TextStyle(
-                            color: TrackletColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              WhyDoWeNeedYourInfoBottomSheet.show(context);
-                            },
-                        ),
-                        const TextSpan(text: ' and '),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: const TextStyle(
-                            color: TrackletColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              WhyDoWeNeedYourInfoBottomSheet.show(context);
-                            },
-                        ),
-                        const TextSpan(text: '.'),
-                      ],
-                    ),
+              const Expanded(
+                child: Text(
+                  'I agree to the Terms of Service and Privacy Policy.',
+                  style: TextStyle(
+                    fontFamily: TrackletTypography.primaryFontFamily,
+                    fontSize: 12,
+                    color: TrackletColors.secondaryText,
+                    height: 1.3,
                   ),
                 ),
               ),
             ],
-          ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
-          const SizedBox(height: 20),
+          ).enterOnboarding(context, delay: 250.ms),
+          if (!isFormValid)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: TrackletColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Complete each field and agree to the Terms of Service and Privacy Policy to continue.',
+                      style: TrackletTypography.labelSmall.copyWith(
+                        color: TrackletColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).enterOnboarding(context, delay: 270.ms),
+          const SizedBox(height: 8),
 
           // Continue Button
           SizedBox(
@@ -395,7 +411,7 @@ class _OnboardingAcademicProfilePageState
                 ),
               ),
             ),
-          ).animate().fadeIn(duration: 400.ms, delay: 350.ms),
+          ).enterOnboarding(context, delay: 290.ms),
           const SizedBox(height: TrackletSpacing.lg),
         ],
       ),

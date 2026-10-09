@@ -22,9 +22,29 @@ void main() {
       );
 
       // Email & Password Form Fields
-      expect(find.text('Email '), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
+      expect(find.text('name@nitc.ac.in'), findsOneWidget);
+      expect(find.text('Enter your password'), findsOneWidget);
       expect(find.byType(TextFormField), findsNWidgets(2));
+
+      for (final field in tester.widgetList<EditableText>(
+        find.byType(EditableText),
+      )) {
+        expect(field.style.fontWeight, FontWeight.w600);
+      }
+
+      for (final decorator in tester.widgetList<InputDecorator>(
+        find.byType(InputDecorator),
+      )) {
+        expect(decorator.decoration.hintStyle?.fontFamily, 'Outfit');
+        expect(decorator.decoration.hintStyle?.fontWeight, FontWeight.w700);
+        expect(decorator.decoration.labelStyle?.fontFamily, 'Outfit');
+        expect(decorator.decoration.labelStyle?.fontWeight, FontWeight.w600);
+        expect(
+          decorator.decoration.floatingLabelStyle?.fontWeight,
+          FontWeight.w700,
+        );
+        expect(decorator.decoration.errorStyle?.fontWeight, FontWeight.w600);
+      }
 
       // Forgot Password Link
       expect(find.text('perhaps, forgot your password?'), findsOneWidget);
@@ -51,6 +71,48 @@ void main() {
 
       expect(find.text('student@nitc.ac.in'), findsOneWidget);
       expect(find.text('password123'), findsOneWidget);
+    });
+
+    testWidgets('rejects email addresses outside the NITC institute domain', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(const LoginScreen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'student@gmail.com',
+      );
+      final loginButton = find.widgetWithText(ElevatedButton, 'Login');
+      await tester.ensureVisible(loginButton);
+      await tester.tap(loginButton);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Use your NITC institute email ending in @nitc.ac.in.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('accepts the NITC domain without case sensitivity', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(const LoginScreen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'student@NITC.AC.IN',
+      );
+      final loginButton = find.widgetWithText(ElevatedButton, 'Login');
+      await tester.ensureVisible(loginButton);
+      await tester.tap(loginButton);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Use your NITC institute email ending in @nitc.ac.in.'),
+        findsNothing,
+      );
     });
 
     testWidgets('toggling password visibility changes obscurity', (

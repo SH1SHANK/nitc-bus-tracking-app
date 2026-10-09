@@ -52,14 +52,14 @@ class OnboardingStepSetup extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.xs),
           const Text(
-            'Choose your primary residence and favorite stop for instant one-tap tracking from your home screen.',
+            'Choose your hostel and favorite stop for instant one-tap tracking from your home screen.',
             style: TrackletTypography.bodyMedium,
           ),
           const SizedBox(height: TrackletSpacing.xl),
 
           // 1. Hostel / Mess
           Text(
-            'Choose your current hostel or residence',
+            'Choose your hostel',
             style: TrackletTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -69,8 +69,11 @@ class OnboardingStepSetup extends StatelessWidget {
             items: kNitcHostels,
             initialItem: selectedHostel.isNotEmpty ? selectedHostel : null,
             hintText: 'Select Hostel',
-            isSearchable: true,
-            searchHintText: 'Search hostel / residence...',
+            prefixIcon: const Icon(
+              Icons.home_work_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: selectedHostel.isNotEmpty,
             onChanged: (val) => onHostelChanged(val ?? ''),
           ),
@@ -88,8 +91,11 @@ class OnboardingStepSetup extends StatelessWidget {
             items: kNitcPrimaryStops,
             initialItem: selectedStop.isNotEmpty ? selectedStop : null,
             hintText: 'Select Primary Stop',
-            isSearchable: true,
-            searchHintText: 'Search primary bus stop...',
+            prefixIcon: const Icon(
+              Icons.directions_bus_outlined,
+              color: TrackletColors.secondaryText,
+              size: 20,
+            ),
             isValid: selectedStop.isNotEmpty,
             onChanged: (val) => onStopChanged(val ?? ''),
           ),
