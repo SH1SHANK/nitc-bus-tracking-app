@@ -1,214 +1,112 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/transit/bus_route.dart';
-import '../../../data/transit/route_geometry.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
-import '../../../design_system/tokens/shadows.dart';
+
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
-/// Top floating control for campus route selection and geometry status.
+/// Compact map overlay showing the active route and opening route selection.
 class RouteSelectorCard extends StatelessWidget {
   const RouteSelectorCard({
     super.key,
-    required this.routes,
     required this.selectedRoute,
-    required this.onSelectRoute,
-    this.onToggleStopsList,
-    this.isStopsListExpanded = false,
+    required this.stopCount,
+    required this.onOpenRoutePicker,
   });
 
-  final List<BusRoute> routes;
   final BusRoute? selectedRoute;
-  final void Function(BusRoute route) onSelectRoute;
-  final VoidCallback? onToggleStopsList;
-  final bool isStopsListExpanded;
+  final int stopCount;
+  final VoidCallback onOpenRoutePicker;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TrackletColors.surfaceElevated.withValues(alpha: 0.98),
+    final route = selectedRoute;
+
+    return Semantics(
+      button: true,
+      label:
+          route == null
+              ? 'Choose a campus bus route'
+              : 'Selected route ${route.code}, ${route.name}, $stopCount stops. Change route',
+      child: Material(
+        color: TrackletColors.surfaceElevated,
         borderRadius: TrackletRadii.roundedLg,
-        border: Border.all(color: TrackletColors.border),
-        boxShadow: const [TrackletShadows.sm],
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: TrackletSpacing.md,
-        vertical: TrackletSpacing.sm + 2,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Route Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children:
-                  routes.map((route) {
-                    final isSelected = selectedRoute?.id == route.id;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: InkWell(
-                        onTap: () => onSelectRoute(route),
-                        borderRadius: BorderRadius.circular(20),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? TrackletColors.primary
-                                    : TrackletColors.background2,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color:
-                                  isSelected
-                                      ? TrackletColors.primary
-                                      : TrackletColors.border,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                route.code.isNotEmpty ? route.code : route.name,
-                                style: TrackletTypography.labelSmall.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color:
-                                      isSelected
-                                          ? TrackletColors.textInverse
-                                          : TrackletColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+        elevation: 2,
+        shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.12),
+        child: InkWell(
+          onTap: onOpenRoutePicker,
+          borderRadius: TrackletRadii.roundedLg,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 72),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.md,
+              vertical: TrackletSpacing.sm,
             ),
-          ),
-          if (selectedRoute != null) ...[
-            const SizedBox(height: 8),
-            Row(
+            decoration: BoxDecoration(
+              borderRadius: TrackletRadii.roundedLg,
+              border: Border.all(color: TrackletColors.border),
+            ),
+            child: Row(
               children: [
+                Container(
+                  constraints: const BoxConstraints(minWidth: 44),
+                  height: 40,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: const BoxDecoration(
+                    color: TrackletColors.background2,
+                    borderRadius: TrackletRadii.roundedSm,
+                  ),
+                  child: Text(
+                    route?.code.isNotEmpty == true ? route!.code : 'ROUTE',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TrackletTypography.labelMedium.copyWith(
+                      color: TrackletColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: TrackletSpacing.md),
                 Expanded(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        selectedRoute!.name,
-                        style: TrackletTypography.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: TrackletColors.textPrimary,
-                        ),
+                        route?.name ?? 'Choose a route',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      if (selectedRoute!.description != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          selectedRoute!.description!,
-                          style: TrackletTypography.bodySmall.copyWith(
-                            color: TrackletColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        style: TrackletTypography.titleSmall.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        route?.description?.trim().isNotEmpty == true
+                            ? route!.description!.trim()
+                            : '$stopCount ${stopCount == 1 ? 'stop' : 'stops'} · Campus loop',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TrackletTypography.bodySmall.copyWith(
+                          color: TrackletColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                if (onToggleStopsList != null)
-                  InkWell(
-                    onTap: onToggleStopsList,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${selectedRoute!.stopOccurrences.length} stops',
-                            style: TrackletTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: TrackletColors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Icon(
-                            isStopsListExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            size: 18,
-                            color: TrackletColors.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                const SizedBox(width: TrackletSpacing.xs),
+                const Icon(
+                  Icons.expand_more_rounded,
+                  color: TrackletColors.textSecondary,
+                  size: 24,
+                ),
               ],
             ),
-            const SizedBox(height: 6),
-            // Route Geometry Availability Badge
-            _buildGeometryStatusBadge(selectedRoute!.geometry),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGeometryStatusBadge(RouteGeometry geometry) {
-    final (label, icon, bgColor, textColor) = switch (geometry.status) {
-      RouteGeometryStatus.available => (
-        'Road-following path verified',
-        Icons.check_circle_outline,
-        TrackletColors.busLiveBg,
-        TrackletColors.busLive,
-      ),
-      RouteGeometryStatus.missing => (
-        'Road-following path pending verification • Showing ordered stops',
-        Icons.info_outline,
-        TrackletColors.background2,
-        TrackletColors.textSecondary,
-      ),
-      RouteGeometryStatus.invalid => (
-        'Route geometry format invalid',
-        Icons.warning_amber_outlined,
-        TrackletColors.notificationYellowBgLight,
-        TrackletColors.notificationAmber,
-      ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: textColor),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              style: TrackletTypography.labelSmall.copyWith(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
           ),
-        ],
+        ),
       ),
     );
   }

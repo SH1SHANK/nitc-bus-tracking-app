@@ -69,6 +69,30 @@ void main() {
       expect(find.text('Locate'), findsNothing);
     });
 
+    testWidgets('hides campus walking estimates for a distant location', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(
+        const HomeScreen(),
+        overrides: [
+          locationStateProvider.overrideWith(
+            () => _FixedLocationNotifier(
+              const GeoPoint(latitude: 40.7128, longitude: -74.006),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Default boarding stop'), findsOneWidget);
+      expect(
+        find.text('Location is outside the campus service area'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('straight-line distance'), findsNothing);
+      expect(find.textContaining('min walk'), findsNothing);
+    });
+
     testWidgets('stop search suggests and selects a campus destination', (
       tester,
     ) async {

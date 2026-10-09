@@ -122,6 +122,14 @@ void main() {
       );
       expect(nearestStopTo(stop.location, const <Stop>[]), isNull);
     });
+
+    test('only returns a campus stop within walking range', () {
+      const farAway = GeoPoint(latitude: 40.7128, longitude: -74.006);
+
+      expect(nearestCampusStopTo(stop.location, [stop]), stop);
+      expect(nearestCampusStopTo(farAway, [stop]), isNull);
+      expect(nearestCampusStopTo(stop.location, const <Stop>[]), isNull);
+    });
   });
 
   group('upcomingDeparturesForStop', () {

@@ -110,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final nearestStop =
               locationState.currentLocation == null
                   ? null
-                  : nearestStopTo(locationState.currentLocation!, stops);
+                  : nearestCampusStopTo(locationState.currentLocation!, stops);
           final boardingStop =
               nearestStop ??
               stops
@@ -251,6 +251,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           distanceMeters: nearestStopDistanceMeters,
                           walkingMinutes: walkTimeMinutes,
                           isLoading: locationState.isLoading,
+                          isOutsideCampus:
+                              locationState.currentLocation != null &&
+                              nearestStop == null,
                           onUseLocation: _requestLocation,
                         ),
                         const SizedBox(height: TrackletSpacing.lg),
@@ -591,6 +594,7 @@ class _NearestStopSummary extends StatelessWidget {
     required this.distanceMeters,
     required this.walkingMinutes,
     required this.isLoading,
+    required this.isOutsideCampus,
     required this.onUseLocation,
   });
 
@@ -599,6 +603,7 @@ class _NearestStopSummary extends StatelessWidget {
   final double? distanceMeters;
   final int? walkingMinutes;
   final bool isLoading;
+  final bool isOutsideCampus;
   final VoidCallback onUseLocation;
 
   @override
@@ -660,6 +665,8 @@ class _NearestStopSummary extends StatelessWidget {
                     Text(
                       hasLocation
                           ? '~${TransitFormatter.formatDistance(distanceMeters!)} straight-line distance'
+                          : isOutsideCampus
+                          ? 'Location is outside the campus service area'
                           : isLoading
                           ? 'Finding your nearest stop…'
                           : 'Turn on location to find your nearest stop',

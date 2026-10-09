@@ -1,0 +1,19 @@
+# Ignore local build and non-web directories
+build
+.dart_tool
+.fvm
+.git
+.idea
+.vscode
+android
+ios
+linux
+macos
+windows
+test
+integration_test
+Map Assets
+.agents
+*.iml
+*.tar.gz
+*.tgz

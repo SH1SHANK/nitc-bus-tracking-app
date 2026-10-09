@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
@@ -30,6 +32,8 @@ class MockTransitRepository implements TransitRepository {
     ),
   ];
 
+  Completer<List<RouteStopOccurrence>>? delayedRouteStops;
+
   late final List<BusRoute> mockRoutes = [
     BusRoute(
       id: 'route-r1',
@@ -40,7 +44,7 @@ class MockTransitRepository implements TransitRepository {
         RouteStopOccurrence(
           routeId: 'route-r1',
           stopId: 'stop-1',
-          sequence: 0,
+          sequence: 2,
           stop: mockStops[0],
         ),
         RouteStopOccurrence(
@@ -49,7 +53,19 @@ class MockTransitRepository implements TransitRepository {
           sequence: 1,
           stop: mockStops[1],
         ),
+        RouteStopOccurrence(
+          routeId: 'route-r1',
+          stopId: 'stop-1',
+          sequence: 0,
+          stop: mockStops[0],
+        ),
       ],
+    ),
+    const BusRoute(
+      id: 'route-r2',
+      code: 'R2',
+      name: 'East to Hostel',
+      stopIds: ['stop-2'],
     ),
   ];
 
@@ -60,8 +76,12 @@ class MockTransitRepository implements TransitRepository {
   Future<List<BusRoute>> getRoutes() async => mockRoutes;
 
   @override
-  Future<List<RouteStopOccurrence>> getRouteStops(String routeId) async =>
-      mockRoutes.first.stopOccurrences;
+  Future<List<RouteStopOccurrence>> getRouteStops(String routeId) {
+    if (routeId == 'route-r2' && delayedRouteStops != null) {
+      return delayedRouteStops!.future;
+    }
+    return Future.value(mockRoutes.first.stopOccurrences);
+  }
 
   @override
   Future<List<Bus>> getActiveBuses() async => [];
@@ -105,10 +125,44 @@ void main() {
         expect(state.isLoading, isFalse);
         expect(state.hasError, isFalse);
         expect(state.stops, hasLength(2));
-        expect(state.routes, hasLength(1));
+        expect(state.routes, hasLength(2));
         expect(state.selectedRoute?.code, 'R1');
         expect(state.isGeometryMissing, isTrue);
         expect(state.activeRouteStopIds, containsAll(['stop-1', 'stop-2']));
+        expect(state.selectedRouteStops, hasLength(3));
+        expect(
+          state.selectedRouteStops.map((occurrence) => occurrence.sequence),
+          [0, 1, 2],
+        );
+        expect(
+          state.selectedRouteStops.first.stopId,
+          state.selectedRouteStops.last.stopId,
+        );
+      },
+    );
+
+    test(
+      'a late route-stop response cannot replace a newer route choice',
+      () async {
+        mockRepo.delayedRouteStops = Completer();
+        final notifier = container.read(mapStateNotifierProvider.notifier);
+        await notifier.loadTransitData();
+
+        final slowSelection = notifier.selectRoute(mockRepo.mockRoutes[1]);
+        await notifier.selectRoute(mockRepo.mockRoutes[0]);
+        mockRepo.delayedRouteStops!.complete([
+          RouteStopOccurrence(
+            routeId: 'route-r2',
+            stopId: 'stop-2',
+            sequence: 0,
+            stop: mockRepo.mockStops[1],
+          ),
+        ]);
+        await slowSelection;
+
+        final state = container.read(mapStateNotifierProvider);
+        expect(state.selectedRoute?.id, 'route-r1');
+        expect(state.selectedRouteStops, hasLength(3));
       },
     );
 

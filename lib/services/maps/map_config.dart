@@ -21,7 +21,11 @@ class MapConfig {
   /// Whether a valid Mapbox public token is present.
   static bool get hasMapboxToken => AppConfig.hasMapboxToken;
 
-  /// Default Mapbox Style URI.
+  /// Light vector basemap; the map adapter suppresses its symbol layers and
+  /// restyles discovered building and road layers for campus use.
+  static const String mapboxCampusStyle = 'mapbox://styles/mapbox/light-v11';
+
+  /// Kept for consumers that explicitly need the standard Streets style.
   static const String mapboxStreetsStyle = 'mapbox://styles/mapbox/streets-v12';
   static const String mapboxOutdoorsStyle =
       'mapbox://styles/mapbox/outdoors-v12';

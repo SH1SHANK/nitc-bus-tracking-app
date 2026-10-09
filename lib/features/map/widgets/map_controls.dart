@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../design_system/components/icons/tracklet_icon.dart';
-import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 
-/// Floating control buttons on the map for campus recenter and route bounds fitting.
+/// Compact, accessible camera actions for the map.
 class MapControls extends StatelessWidget {
   const MapControls({
     super.key,
@@ -19,23 +17,35 @@ class MapControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (onFitRoute != null) ...[
-          _ControlButton(
-            icon: TrackletIcons.route,
-            tooltip: 'Fit Selected Route Stops',
-            onPressed: onFitRoute!,
-          ),
-          const SizedBox(height: TrackletSpacing.sm),
-        ],
-        _ControlButton(
-          icon: TrackletIcons.compass,
-          tooltip: 'Recenter NITC Campus',
-          onPressed: onRecenterCampus,
+    return Material(
+      color: TrackletColors.surfaceElevated,
+      elevation: 2,
+      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.12),
+      borderRadius: TrackletRadii.roundedMd,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: TrackletRadii.roundedMd,
+          border: Border.all(color: TrackletColors.border),
         ),
-      ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onFitRoute != null) ...[
+              _ControlButton(
+                icon: Icons.route_rounded,
+                tooltip: 'Show all stops on this route',
+                onPressed: onFitRoute!,
+              ),
+              const Divider(height: 1, indent: 9, endIndent: 9),
+            ],
+            _ControlButton(
+              icon: Icons.explore_outlined,
+              tooltip: 'Recenter on NIT Calicut campus',
+              onPressed: onRecenterCampus,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -53,30 +63,17 @@ class _ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: TrackletColors.surfaceElevated,
-      elevation: 2,
-      shadowColor: TrackletColors.primaryText.withValues(alpha: 0.15),
-      borderRadius: TrackletRadii.roundedMd,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: TrackletRadii.roundedMd,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: TrackletRadii.roundedMd,
-            border: Border.all(color: TrackletColors.border),
-          ),
-          child: Center(
-            child: TrackletIcon(
-              icon,
-              size: 20,
-              color: TrackletColors.textPrimary,
-            ),
-          ),
-        ),
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      icon: Icon(icon, size: 21),
+      color: TrackletColors.textPrimary,
+      constraints: const BoxConstraints(
+        minWidth: TrackletSpacing.minTouchTarget,
+        minHeight: TrackletSpacing.minTouchTarget,
       ),
+      padding: const EdgeInsets.all(TrackletSpacing.sm),
+      visualDensity: VisualDensity.standard,
     );
   }
 }

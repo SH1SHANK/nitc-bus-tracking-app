@@ -1,0 +1,9 @@
+{
+  "name": "tracklet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/vercel-build.sh",
+    "vercel-build": "bash scripts/vercel-build.sh"
+  }
+}

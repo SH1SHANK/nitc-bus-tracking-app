@@ -69,6 +69,17 @@ abstract final class TrackletColors {
   static const Color locationGreenText = Color(0xFF16A34A);
   static const Color locationGreenDark = Color(0xFF15803D);
 
+  // Campus map cartography tokens
+  static const Color mapCanvas = Color(0xFFF7F5F0);
+  static const Color mapLand = Color(0xFFF7F5F0);
+  static const Color mapBuilding = Color(0xFFE5E0D6);
+  static const Color mapBuildingOutline = Color(0xFFC9C2B7);
+  static const Color mapRoad = Color(0xFFD4CFC5);
+  static const Color mapBuildingLabel = Color(0xFF514F4A);
+  static const Color mapStopLabel = Color(0xFF68645E);
+  static const Color mapRouteStopLabel = Color(0xFF574BC6);
+  static const Color mapSelectedStopLabel = Color(0xFF4338A8);
+
   // Transit Semantic Tokens
   static const Color busLive = Color(0xFF03C03C);
   static const Color busLiveBg = Color(0xFFE6F9ED);

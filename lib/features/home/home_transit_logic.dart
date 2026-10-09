@@ -60,6 +60,18 @@ Stop? nearestStopTo(GeoPoint point, Iterable<Stop> stops) {
   return nearest;
 }
 
+const campusStopWalkingRangeMeters = 3000.0;
+
+/// Returns a campus stop only when the location is within a useful walking range.
+Stop? nearestCampusStopTo(GeoPoint point, Iterable<Stop> stops) {
+  final nearest = nearestStopTo(point, stops);
+  if (nearest == null) return null;
+  if (point.distanceToMeters(nearest.location) > campusStopWalkingRangeMeters) {
+    return null;
+  }
+  return nearest;
+}
+
 /// Rough walking-time estimate from straight-line distance, not a pedestrian route.
 int estimateWalkMinutes(double distanceMeters) {
   if (distanceMeters <= 0) return 1;
