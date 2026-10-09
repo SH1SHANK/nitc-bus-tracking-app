@@ -14,7 +14,7 @@ import 'widgets/onboarding_step_permissions.dart';
 import 'widgets/onboarding_step_username.dart';
 
 /// Streamlined Onboarding Experience matching Attendrix Layout.
-/// 0: Academic Profile (All-in-One: Name, Branch, Batch, Hostel)
+/// 0: Academic Profile (Name, Branch, Batch, Hostel)
 /// 1: Username with Magic Wand Generator
 /// 2: Combined Permissions (Location & Notifications)
 /// 3: Final Welcome & Loading Sequence -> Home
@@ -28,12 +28,16 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final PageController _pageController;
 
-  static const int kTotalSteps = 3;
+  static const int kTotalSteps = 4;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    final currentStep = ref.read(onboardingProvider).currentStep;
+    final initialPage = currentStep >= 0 && currentStep < kTotalSteps
+        ? currentStep
+        : 0;
+    _pageController = PageController(initialPage: initialPage);
   }
 
   @override
@@ -44,20 +48,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _goToStep(int step) {
     ref.read(onboardingProvider.notifier).setStep(step);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pageController.jumpToPage(step);
+      return;
+    }
+
     _pageController.animateToPage(
       step,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOutCubic,
     );
   }
 
   void _next() {
     final current = ref.read(onboardingProvider).currentStep;
+    if (current >= kTotalSteps - 1) return;
+
     final next = current + 1;
     _goToStep(next);
 
-    // If entering the final loading step (step 3), kick off initialization sequence
-    if (next == 3) {
+    if (next == kTotalSteps - 1) {
       ref
           .read(onboardingProvider.notifier)
           .runInitializationSequence(
@@ -88,119 +98,158 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
 
-    final showTopNav = state.currentStep < 3;
+    final showBackButton = state.currentStep < kTotalSteps - 1;
 
-    return Scaffold(
-      backgroundColor: TrackletColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top Navigation & Progress Bar
-            if (showTopNav) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TrackletSpacing.md,
-                  vertical: TrackletSpacing.xs,
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const TrackletIcon(
-                            TrackletIcons.chevronLeft,
-                            size: 22,
-                            color: TrackletColors.textPrimary,
-                          ),
-                          onPressed: _previous,
-                          tooltip: 'Back',
+    return PopScope<Object?>(
+      canPop: state.currentStep == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop &&
+            state.currentStep > 0 &&
+            state.currentStep < kTotalSteps - 1) {
+          _previous();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: TrackletColors.background,
+        body: DecoratedBox(
+          decoration: state.currentStep == 1
+              ? const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFFAFBFF),
+                      Color(0xFFEAE8F9),
+                      Color(0xFFB5B1E7),
+                    ],
+                    stops: [0, 0.43, 1],
+                  ),
+                )
+              : const BoxDecoration(color: TrackletColors.background),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // The username step uses the reference's clean segmented header.
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: state.currentStep == 1
+                        ? TrackletSpacing.lg
+                        : TrackletSpacing.md,
+                    vertical: TrackletSpacing.xs,
+                  ),
+                  child: Column(
+                    children: [
+                      if (state.currentStep != 1) ...[
+                        Row(
+                          children: [
+                            if (showBackButton)
+                              IconButton(
+                                icon: const TrackletIcon(
+                                  TrackletIcons.chevronLeft,
+                                  size: 22,
+                                  color: TrackletColors.textPrimary,
+                                ),
+                                onPressed: _previous,
+                                tooltip: 'Back',
+                              )
+                            else
+                              const SizedBox(width: 48, height: 48),
+                            const Spacer(),
+                            Text(
+                              showBackButton
+                                  ? 'Step ${state.currentStep + 1} of $kTotalSteps'
+                                  : 'Setting up Tracklet',
+                              style: const TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: TrackletColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(width: TrackletSpacing.sm),
+                          ],
                         ),
-                        const Spacer(),
-                        Text(
-                          'Step ${state.currentStep + 1} of $kTotalSteps',
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: TrackletColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: TrackletSpacing.sm),
+                        const SizedBox(height: 4),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: OnboardingProgressBar(
-                        currentStep: state.currentStep,
-                        totalSteps: kTotalSteps,
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: state.currentStep == 1 ? 0 : 12,
+                        ),
+                        child: OnboardingProgressBar(
+                          currentStep: state.currentStep,
+                          totalSteps: kTotalSteps,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ] else
-              const SizedBox(height: TrackletSpacing.sm),
 
-            // Page Sequence
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  // 0. All-in-One Academic Profile (Name, Branch, Batch, Hostel)
-                  OnboardingAcademicProfilePage(
-                    name: state.name,
-                    branch: state.branch,
-                    batch: state.batch,
-                    hostel: state.hostel,
-                    onNameChanged: (n) => notifier.setName(n),
-                    onBranchChanged: (b) => notifier.setBranch(b),
-                    onBatchChanged: (b) => notifier.setBatch(b),
-                    onHostelChanged: (h) => notifier.setHostel(h),
-                    onContinue: _next,
-                  ),
+                // Page Sequence
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      // 0. Academic Profile (Name, Branch, Batch, Hostel)
+                      OnboardingAcademicProfilePage(
+                        name: state.name,
+                        branch: state.branch,
+                        batch: state.batch,
+                        hostel: state.hostel,
+                        agreedToTerms: state.agreedToTerms,
+                        onNameChanged: (n) => notifier.setName(n),
+                        onBranchChanged: (b) => notifier.setBranch(b),
+                        onBatchChanged: (b) => notifier.setBatch(b),
+                        onHostelChanged: (h) => notifier.setHostel(h),
+                        onAgreementChanged: notifier.toggleTerms,
+                        onContinue: _next,
+                      ),
 
-                  // 1. Username with Attendrix Gradient & Magic Generator
-                  OnboardingStepUsername(
-                    initialUsername: state.username,
-                    isAvailable: state.isUsernameAvailable,
-                    onUsernameChanged: (u) => notifier.updateUsername(u),
-                    onMagicWandPressed: () => notifier.generateRandomUsername(),
-                    onContinue: _next,
-                  ),
+                      // 1. Username with Attendrix Gradient & Magic Generator
+                      OnboardingStepUsername(
+                        initialUsername: state.username,
+                        isAvailable: state.isUsernameAvailable,
+                        isCheckingUsername: state.isCheckingUsername,
+                        onUsernameChanged: (u) => notifier.updateUsername(u),
+                        onMagicWandPressed: () =>
+                            notifier.generateRandomUsername(),
+                        onContinue: _next,
+                      ),
 
-                  // 2. Combined Permissions (Location & Notifications)
-                  OnboardingStepPermissions(
-                    locationGranted: state.locationPermissionGranted,
-                    notificationsGranted: state.notificationPermissionGranted,
-                    onEnablePermissions:
-                        ({
-                          required bool enableLocation,
-                          required bool enableNotifications,
-                        }) async {
-                          notifier.setLocationPermission(enableLocation);
-                          notifier.setNotificationPermission(
-                            enableNotifications,
-                          );
+                      // 2. Combined Permissions (Location & Notifications)
+                      OnboardingStepPermissions(
+                        locationGranted: state.locationPermissionGranted,
+                        notificationsGranted:
+                            state.notificationPermissionGranted,
+                        onEnablePermissions:
+                            ({
+                              required bool enableLocation,
+                              required bool enableNotifications,
+                            }) async {
+                              notifier.setLocationPermission(enableLocation);
+                              notifier.setNotificationPermission(
+                                enableNotifications,
+                              );
+                              _next();
+                            },
+                        onSkip: () {
+                          notifier.setLocationPermission(false);
+                          notifier.setNotificationPermission(false);
                           _next();
                         },
-                    onSkip: () {
-                      notifier.setLocationPermission(false);
-                      notifier.setNotificationPermission(false);
-                      _next();
-                    },
-                  ),
+                      ),
 
-                  // 3. Final Welcome & Animated Loading Sequence (`flow.gif`)
-                  OnboardingStepLoading(
-                    progress: state.loadingProgress,
-                    statusText: state.loadingStatus,
+                      // 3. Final Welcome & Animated Loading Sequence (`flow.gif`)
+                      OnboardingStepLoading(
+                        progress: state.loadingProgress,
+                        statusText: state.loadingStatus,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

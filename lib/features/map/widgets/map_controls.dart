@@ -6,34 +6,34 @@ import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 
-/// Floating control buttons on the map for campus recenter and user location.
+/// Floating control buttons on the map for campus recenter and route bounds fitting.
 class MapControls extends StatelessWidget {
   const MapControls({
     super.key,
     required this.onRecenterCampus,
-    required this.onLocateUser,
-    this.isLocating = false,
+    this.onFitRoute,
   });
 
   final VoidCallback onRecenterCampus;
-  final VoidCallback onLocateUser;
-  final bool isLocating;
+  final VoidCallback? onFitRoute;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (onFitRoute != null) ...[
+          _ControlButton(
+            icon: TrackletIcons.route,
+            tooltip: 'Fit Selected Route Stops',
+            onPressed: onFitRoute!,
+          ),
+          const SizedBox(height: TrackletSpacing.sm),
+        ],
         _ControlButton(
           icon: TrackletIcons.compass,
           tooltip: 'Recenter NITC Campus',
           onPressed: onRecenterCampus,
-        ),
-        const SizedBox(height: TrackletSpacing.sm),
-        _ControlButton(
-          icon: isLocating ? TrackletIcons.refresh : TrackletIcons.location,
-          tooltip: 'Locate Me',
-          onPressed: onLocateUser,
         ),
       ],
     );

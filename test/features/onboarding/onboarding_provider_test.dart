@@ -17,14 +17,14 @@ void main() {
     test('initial state has correct defaults', () {
       final state = container.read(onboardingProvider);
       expect(state.currentStep, 0);
-      expect(state.name, isNotEmpty);
-      expect(state.branch, isNotEmpty);
-      expect(state.batch, isNotEmpty);
-      expect(state.semester, isNotEmpty);
-      expect(state.username, isNotEmpty);
+      expect(state.name, isEmpty);
+      expect(state.branch, isEmpty);
+      expect(state.batch, isEmpty);
+      expect(state.username, isEmpty);
+      expect(state.hostel, isEmpty);
       expect(state.locationPermissionGranted, isFalse);
       expect(state.notificationPermissionGranted, isFalse);
-      expect(state.agreedToTerms, isTrue);
+      expect(state.agreedToTerms, isFalse);
       expect(state.loadingProgress, 0.0);
     });
 
@@ -48,18 +48,26 @@ void main() {
         'Batch of 2027 (3rd Year)',
       );
 
-      notifier.setSemester('Semester 4 (Winter)');
-      expect(
-        container.read(onboardingProvider).semester,
-        'Semester 4 (Winter)',
-      );
-
       notifier.previousStep();
       expect(container.read(onboardingProvider).currentStep, 0);
 
       // Should not go below 0
       notifier.previousStep();
       expect(container.read(onboardingProvider).currentStep, 0);
+    });
+
+    test('reset returns onboarding to its initial state', () {
+      final notifier = container.read(onboardingProvider.notifier);
+      notifier.setStep(2);
+      notifier.setName('Taylor Student');
+      notifier.toggleTerms(true);
+
+      notifier.reset();
+
+      final state = container.read(onboardingProvider);
+      expect(state.currentStep, 0);
+      expect(state.name, isEmpty);
+      expect(state.agreedToTerms, isFalse);
     });
 
     test('updateUsername filters invalid names and handles availability', () {
@@ -72,6 +80,9 @@ void main() {
       notifier.updateUsername('@cool_student');
       expect(container.read(onboardingProvider).username, 'cool_student');
       expect(container.read(onboardingProvider).isUsernameAvailable, isTrue);
+
+      notifier.updateUsername(List.filled(17, 'a').join());
+      expect(container.read(onboardingProvider).isUsernameAvailable, isFalse);
     });
 
     test('generateRandomUsername assigns valid username', () {
@@ -80,6 +91,7 @@ void main() {
       notifier.generateRandomUsername();
       final username = container.read(onboardingProvider).username;
       expect(username, isNotEmpty);
+      expect(username.length, lessThanOrEqualTo(16));
       expect(container.read(onboardingProvider).isUsernameAvailable, isTrue);
     });
 

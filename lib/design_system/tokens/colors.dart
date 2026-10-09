@@ -8,6 +8,7 @@ abstract final class TrackletColors {
   static const Color secondary = Color(0xFF39D2C0);
   static const Color secondaryPressed = Color(0xFF28B5A4);
   static const Color tertiary = Color(0xFFEE8B60);
+  static const Color tertiaryText = Color(0xFF9C4A25);
   static const Color alternate = Color(0xFFE5E7EB);
   static const Color velvetSky = Color(0xFF7B6FF8);
   static const Color mintGreen = Color(0xFF6EE7B7);

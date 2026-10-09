@@ -134,6 +134,27 @@ class LocationNotifier extends Notifier<LocationState> {
     return const LocationState();
   }
 
+  Future<void> refreshLocationIfPermitted() async {
+    final service = ref.read(locationServiceProvider);
+    try {
+      final permission = await service.checkPermission();
+      state = state.copyWith(permissionState: permission);
+      if (permission != LocationPermissionState.granted) return;
+
+      final point = await service.getCurrentLocation();
+      if (point != null) {
+        state = state.copyWith(
+          currentLocation: point,
+          permissionState: LocationPermissionState.granted,
+          isLoading: false,
+          errorMessage: null,
+        );
+      }
+    } catch (_) {
+      // Location is optional; keep the existing fallback when the platform is unavailable.
+    }
+  }
+
   Future<void> requestAndFetchLocation() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     final service = ref.read(locationServiceProvider);

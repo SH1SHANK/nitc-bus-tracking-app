@@ -1,61 +1,82 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/geo/geo_point.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
+import '../../../data/transit/route_geometry.dart';
+import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../data/transit/stop.dart';
 import '../../../data/transit/transit_repository.dart';
 import '../../../services/maps/map_config.dart';
 
+/// Immutable state for the Mapbox campus map screen.
 class MapScreenState {
   const MapScreenState({
-    required this.buses,
-    required this.stops,
-    required this.routes,
-    this.selectedBus,
+    this.stops = const [],
+    this.routes = const [],
+    this.selectedRoute,
+    this.selectedRouteStops = const [],
     this.selectedStop,
-    this.activeRoute,
-    this.userLocation,
     this.cameraCenter = MapConfig.campusCenter,
     this.isLoading = false,
+    this.errorMessage,
   });
 
-  final List<Bus> buses;
   final List<Stop> stops;
   final List<BusRoute> routes;
-  final Bus? selectedBus;
+  final BusRoute? selectedRoute;
+  final List<RouteStopOccurrence> selectedRouteStops;
   final Stop? selectedStop;
-  final BusRoute? activeRoute;
-  final GeoPoint? userLocation;
   final GeoPoint cameraCenter;
   final bool isLoading;
+  final String? errorMessage;
+
+  bool get hasError => errorMessage != null;
+  bool get isEmpty => !isLoading && !hasError && stops.isEmpty;
+
+  RouteGeometryStatus get geometryStatus =>
+      selectedRoute?.geometry.status ?? RouteGeometryStatus.missing;
+
+  bool get isGeometryAvailable =>
+      geometryStatus == RouteGeometryStatus.available;
+  bool get isGeometryMissing => geometryStatus == RouteGeometryStatus.missing;
+  bool get isGeometryInvalid => geometryStatus == RouteGeometryStatus.invalid;
+
+  Set<String> get activeRouteStopIds {
+    if (selectedRoute == null) return const {};
+    if (selectedRouteStops.isNotEmpty) {
+      return selectedRouteStops.map((s) => s.stopId).toSet();
+    }
+    return selectedRoute!.stopIds.toSet();
+  }
 
   MapScreenState copyWith({
-    List<Bus>? buses,
     List<Stop>? stops,
     List<BusRoute>? routes,
-    Bus? selectedBus,
-    bool clearSelectedBus = false,
+    BusRoute? selectedRoute,
+    bool clearSelectedRoute = false,
+    List<RouteStopOccurrence>? selectedRouteStops,
     Stop? selectedStop,
     bool clearSelectedStop = false,
-    BusRoute? activeRoute,
-    bool clearActiveRoute = false,
-    GeoPoint? userLocation,
     GeoPoint? cameraCenter,
     bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
   }) {
     return MapScreenState(
-      buses: buses ?? this.buses,
       stops: stops ?? this.stops,
       routes: routes ?? this.routes,
-      selectedBus: clearSelectedBus ? null : (selectedBus ?? this.selectedBus),
+      selectedRoute: clearSelectedRoute
+          ? null
+          : (selectedRoute ?? this.selectedRoute),
+      selectedRouteStops: selectedRouteStops ?? this.selectedRouteStops,
       selectedStop: clearSelectedStop
           ? null
           : (selectedStop ?? this.selectedStop),
-      activeRoute: clearActiveRoute ? null : (activeRoute ?? this.activeRoute),
-      userLocation: userLocation ?? this.userLocation,
       cameraCenter: cameraCenter ?? this.cameraCenter,
       isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }
@@ -63,82 +84,92 @@ class MapScreenState {
 class MapStateNotifier extends Notifier<MapScreenState> {
   @override
   MapScreenState build() {
-    // Initial fetch of static transit entities
-    Future.microtask(_loadInitialData);
-
-    // Subscribe to live bus stream
-    final repo = ref.watch(transitRepositoryProvider);
-    final sub = repo.watchActiveBuses().listen((updatedBuses) {
-      state = state.copyWith(buses: updatedBuses);
-      if (state.selectedBus != null) {
-        final updatedSelected = updatedBuses
-            .where((b) => b.id == state.selectedBus!.id)
-            .firstOrNull;
-        if (updatedSelected != null) {
-          state = state.copyWith(selectedBus: updatedSelected);
-        }
-      }
-    });
-
-    ref.onDispose(sub.cancel);
-
-    return const MapScreenState(
-      buses: [],
-      stops: [],
-      routes: [],
-      isLoading: true,
-    );
+    Future.microtask(loadTransitData);
+    return const MapScreenState(isLoading: true);
   }
 
-  Future<void> _loadInitialData() async {
-    final repo = ref.read(transitRepositoryProvider);
-    final stops = await repo.getStops();
-    final routes = await repo.getRoutes();
-    final buses = await repo.getActiveBuses();
+  Future<void> loadTransitData() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final repo = ref.read(transitRepositoryProvider);
+      final stops = await repo.getStops();
+      final routes = await repo.getRoutes();
+
+      BusRoute? initialRoute;
+      List<RouteStopOccurrence> initialRouteStops = [];
+
+      if (routes.isNotEmpty) {
+        initialRoute = routes.first;
+        if (initialRoute.stopOccurrences.isNotEmpty) {
+          initialRouteStops = initialRoute.stopOccurrences;
+        } else {
+          initialRouteStops = await repo.getRouteStops(initialRoute.id);
+        }
+      }
+
+      state = state.copyWith(
+        stops: stops,
+        routes: routes,
+        selectedRoute: initialRoute,
+        selectedRouteStops: initialRouteStops,
+        isLoading: false,
+        clearError: true,
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Failed to load transit data for map screen',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'MapStateNotifier',
+      );
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage:
+            'Unable to load campus transit stops. Please check your network.',
+      );
+    }
+  }
+
+  Future<void> selectRoute(BusRoute route) async {
+    List<RouteStopOccurrence> occurrences = route.stopOccurrences;
+    if (occurrences.isEmpty) {
+      final repo = ref.read(transitRepositoryProvider);
+      occurrences = await repo.getRouteStops(route.id);
+    }
 
     state = state.copyWith(
-      stops: stops,
-      routes: routes,
-      buses: buses,
-      isLoading: false,
-      activeRoute: routes.isNotEmpty ? routes.first : null,
+      selectedRoute: route,
+      selectedRouteStops: occurrences,
+      clearSelectedStop: true,
     );
   }
 
   void selectBus(Bus bus) {
-    BusRoute? route;
-    if (bus.routeId != null) {
-      try {
-        route = state.routes.firstWhere((r) => r.id == bus.routeId);
-      } catch (_) {}
+    // Selects the route associated with the selected bus if available
+    final routeId = bus.routeId;
+    if (routeId != null) {
+      final route = state.routes.where((r) => r.id == routeId).firstOrNull;
+      if (route != null) {
+        selectRoute(route);
+        return;
+      }
     }
-
-    state = state.copyWith(
-      selectedBus: bus,
-      clearSelectedStop: true,
-      activeRoute: route,
-      cameraCenter: bus.position.point,
-    );
+    clearSelection();
   }
 
   void selectStop(Stop stop) {
-    state = state.copyWith(
-      selectedStop: stop,
-      clearSelectedBus: true,
-      cameraCenter: stop.location,
-    );
+    state = state.copyWith(selectedStop: stop, cameraCenter: stop.location);
   }
 
   void clearSelection() {
-    state = state.copyWith(clearSelectedBus: true, clearSelectedStop: true);
+    state = state.copyWith(clearSelectedStop: true);
   }
 
-  void updateUserLocation(GeoPoint point) {
-    state = state.copyWith(userLocation: point, cameraCenter: point);
-  }
-
-  void centerCampus() {
-    state = state.copyWith(cameraCenter: MapConfig.campusCenter);
+  void recenterCampus() {
+    state = state.copyWith(
+      cameraCenter: MapConfig.campusCenter,
+      clearSelectedStop: true,
+    );
   }
 }
 
