@@ -102,7 +102,7 @@ class SupabaseTransitRepository implements TransitRepository {
           .from('stops')
           .select()
           .eq('is_active', true)
-          .order('order_index', ascending: true);
+          .order('name', ascending: true);
       return (response as List)
           .map((e) => Stop.fromJson(e as Map<String, dynamic>))
           .where((stop) => stop.isActive)
