@@ -69,11 +69,12 @@ GoRouter createRouter({String initialLocation = '/login'}) {
         parentNavigatorKey: rootNavigatorKey,
         path: '/onboarding',
         name: 'onboarding',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: const OnboardingScreen(),
-          beginOffset: Offset.zero,
-        ),
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const OnboardingScreen(),
+              beginOffset: Offset.zero,
+            ),
       ),
 
       // Auth Routes
@@ -81,37 +82,43 @@ GoRouter createRouter({String initialLocation = '/login'}) {
         parentNavigatorKey: rootNavigatorKey,
         path: '/login',
         name: 'login',
-        pageBuilder: (context, state) =>
-            _buildSmoothPage(key: state.pageKey, child: const LoginScreen()),
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const LoginScreen(),
+            ),
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: '/create-account',
         name: 'createAccount',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: const CreateAccountScreen(),
-        ),
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const CreateAccountScreen(),
+            ),
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: '/forgot-password',
         name: 'forgotPassword',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: const ForgotPasswordScreen(),
-        ),
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const ForgotPasswordScreen(),
+            ),
       ),
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: '/reset-password-sent',
         name: 'resetPasswordSent',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: ResetPasswordSentScreen(
-            email: state.uri.queryParameters['email'],
-          ),
-        ),
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: ResetPasswordSentScreen(
+                email: state.uri.queryParameters['email'],
+              ),
+            ),
       ),
 
       // Main Navigation Shell (Home, Map, Profile)
@@ -127,8 +134,9 @@ GoRouter createRouter({String initialLocation = '/login'}) {
               GoRoute(
                 path: '/',
                 name: 'home',
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: HomeScreen()),
+                pageBuilder:
+                    (context, state) =>
+                        const NoTransitionPage(child: HomeScreen()),
               ),
             ],
           ),
@@ -140,8 +148,9 @@ GoRouter createRouter({String initialLocation = '/login'}) {
               GoRoute(
                 path: '/map',
                 name: 'map',
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: MapScreen()),
+                pageBuilder:
+                    (context, state) =>
+                        const NoTransitionPage(child: MapScreen()),
               ),
             ],
           ),
@@ -153,8 +162,9 @@ GoRouter createRouter({String initialLocation = '/login'}) {
               GoRoute(
                 path: '/profile',
                 name: 'profile',
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ProfileScreen()),
+                pageBuilder:
+                    (context, state) =>
+                        const NoTransitionPage(child: ProfileScreen()),
               ),
             ],
           ),

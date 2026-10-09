@@ -6,9 +6,10 @@ class OnboardingUsernameIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = (MediaQuery.sizeOf(context).width * 0.56)
-        .clamp(196.0, 320.0)
-        .toDouble();
+    final width =
+        (MediaQuery.sizeOf(context).width * 0.56)
+            .clamp(196.0, 320.0)
+            .toDouble();
 
     return Semantics(
       image: true,

@@ -73,8 +73,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             child: TrackletErrorState(
               title: 'Transit Map Unavailable',
               message: mapState.errorMessage ?? 'Failed to load transit data.',
-              onRetry: () =>
-                  ref.read(mapStateNotifierProvider.notifier).loadTransitData(),
+              onRetry:
+                  () =>
+                      ref
+                          .read(mapStateNotifierProvider.notifier)
+                          .loadTransitData(),
             ),
           ),
         ),
@@ -178,10 +181,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       .read(mapStateNotifierProvider.notifier)
                       .selectRoute(route);
                   final occurrences = route.stopOccurrences;
-                  final coords = occurrences
-                      .where((o) => o.stop != null)
-                      .map((o) => o.stop!.location)
-                      .toList();
+                  final coords =
+                      occurrences
+                          .where((o) => o.stop != null)
+                          .map((o) => o.stop!.location)
+                          .toList();
                   if (coords.isNotEmpty) {
                     _fitSelectedRouteStops(coords);
                   }
@@ -197,17 +201,19 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           // Map Control Buttons (Fit Route & Recenter Campus)
           Positioned(
             right: TrackletSpacing.screenMargin,
-            bottom: mapState.selectedStop != null
-                ? 210.0
-                : (_isStopsListExpanded ? 240.0 : 32.0),
+            bottom:
+                mapState.selectedStop != null
+                    ? 210.0
+                    : (_isStopsListExpanded ? 240.0 : 32.0),
             child: MapControls(
               onRecenterCampus: () {
                 _mapController.recenterCampus();
                 ref.read(mapStateNotifierProvider.notifier).recenterCampus();
               },
-              onFitRoute: routeStopCoordinates.isNotEmpty
-                  ? () => _fitSelectedRouteStops(routeStopCoordinates)
-                  : null,
+              onFitRoute:
+                  routeStopCoordinates.isNotEmpty
+                      ? () => _fitSelectedRouteStops(routeStopCoordinates)
+                      : null,
             ),
           ),
 
@@ -249,10 +255,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ref
                       .read(mapStateNotifierProvider.notifier)
                       .selectRoute(route);
-                  final coords = route.stopOccurrences
-                      .where((o) => o.stop != null)
-                      .map((o) => o.stop!.location)
-                      .toList();
+                  final coords =
+                      route.stopOccurrences
+                          .where((o) => o.stop != null)
+                          .map((o) => o.stop!.location)
+                          .toList();
                   if (coords.isNotEmpty) {
                     _fitSelectedRouteStops(coords);
                   }

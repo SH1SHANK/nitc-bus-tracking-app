@@ -62,9 +62,10 @@ class BusPosition {
           (json['seq'] as num?)?.toInt() ??
           (json['sequence_number'] as num?)?.toInt() ??
           0,
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
-          : DateTime.now(),
+      timestamp:
+          json['timestamp'] != null
+              ? DateTime.parse(json['timestamp'] as String)
+              : DateTime.now(),
     );
   }
 

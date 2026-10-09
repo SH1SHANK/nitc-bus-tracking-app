@@ -85,12 +85,12 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
       (stops.isNotEmpty
           ? stops.first
           : const Stop(
-              id: 'stop-default',
-              name: 'Main Gate',
-              code: 'MG',
-              location: GeoPoint(latitude: 11.320083, longitude: 75.932722),
-              walkingTimeMinutes: 2,
-            ));
+            id: 'stop-default',
+            name: 'Main Gate',
+            code: 'MG',
+            location: GeoPoint(latitude: 11.320083, longitude: 75.932722),
+            walkingTimeMinutes: 2,
+          ));
 
   return HomeTransitState(
     userProfile: profile,

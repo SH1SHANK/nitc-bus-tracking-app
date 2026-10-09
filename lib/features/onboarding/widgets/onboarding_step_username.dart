@@ -112,9 +112,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
       trailing = null;
     }
 
-    final duration = MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : 180.ms;
+    final duration =
+        MediaQuery.disableAnimationsOf(context) ? Duration.zero : 180.ms;
 
     return SizedBox(
       height: 24,
@@ -122,16 +121,17 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
         duration: duration,
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.12),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          ),
-        ),
+        transitionBuilder:
+            (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.12),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
         child: Row(
           key: ValueKey(message),
           children: [
@@ -166,12 +166,14 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
         isLengthValid &&
         widget.isAvailable == true &&
         !widget.isCheckingUsername;
-    final topSpace = (MediaQuery.sizeOf(context).height * 0.11)
-        .clamp(56.0, 108.0)
-        .toDouble();
-    final illustrationWidth = (MediaQuery.sizeOf(context).width * 0.56)
-        .clamp(196.0, 320.0)
-        .toDouble();
+    final topSpace =
+        (MediaQuery.sizeOf(context).height * 0.11)
+            .clamp(56.0, 108.0)
+            .toDouble();
+    final illustrationWidth =
+        (MediaQuery.sizeOf(context).width * 0.56)
+            .clamp(196.0, 320.0)
+            .toDouble();
 
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -213,7 +215,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               ),
               children: [
                 const TextSpan(
-                  text: "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
+                  text:
+                      "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
                 ),
                 TextSpan(
                   text: 'magic wand',
@@ -245,12 +248,13 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
                     LengthLimitingTextInputFormatter(16),
                   ],
-                  buildCounter: (
-                    context, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => null,
+                  buildCounter:
+                      (
+                        context, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
                   decoration: InputDecoration(
                     hintText: 'Username',
                     hintStyle: TrackletTypography.bodyMedium.copyWith(

@@ -50,11 +50,12 @@ class LiveBusRoutePreview extends StatelessWidget {
     final destinationIsServed =
         searchedDestination != null &&
         routeStops.any((item) => item.id == searchedDestination.id);
-    final highlightedDestination = searchedDestination == null
-        ? null
-        : destinationIsServed
-        ? searchedDestination
-        : nearestStopTo(searchedDestination.location, routeStops);
+    final highlightedDestination =
+        searchedDestination == null
+            ? null
+            : destinationIsServed
+            ? searchedDestination
+            : nearestStopTo(searchedDestination.location, routeStops);
     final routeLabel = route?.name ?? 'Campus route';
 
     Widget timeline() {
@@ -98,9 +99,8 @@ class LiveBusRoutePreview extends StatelessWidget {
                             width: anchorWidth,
                             child: _RouteStopNode(
                               stop: previousStops[index],
-                              positionLabel: index == 0
-                                  ? '2 stops back'
-                                  : 'Last stop',
+                              positionLabel:
+                                  index == 0 ? '2 stops back' : 'Last stop',
                               isBoardingStop: false,
                               isDestination:
                                   previousStops[index]?.id ==
@@ -153,9 +153,10 @@ class LiveBusRoutePreview extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: searchedDestination == null
-          ? '$routeLabel route tracker. ${routeStops.length} stops. Boarding at ${stop.name}.'
-          : '$routeLabel route tracker. Boarding at ${stop.name}. ${destinationIsServed ? 'Destination' : 'Closest stop to ${searchedDestination.name}'}: ${highlightedDestination?.name ?? 'unavailable'}.',
+      label:
+          searchedDestination == null
+              ? '$routeLabel route tracker. ${routeStops.length} stops. Boarding at ${stop.name}.'
+              : '$routeLabel route tracker. Boarding at ${stop.name}. ${destinationIsServed ? 'Destination' : 'Closest stop to ${searchedDestination.name}'}: ${highlightedDestination?.name ?? 'unavailable'}.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -223,20 +224,20 @@ class _RouteStopNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = isBoardingStop
-        ? TrackletColors.primary
-        : TrackletColors.secondary;
+    final accent =
+        isBoardingStop ? TrackletColors.primary : TrackletColors.secondary;
     final isHighlighted = isBoardingStop || isDestination;
-    final accessibleLabel = stop == null
-        ? '$positionLabel unavailable'
-        : [
-            stop!.name,
-            positionLabel,
-            if (isDestination)
-              isClosestDestination
-                  ? 'closest stop to destination'
-                  : 'destination',
-          ].join(', ');
+    final accessibleLabel =
+        stop == null
+            ? '$positionLabel unavailable'
+            : [
+              stop!.name,
+              positionLabel,
+              if (isDestination)
+                isClosestDestination
+                    ? 'closest stop to destination'
+                    : 'destination',
+            ].join(', ');
 
     return Column(
       children: [
@@ -250,22 +251,25 @@ class _RouteStopNode extends StatelessWidget {
                 width: isHighlighted ? 20 : 14,
                 height: isHighlighted ? 20 : 14,
                 decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? TrackletColors.surface
-                      : TrackletColors.alternate,
+                  color:
+                      isHighlighted
+                          ? TrackletColors.surface
+                          : TrackletColors.alternate,
                   shape: BoxShape.circle,
-                  border: isHighlighted
-                      ? Border.all(color: accent, width: 4)
-                      : null,
-                  boxShadow: isBoardingStop
-                      ? [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
+                  border:
+                      isHighlighted
+                          ? Border.all(color: accent, width: 4)
+                          : null,
+                  boxShadow:
+                      isBoardingStop
+                          ? [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                          : null,
                 ),
               ),
             ),
@@ -278,9 +282,10 @@ class _RouteStopNode extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isHighlighted
-                ? TrackletColors.textPrimary
-                : TrackletColors.textSecondary,
+            color:
+                isHighlighted
+                    ? TrackletColors.textPrimary
+                    : TrackletColors.textSecondary,
             fontSize: 11,
             height: 1.2,
             fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,

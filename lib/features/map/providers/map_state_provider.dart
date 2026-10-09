@@ -67,13 +67,11 @@ class MapScreenState {
     return MapScreenState(
       stops: stops ?? this.stops,
       routes: routes ?? this.routes,
-      selectedRoute: clearSelectedRoute
-          ? null
-          : (selectedRoute ?? this.selectedRoute),
+      selectedRoute:
+          clearSelectedRoute ? null : (selectedRoute ?? this.selectedRoute),
       selectedRouteStops: selectedRouteStops ?? this.selectedRouteStops,
-      selectedStop: clearSelectedStop
-          ? null
-          : (selectedStop ?? this.selectedStop),
+      selectedStop:
+          clearSelectedStop ? null : (selectedStop ?? this.selectedStop),
       cameraCenter: cameraCenter ?? this.cameraCenter,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),

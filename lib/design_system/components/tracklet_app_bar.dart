@@ -43,9 +43,10 @@ class TrackletAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ],
       ),
-      actions: actions != null
-          ? [...actions!, const SizedBox(width: TrackletSpacing.sm)]
-          : null,
+      actions:
+          actions != null
+              ? [...actions!, const SizedBox(width: TrackletSpacing.sm)]
+              : null,
     );
   }
 }

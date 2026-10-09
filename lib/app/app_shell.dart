@@ -104,9 +104,8 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected
-        ? TrackletColors.primary
-        : TrackletColors.textSecondary;
+    final color =
+        isSelected ? TrackletColors.primary : TrackletColors.textSecondary;
 
     return InkWell(
       onTap: onTap,
@@ -174,9 +173,8 @@ class _ElevatedCenterMapButton extends StatelessWidget {
           Text(
             'MAP',
             style: TextStyle(
-              color: isSelected
-                  ? TrackletColors.primary
-                  : TrackletColors.primary,
+              color:
+                  isSelected ? TrackletColors.primary : TrackletColors.primary,
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.6,

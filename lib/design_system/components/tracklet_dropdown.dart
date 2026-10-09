@@ -35,9 +35,10 @@ class TrackletDropdown extends StatelessWidget {
       closedBorderRadius: BorderRadius.circular(TrackletRadii.card),
       expandedBorderRadius: BorderRadius.circular(TrackletRadii.card),
       closedBorder: Border.all(
-        color: isValid == true
-            ? TrackletColors.primary.withValues(alpha: 0.45)
-            : TrackletColors.alternate,
+        color:
+            isValid == true
+                ? TrackletColors.primary.withValues(alpha: 0.45)
+                : TrackletColors.alternate,
         width: 1.5,
       ),
       expandedBorder: Border.all(color: TrackletColors.primary, width: 2.0),
@@ -88,9 +89,10 @@ class TrackletDropdown extends StatelessWidget {
       ),
     );
 
-    final safeInitial = (initialItem != null && items.contains(initialItem))
-        ? initialItem
-        : null;
+    final safeInitial =
+        (initialItem != null && items.contains(initialItem))
+            ? initialItem
+            : null;
 
     return CustomDropdown<String>(
       items: items,

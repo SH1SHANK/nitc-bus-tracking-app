@@ -52,11 +52,12 @@ class OnboardingStepLocation extends StatelessWidget {
                   'assets/images/Research_New_Pin_Crop.gif',
                   height: 160,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.location_on_rounded,
-                    size: 80,
-                    color: TrackletColors.primary,
-                  ),
+                  errorBuilder:
+                      (_, _, _) => const Icon(
+                        Icons.location_on_rounded,
+                        size: 80,
+                        color: TrackletColors.primary,
+                      ),
                 ),
               ],
             ),

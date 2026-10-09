@@ -78,8 +78,9 @@ class Stop {
       code: json['code'] as String? ?? '',
       location: GeoPoint(
         latitude: ((json['latitude'] ?? json['lat']) as num).toDouble(),
-        longitude: ((json['longitude'] ?? json['lng'] ?? json['lon']) as num)
-            .toDouble(),
+        longitude:
+            ((json['longitude'] ?? json['lng'] ?? json['lon']) as num)
+                .toDouble(),
       ),
       walkingTimeMinutes: (json['walking_time_minutes'] as num?)?.toInt() ?? 5,
       isMajorHub: (json['is_major_hub'] as bool?) ?? false,

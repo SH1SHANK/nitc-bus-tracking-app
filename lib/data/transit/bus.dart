@@ -89,9 +89,10 @@ class Bus {
       status: BusStatus.fromString(json['status'] as String?),
       position: BusPosition.fromJson(json),
       occupancy: json['occupancy'] as String? ?? 'seats_available',
-      lastUpdated: json['last_updated'] != null
-          ? DateTime.parse(json['last_updated'] as String)
-          : DateTime.now(),
+      lastUpdated:
+          json['last_updated'] != null
+              ? DateTime.parse(json['last_updated'] as String)
+              : DateTime.now(),
     );
   }
 

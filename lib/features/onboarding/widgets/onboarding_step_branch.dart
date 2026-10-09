@@ -55,7 +55,8 @@ class OnboardingStepBranch extends StatelessWidget {
               ),
               children: [
                 const TextSpan(
-                  text: 'Tell us a few details about your academic profile so we can personalize your timetable, courses, and campus shuttle experience. Why do we ask for this information? ',
+                  text:
+                      'Tell us a few details about your academic profile so we can personalize your timetable, courses, and campus shuttle experience. Why do we ask for this information? ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',
@@ -63,17 +64,18 @@ class OnboardingStepBranch extends StatelessWidget {
                     color: TrackletColors.tertiary,
                     fontWeight: FontWeight.w800,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Branch information helps prioritize bus stops near your department buildings.',
-                          ),
-                          backgroundColor: TrackletColors.primary,
-                        ),
-                      );
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Branch information helps prioritize bus stops near your department buildings.',
+                              ),
+                              backgroundColor: TrackletColors.primary,
+                            ),
+                          );
+                        },
                 ),
               ],
             ),
@@ -139,9 +141,10 @@ class OnboardingStepBranch extends StatelessWidget {
                     selected: isSelected,
                     selectedColor: TrackletColors.primary,
                     labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : TrackletColors.textPrimary,
+                      color:
+                          isSelected
+                              ? Colors.white
+                              : TrackletColors.textPrimary,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
@@ -150,9 +153,10 @@ class OnboardingStepBranch extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     side: BorderSide(
-                      color: isSelected
-                          ? TrackletColors.primary
-                          : TrackletColors.border,
+                      color:
+                          isSelected
+                              ? TrackletColors.primary
+                              : TrackletColors.border,
                       width: 1.5,
                     ),
                     onSelected: (selected) {

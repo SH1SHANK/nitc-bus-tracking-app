@@ -46,48 +46,52 @@ class RouteSelectorCard extends StatelessWidget {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: routes.map((route) {
-                final isSelected = selectedRoute?.id == route.id;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    onTap: () => onSelectRoute(route),
-                    borderRadius: BorderRadius.circular(20),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? TrackletColors.primary
-                            : TrackletColors.background2,
+              children:
+                  routes.map((route) {
+                    final isSelected = selectedRoute?.id == route.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => onSelectRoute(route),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected
-                              ? TrackletColors.primary
-                              : TrackletColors.border,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            route.code.isNotEmpty ? route.code : route.name,
-                            style: TrackletTypography.labelSmall.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: isSelected
-                                  ? TrackletColors.textInverse
-                                  : TrackletColors.textPrimary,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected
+                                    ? TrackletColors.primary
+                                    : TrackletColors.background2,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  isSelected
+                                      ? TrackletColors.primary
+                                      : TrackletColors.border,
                             ),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                route.code.isNotEmpty ? route.code : route.name,
+                                style: TrackletTypography.labelSmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      isSelected
+                                          ? TrackletColors.textInverse
+                                          : TrackletColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
             ),
           ),
           if (selectedRoute != null) ...[

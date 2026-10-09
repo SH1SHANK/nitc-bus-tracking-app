@@ -15,12 +15,14 @@ void main() {
       await tester.pumpTrackletWidget(
         Scaffold(
           body: Builder(
-            builder: (context) => Center(
-              child: ElevatedButton(
-                onPressed: () => WhyDoWeNeedYourInfoBottomSheet.show(context),
-                child: const Text('Open info'),
-              ),
-            ),
+            builder:
+                (context) => Center(
+                  child: ElevatedButton(
+                    onPressed:
+                        () => WhyDoWeNeedYourInfoBottomSheet.show(context),
+                    child: const Text('Open info'),
+                  ),
+                ),
           ),
         ),
       );

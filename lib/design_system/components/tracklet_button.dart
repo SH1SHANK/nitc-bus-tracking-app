@@ -52,34 +52,34 @@ class TrackletButton extends StatelessWidget {
 
     switch (variant) {
       case TrackletButtonVariant.primary:
-        backgroundColor = isEnabled
-            ? TrackletColors.primary
-            : TrackletColors.surface;
-        foregroundColor = isEnabled
-            ? TrackletColors.textInverse
-            : TrackletColors.textTertiary;
+        backgroundColor =
+            isEnabled ? TrackletColors.primary : TrackletColors.surface;
+        foregroundColor =
+            isEnabled
+                ? TrackletColors.textInverse
+                : TrackletColors.textTertiary;
         border = null;
       case TrackletButtonVariant.secondary:
-        backgroundColor = isEnabled
-            ? TrackletColors.secondary
-            : TrackletColors.surface;
-        foregroundColor = isEnabled
-            ? TrackletColors.textInverse
-            : TrackletColors.textTertiary;
+        backgroundColor =
+            isEnabled ? TrackletColors.secondary : TrackletColors.surface;
+        foregroundColor =
+            isEnabled
+                ? TrackletColors.textInverse
+                : TrackletColors.textTertiary;
         border = null;
       case TrackletButtonVariant.outline:
         backgroundColor = Colors.transparent;
-        foregroundColor = isEnabled
-            ? TrackletColors.primary
-            : TrackletColors.textTertiary;
+        foregroundColor =
+            isEnabled ? TrackletColors.primary : TrackletColors.textTertiary;
         border = BorderSide(
           color: isEnabled ? TrackletColors.border : TrackletColors.divider,
         );
       case TrackletButtonVariant.ghost:
         backgroundColor = Colors.transparent;
-        foregroundColor = isEnabled
-            ? TrackletColors.textPrimary
-            : TrackletColors.textTertiary;
+        foregroundColor =
+            isEnabled
+                ? TrackletColors.textPrimary
+                : TrackletColors.textTertiary;
         border = null;
     }
 

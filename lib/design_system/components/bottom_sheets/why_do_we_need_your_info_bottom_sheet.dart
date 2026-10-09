@@ -87,19 +87,22 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                       const _BenefitRow(
                         icon: Icons.near_me_outlined,
                         title: 'Stops that fit your day',
-                        description: 'Prioritize shuttle stops near your hostel and department.',
+                        description:
+                            'Prioritize shuttle stops near your hostel and department.',
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
                         icon: Icons.directions_walk_outlined,
                         title: 'Plan your walk',
-                        description: 'Estimate the walk to your nearest stop when location is available.',
+                        description:
+                            'Estimate the walk to your nearest stop when location is available.',
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
                         icon: Icons.route_outlined,
                         title: 'Relevant campus transit info',
-                        description: 'Keep your campus profile and route information together.',
+                        description:
+                            'Keep your campus profile and route information together.',
                       ),
                       const SizedBox(height: TrackletSpacing.xl),
                       Container(

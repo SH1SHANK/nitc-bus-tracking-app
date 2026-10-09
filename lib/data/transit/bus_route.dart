@@ -107,13 +107,14 @@ class BusRoute {
 
     final rawStops = json['stop_ids'] as List<dynamic>? ?? [];
     final summary = json['stops_summary'] as String?;
-    final parsedStops = rawStops.isNotEmpty
-        ? rawStops.map((stopId) => stopId.toString()).toList()
-        : summary == null
-        ? (stopOccurrences.isNotEmpty
-              ? stopOccurrences.map((o) => o.stopId).toList()
-              : <String>[])
-        : _stopIdsFromSummary(summary, stops);
+    final parsedStops =
+        rawStops.isNotEmpty
+            ? rawStops.map((stopId) => stopId.toString()).toList()
+            : summary == null
+            ? (stopOccurrences.isNotEmpty
+                ? stopOccurrences.map((o) => o.stopId).toList()
+                : <String>[])
+            : _stopIdsFromSummary(summary, stops);
     final name =
         (json['name'] ?? json['route_name'] ?? 'Campus route') as String;
     final code =
@@ -162,10 +163,11 @@ class BusRoute {
         'centrecircle' => 'centercircle',
         _ => name,
       };
-      final matchedStop = stops.where((stop) {
-        return _normalizeStopName(stop.name) == alias ||
-            _normalizeStopName(stop.sourceStopId ?? '') == alias;
-      }).firstOrNull;
+      final matchedStop =
+          stops.where((stop) {
+            return _normalizeStopName(stop.name) == alias ||
+                _normalizeStopName(stop.sourceStopId ?? '') == alias;
+          }).firstOrNull;
       if (matchedStop != null) stopIds.add(matchedStop.id);
     }
     return stopIds;

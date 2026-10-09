@@ -157,9 +157,10 @@ class RouteGeometry {
         }
       }
 
-      final validPoints = parsedPoints
-          .where((p) => _isValidCoordinate(p.latitude, p.longitude))
-          .toList();
+      final validPoints =
+          parsedPoints
+              .where((p) => _isValidCoordinate(p.latitude, p.longitude))
+              .toList();
 
       if (validPoints.length < 2) {
         return RouteGeometry.missing(source: source, isVerified: isVerified);

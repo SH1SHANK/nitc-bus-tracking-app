@@ -22,15 +22,17 @@ class StopMarkerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderColor = isSelected
-        ? TrackletColors.primary
-        : (isRouteStop
-              ? TrackletColors.primary.withValues(alpha: 0.5)
-              : TrackletColors.border);
+    final effectiveBorderColor =
+        isSelected
+            ? TrackletColors.primary
+            : (isRouteStop
+                ? TrackletColors.primary.withValues(alpha: 0.5)
+                : TrackletColors.border);
 
-    final dotColor = isSelected
-        ? TrackletColors.primary
-        : (isRouteStop ? TrackletColors.primary : TrackletColors.secondary);
+    final dotColor =
+        isSelected
+            ? TrackletColors.primary
+            : (isRouteStop ? TrackletColors.primary : TrackletColors.secondary);
 
     return GestureDetector(
       onTap: onTap,
@@ -43,9 +45,10 @@ class StopMarkerWidget extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 80),
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? TrackletColors.primary
-                    : TrackletColors.surfaceElevated,
+                color:
+                    isSelected
+                        ? TrackletColors.primary
+                        : TrackletColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
                   color: effectiveBorderColor,
@@ -56,11 +59,12 @@ class StopMarkerWidget extends StatelessWidget {
               child: Text(
                 stop.code.isNotEmpty ? stop.code : stop.name,
                 style: TrackletTypography.labelSmall.copyWith(
-                  color: isSelected
-                      ? TrackletColors.textInverse
-                      : (isRouteStop
-                            ? TrackletColors.primary
-                            : TrackletColors.textPrimary),
+                  color:
+                      isSelected
+                          ? TrackletColors.textInverse
+                          : (isRouteStop
+                              ? TrackletColors.primary
+                              : TrackletColors.textPrimary),
                   fontWeight: FontWeight.w700,
                   fontSize: 10,
                   height: 1.1,

@@ -87,47 +87,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         orElse: () => null,
       ),
       body: homeStateAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: TrackletColors.primary),
-        ),
-        error: (error, stack) => SafeArea(
-          child: TrackletErrorState(
-            message: 'Unable to load campus buses',
-            onRetry: () => ref.invalidate(homeStateProvider),
-          ),
-        ),
+        loading:
+            () => const Center(
+              child: CircularProgressIndicator(color: TrackletColors.primary),
+            ),
+        error:
+            (error, stack) => SafeArea(
+              child: TrackletErrorState(
+                message: 'Unable to load campus buses',
+                onRetry: () => ref.invalidate(homeStateProvider),
+              ),
+            ),
         data: (state) {
           final profile = state.userProfile;
-          final firstName = profile.name.isNotEmpty
-              ? profile.name.split(' ').first
-              : 'Student';
+          final firstName =
+              profile.name.isNotEmpty
+                  ? profile.name.split(' ').first
+                  : 'Student';
           final buses = liveBusesAsync.value ?? state.buses;
-          final stops = state.stops.isNotEmpty
-              ? state.stops
-              : [state.selectedStop];
-          final nearestStop = locationState.currentLocation == null
-              ? null
-              : nearestStopTo(locationState.currentLocation!, stops);
+          final stops =
+              state.stops.isNotEmpty ? state.stops : [state.selectedStop];
+          final nearestStop =
+              locationState.currentLocation == null
+                  ? null
+                  : nearestStopTo(locationState.currentLocation!, stops);
           final boardingStop =
               nearestStop ??
               stops
                   .where((stop) => stop.id == state.selectedStop.id)
                   .firstOrNull ??
               stops.first;
-          final nearestStopDistanceMeters = nearestStop == null
-              ? null
-              : locationState.currentLocation!.distanceToMeters(
-                  nearestStop.location,
-                );
-          final walkTimeMinutes = nearestStopDistanceMeters == null
-              ? null
-              : estimateWalkMinutes(nearestStopDistanceMeters);
+          final nearestStopDistanceMeters =
+              nearestStop == null
+                  ? null
+                  : locationState.currentLocation!.distanceToMeters(
+                    nearestStop.location,
+                  );
+          final walkTimeMinutes =
+              nearestStopDistanceMeters == null
+                  ? null
+                  : estimateWalkMinutes(nearestStopDistanceMeters);
           final matchingStops = _matchingStops(stops);
-          final destinationStop = _destinationStop == null
-              ? null
-              : stops
-                    .where((stop) => stop.id == _destinationStop!.id)
-                    .firstOrNull;
+          final destinationStop =
+              _destinationStop == null
+                  ? null
+                  : stops
+                      .where((stop) => stop.id == _destinationStop!.id)
+                      .firstOrNull;
           final arrival = estimateNextBus(
             stop: boardingStop,
             buses: buses,
@@ -135,34 +141,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
           final eligibleBuses =
               buses.where((bus) {
-                final route = state.routes
-                    .where((item) => item.id == bus.routeId)
-                    .firstOrNull;
-                return bus.status != BusStatus.offline &&
-                    route != null &&
-                    route.stopIds.contains(boardingStop.id) &&
-                    bus.id != arrival?.bus.id;
-              }).toList()..sort(
-                (a, b) => _etaFor(
-                  a,
-                  boardingStop,
-                  state.routes,
-                ).compareTo(_etaFor(b, boardingStop, state.routes)),
-              );
+                  final route =
+                      state.routes
+                          .where((item) => item.id == bus.routeId)
+                          .firstOrNull;
+                  return bus.status != BusStatus.offline &&
+                      route != null &&
+                      route.stopIds.contains(boardingStop.id) &&
+                      bus.id != arrival?.bus.id;
+                }).toList()
+                ..sort(
+                  (a, b) => _etaFor(
+                    a,
+                    boardingStop,
+                    state.routes,
+                  ).compareTo(_etaFor(b, boardingStop, state.routes)),
+                );
           final upcomingDepartures = upcomingDeparturesForStop(
             stop: boardingStop,
             departures: state.scheduledDepartures,
             routes: state.routes,
             now: _clockNow,
           );
-          final scheduledNext = arrival == null
-              ? upcomingDepartures.firstOrNull
-              : null;
-          final scheduledRoute = scheduledNext == null
-              ? null
-              : state.routes
-                    .where((route) => route.id == scheduledNext.routeId)
-                    .firstOrNull;
+          final scheduledNext =
+              arrival == null ? upcomingDepartures.firstOrNull : null;
+          final scheduledRoute =
+              scheduledNext == null
+                  ? null
+                  : state.routes
+                      .where((route) => route.id == scheduledNext.routeId)
+                      .firstOrNull;
           final previewRoute =
               arrival?.route ??
               scheduledRoute ??
@@ -188,9 +196,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onUseLocation: _requestLocation,
             onProfilePressed: () => context.go('/profile'),
           );
-          final headerWidget = reduceMotion
-              ? header
-              : header.animate().fadeIn(duration: 380.ms).slideY(begin: -0.025);
+          final headerWidget =
+              reduceMotion
+                  ? header
+                  : header
+                      .animate()
+                      .fadeIn(duration: 380.ms)
+                      .slideY(begin: -0.025);
           final nextBusCard = NextBusCard(
             selectedStop: boardingStop,
             arrival: arrival,
@@ -204,16 +216,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bus: arrival?.bus,
               destinationStop: destinationStop,
             ),
-            onTrackPressed: arrival == null
-                ? () => context.go('/map')
-                : () => _openMapWithBus(arrival.bus),
+            onTrackPressed:
+                arrival == null
+                    ? () => context.go('/map')
+                    : () => _openMapWithBus(arrival.bus),
           );
-          final nextBusWidget = reduceMotion
-              ? nextBusCard
-              : nextBusCard
-                    .animate()
-                    .fadeIn(delay: 80.ms, duration: 420.ms)
-                    .slideY(begin: 0.06, curve: Curves.easeOutCubic);
+          final nextBusWidget =
+              reduceMotion
+                  ? nextBusCard
+                  : nextBusCard
+                      .animate()
+                      .fadeIn(delay: 80.ms, duration: 420.ms)
+                      .slideY(begin: 0.06, curve: Curves.easeOutCubic);
 
           return RefreshIndicator(
             color: TrackletColors.primary,
@@ -259,9 +273,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         NextBusesCard(
                           stopName: boardingStop.name,
                           buses: eligibleBuses,
-                          scheduledDepartures: eligibleBuses.isEmpty
-                              ? upcomingDepartures
-                              : const [],
+                          scheduledDepartures:
+                              eligibleBuses.isEmpty
+                                  ? upcomingDepartures
+                                  : const [],
                           routes: state.routes,
                           onBusTap: _openMapWithBus,
                         ),
@@ -281,10 +296,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final query = _destinationQuery.trim().toLowerCase();
     if (query.isEmpty) return const [];
 
-    final matches = stops.where((stop) {
-      return stop.name.toLowerCase().contains(query) ||
-          stop.code.toLowerCase().contains(query);
-    }).toList();
+    final matches =
+        stops.where((stop) {
+          return stop.name.toLowerCase().contains(query) ||
+              stop.code.toLowerCase().contains(query);
+        }).toList();
     matches.sort((a, b) {
       final aStartsWith =
           a.name.toLowerCase().startsWith(query) ||
@@ -682,13 +698,14 @@ class _NearestStopSummary extends StatelessWidget {
               else
                 TextButton.icon(
                   onPressed: isLoading ? null : onUseLocation,
-                  icon: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location_rounded, size: 16),
+                  icon:
+                      isLoading
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.my_location_rounded, size: 16),
                   label: Text(isLoading ? 'Locating' : 'Locate'),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -743,14 +760,15 @@ class _DashboardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = profile.name.trim().isEmpty
-        ? 'SC'
-        : profile.name
-              .trim()
-              .split(RegExp(r'\s+'))
-              .take(2)
-              .map((part) => part[0].toUpperCase())
-              .join();
+    final initials =
+        profile.name.trim().isEmpty
+            ? 'SC'
+            : profile.name
+                .trim()
+                .split(RegExp(r'\s+'))
+                .take(2)
+                .map((part) => part[0].toUpperCase())
+                .join();
 
     return Container(
       decoration: const BoxDecoration(
@@ -914,17 +932,17 @@ class _StopSearchField extends StatelessWidget {
     final showResults = showSuggestions && query.trim().isNotEmpty;
 
     return AnimatedContainer(
-      duration: reducedMotion
-          ? Duration.zero
-          : const Duration(milliseconds: 140),
+      duration:
+          reducedMotion ? Duration.zero : const Duration(milliseconds: 140),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
         color: TrackletColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: focusNode.hasFocus
-              ? TrackletColors.primary
-              : TrackletColors.cardBorder,
+          color:
+              focusNode.hasFocus
+                  ? TrackletColors.primary
+                  : TrackletColors.cardBorder,
           width: focusNode.hasFocus ? 1.5 : 1,
         ),
       ),
@@ -989,100 +1007,108 @@ class _StopSearchField extends StatelessWidget {
                 else
                   const SizedBox(width: 4),
                 IconButton(
-                  tooltip: isLocationLoading
-                      ? 'Getting your location'
-                      : hasLocation
-                      ? 'Refresh my location'
-                      : 'Use my location',
+                  tooltip:
+                      isLocationLoading
+                          ? 'Getting your location'
+                          : hasLocation
+                          ? 'Refresh my location'
+                          : 'Use my location',
                   onPressed: isLocationLoading ? null : onUseLocation,
-                  icon: isLocationLoading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: TrackletColors.primary,
+                  icon:
+                      isLocationLoading
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TrackletColors.primary,
+                            ),
+                          )
+                          : Icon(
+                            Icons.my_location_rounded,
+                            color:
+                                hasLocation
+                                    ? TrackletColors.busLive
+                                    : TrackletColors.textSecondary,
+                            size: 19,
                           ),
-                        )
-                      : Icon(
-                          Icons.my_location_rounded,
-                          color: hasLocation
-                              ? TrackletColors.busLive
-                              : TrackletColors.textSecondary,
-                          size: 19,
-                        ),
                 ),
               ],
             ),
           ),
           ClipRect(
             child: AnimatedSize(
-              duration: reducedMotion
-                  ? Duration.zero
-                  : const Duration(milliseconds: 180),
+              duration:
+                  reducedMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
               curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
               child: AnimatedSwitcher(
-                duration: reducedMotion
-                    ? Duration.zero
-                    : const Duration(milliseconds: 160),
+                duration:
+                    reducedMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 160),
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeOutCubic,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, -0.035),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                ),
-                child: showResults
-                    ? Column(
-                        key: const ValueKey('stop-suggestions-open'),
-                        children: [
-                          const Divider(
-                            height: 1,
-                            color: TrackletColors.border,
-                          ),
-                          if (suggestions.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'No matching campus stops',
-                                  style: TextStyle(
-                                    color: TrackletColors.textSecondary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
+                transitionBuilder:
+                    (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, -0.035),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    ),
+                child:
+                    showResults
+                        ? Column(
+                          key: const ValueKey('stop-suggestions-open'),
+                          children: [
+                            const Divider(
+                              height: 1,
+                              color: TrackletColors.border,
+                            ),
+                            if (suggestions.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.fromLTRB(16, 14, 16, 16),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'No matching campus stops',
+                                    style: TextStyle(
+                                      color: TrackletColors.textSecondary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          else
-                            for (
-                              var index = 0;
-                              index < suggestions.length;
-                              index++
-                            ) ...[
-                              if (index > 0)
-                                const Divider(
-                                  height: 1,
-                                  indent: 48,
-                                  color: TrackletColors.border,
+                              )
+                            else
+                              for (
+                                var index = 0;
+                                index < suggestions.length;
+                                index++
+                              ) ...[
+                                if (index > 0)
+                                  const Divider(
+                                    height: 1,
+                                    indent: 48,
+                                    color: TrackletColors.border,
+                                  ),
+                                _StopSuggestionTile(
+                                  stop: suggestions[index],
+                                  onTap:
+                                      () => onStopSelected(suggestions[index]),
                                 ),
-                              _StopSuggestionTile(
-                                stop: suggestions[index],
-                                onTap: () => onStopSelected(suggestions[index]),
-                              ),
-                            ],
-                        ],
-                      )
-                    : const SizedBox.shrink(
-                        key: ValueKey('stop-suggestions-closed'),
-                      ),
+                              ],
+                          ],
+                        )
+                        : const SizedBox.shrink(
+                          key: ValueKey('stop-suggestions-closed'),
+                        ),
               ),
             ),
           ),

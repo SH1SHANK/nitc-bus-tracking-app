@@ -72,7 +72,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
               _buildStatusCard(
                 icon: '🟢',
                 title: 'Worth Waiting',
-                description: 'The bus is scheduled soon and you have comfortable time to walk to the nearest stop.',
+                description:
+                    'The bus is scheduled soon and you have comfortable time to walk to the nearest stop.',
                 color: TrackletColors.success.withValues(alpha: 0.1),
                 borderColor: TrackletColors.success.withValues(alpha: 0.3),
               ),
@@ -80,7 +81,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
               _buildStatusCard(
                 icon: '⚠️',
                 title: 'Hurry',
-                description: 'Departure is approaching! Walk briskly to make sure you catch this shuttle.',
+                description:
+                    'Departure is approaching! Walk briskly to make sure you catch this shuttle.',
                 color: TrackletColors.warning.withValues(alpha: 0.1),
                 borderColor: TrackletColors.warning.withValues(alpha: 0.3),
               ),
@@ -88,7 +90,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
               _buildStatusCard(
                 icon: '🚶',
                 title: 'Skip This Bus',
-                description: 'Walking to the stop will take longer than remaining departure time. Consider catching the next shuttle.',
+                description:
+                    'Walking to the stop will take longer than remaining departure time. Consider catching the next shuttle.',
                 color: TrackletColors.tertiary.withValues(alpha: 0.1),
                 borderColor: TrackletColors.tertiary.withValues(alpha: 0.3),
               ),
