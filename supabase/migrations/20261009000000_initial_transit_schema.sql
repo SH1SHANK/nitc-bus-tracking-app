@@ -8,7 +8,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'student',
     department TEXT,
+    username TEXT UNIQUE,
+    branch TEXT,
+    batch TEXT,
+    semester TEXT,
+    hostel TEXT,
     notifications_enabled BOOLEAN NOT NULL DEFAULT true,
+    location_permission_granted BOOLEAN NOT NULL DEFAULT false,
+    has_completed_onboarding BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
