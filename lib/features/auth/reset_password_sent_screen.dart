@@ -83,7 +83,8 @@ class ResetPasswordSentScreen extends StatelessWidget {
                           ),
                         ),
                         const TextSpan(
-                          text: 'It might be hiding in Promotions or Spam,\nso don’t forget to check there. \n',
+                          text:
+                              'It might be hiding in Promotions or Spam,\nso don’t forget to check there. \n',
                           style: TextStyle(color: TrackletColors.secondaryText),
                         ),
                         const TextSpan(
@@ -131,22 +132,23 @@ class ResetPasswordSentScreen extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                       mouseCursor: SystemMouseCursors.click,
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'A New Mail has Been Sent Successfully!',
-                                style: TextStyle(
-                                  color: TrackletColors.info,
-                                  fontWeight: FontWeight.w500,
+                      recognizer:
+                          TapGestureRecognizer()
+                            ..onTap = () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'A New Mail has Been Sent Successfully!',
+                                    style: TextStyle(
+                                      color: TrackletColors.info,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  duration: Duration(milliseconds: 4000),
+                                  backgroundColor: TrackletColors.success,
                                 ),
-                              ),
-                              duration: Duration(milliseconds: 4000),
-                              backgroundColor: TrackletColors.success,
-                            ),
-                          );
-                        },
+                              );
+                            },
                     ),
                   ],
                 ),

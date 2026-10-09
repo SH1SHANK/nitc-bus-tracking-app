@@ -55,7 +55,8 @@ class OnboardingStepBatch extends StatelessWidget {
               ),
               children: [
                 const TextSpan(
-                  text: 'Select your batch year so we can sync your timetable and bus schedules with your academic calendar. ',
+                  text:
+                      'Select your batch year so we can sync your timetable and bus schedules with your academic calendar. ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',
@@ -63,17 +64,18 @@ class OnboardingStepBatch extends StatelessWidget {
                     color: TrackletColors.tertiary,
                     fontWeight: FontWeight.w800,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Batch settings configure exam schedules and rush hour bus alerts.',
-                          ),
-                          backgroundColor: TrackletColors.primary,
-                        ),
-                      );
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Batch settings configure exam schedules and rush hour bus alerts.',
+                              ),
+                              backgroundColor: TrackletColors.primary,
+                            ),
+                          );
+                        },
                 ),
               ],
             ),
@@ -116,39 +118,44 @@ class OnboardingStepBatch extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: ['B21', 'B22', 'B23', 'B24', 'B25'].map((batch) {
-              final isSelected = selectedBatch.startsWith(batch);
+            children:
+                ['B21', 'B22', 'B23', 'B24', 'B25'].map((batch) {
+                  final isSelected = selectedBatch.startsWith(batch);
 
-              return ChoiceChip(
-                label: Text(batch),
-                selected: isSelected,
-                selectedColor: TrackletColors.primary,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : TrackletColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-                backgroundColor: TrackletColors.background,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                side: BorderSide(
-                  color: isSelected
-                      ? TrackletColors.primary
-                      : TrackletColors.border,
-                  width: 1.5,
-                ),
-                onSelected: (selected) {
-                  if (selected) {
-                    final fullBatch = kNitcBatches.firstWhere(
-                      (b) => b.startsWith(batch),
-                      orElse: () => batch,
-                    );
-                    onBatchChanged(fullBatch);
-                  }
-                },
-              );
-            }).toList(),
+                  return ChoiceChip(
+                    label: Text(batch),
+                    selected: isSelected,
+                    selectedColor: TrackletColors.primary,
+                    labelStyle: TextStyle(
+                      color:
+                          isSelected
+                              ? Colors.white
+                              : TrackletColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                    backgroundColor: TrackletColors.background,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(
+                      color:
+                          isSelected
+                              ? TrackletColors.primary
+                              : TrackletColors.border,
+                      width: 1.5,
+                    ),
+                    onSelected: (selected) {
+                      if (selected) {
+                        final fullBatch = kNitcBatches.firstWhere(
+                          (b) => b.startsWith(batch),
+                          orElse: () => batch,
+                        );
+                        onBatchChanged(fullBatch);
+                      }
+                    },
+                  );
+                }).toList(),
           ),
           const SizedBox(height: TrackletSpacing.xxl * 1.5),
 

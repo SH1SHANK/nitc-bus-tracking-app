@@ -74,7 +74,8 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
               ),
               children: [
                 const TextSpan(
-                  text: 'Tell us your name so we can personalize your bus passes, notifications, and campus timetable. ',
+                  text:
+                      'Tell us your name so we can personalize your bus passes, notifications, and campus timetable. ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',
@@ -82,17 +83,18 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                     color: TrackletColors.tertiary,
                     fontWeight: FontWeight.w800,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Your profile is kept safe locally and used for NITC campus transit personalization.',
-                          ),
-                          backgroundColor: TrackletColors.primary,
-                        ),
-                      );
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Your profile is kept safe locally and used for NITC campus transit personalization.',
+                              ),
+                              backgroundColor: TrackletColors.primary,
+                            ),
+                          );
+                        },
                 ),
               ],
             ),
@@ -185,9 +187,8 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
             ),
             isFullWidth: true,
             size: TrackletButtonSize.large,
-            onPressed: isValid
-                ? () => widget.onContinue(_currentName.trim())
-                : null,
+            onPressed:
+                isValid ? () => widget.onContinue(_currentName.trim()) : null,
           ),
           const SizedBox(height: TrackletSpacing.lg),
         ],

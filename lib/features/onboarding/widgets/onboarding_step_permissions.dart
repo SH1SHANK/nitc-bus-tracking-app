@@ -169,12 +169,14 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             iconBg: TrackletColors.permissionBlueBg,
             iconColor: TrackletColors.permissionBlueIcon,
             title: 'Campus Live Location',
-            subtitle: 'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
+            subtitle:
+                'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
             isSelected: _locationSelected,
             isGranted: widget.locationGranted,
-            onChanged: widget.locationGranted
-                ? null
-                : (val) => setState(() => _locationSelected = val ?? false),
+            onChanged:
+                widget.locationGranted
+                    ? null
+                    : (val) => setState(() => _locationSelected = val ?? false),
           ).enterOnboarding(context, delay: 130.ms),
           const SizedBox(height: 12),
 
@@ -184,13 +186,15 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             iconBg: TrackletColors.permissionPinkBg,
             iconColor: TrackletColors.permissionPinkIcon,
             title: 'Transit & Arrival Alerts',
-            subtitle: 'Get notified when your bus is approaching, departures are near, or schedules change.',
+            subtitle:
+                'Get notified when your bus is approaching, departures are near, or schedules change.',
             isSelected: _notificationsSelected,
             isGranted: widget.notificationsGranted,
-            onChanged: widget.notificationsGranted
-                ? null
-                : (val) =>
-                      setState(() => _notificationsSelected = val ?? false),
+            onChanged:
+                widget.notificationsGranted
+                    ? null
+                    : (val) =>
+                        setState(() => _notificationsSelected = val ?? false),
           ).enterOnboarding(context, delay: 170.ms),
           const SizedBox(height: TrackletSpacing.xl),
 
@@ -209,25 +213,26 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   borderRadius: BorderRadius.circular(TrackletRadii.card),
                 ),
               ),
-              child: _isProcessing
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: TrackletColors.pure,
+              child:
+                  _isProcessing
+                      ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: TrackletColors.pure,
+                        ),
+                      )
+                      : Text(
+                        _locationSelected || _notificationsSelected
+                            ? 'Continue with selected'
+                            : 'Continue without permissions',
+                        style: TrackletTypography.titleMedium.copyWith(
+                          color: TrackletColors.pure,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
                       ),
-                    )
-                  : Text(
-                      _locationSelected || _notificationsSelected
-                          ? 'Continue with selected'
-                          : 'Continue without permissions',
-                      style: TrackletTypography.titleMedium.copyWith(
-                        color: TrackletColors.pure,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
             ),
           ).enterOnboarding(context, delay: 210.ms),
           const SizedBox(height: 10),
@@ -278,9 +283,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           color: TrackletColors.primaryBackground,
           borderRadius: BorderRadius.circular(TrackletRadii.lg),
           border: Border.all(
-            color: isSelected
-                ? TrackletColors.primary
-                : TrackletColors.cardBorder,
+            color:
+                isSelected ? TrackletColors.primary : TrackletColors.cardBorder,
             width: isSelected ? 1.8 : 1.0,
           ),
         ),

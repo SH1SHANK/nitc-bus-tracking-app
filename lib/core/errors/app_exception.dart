@@ -23,7 +23,8 @@ final class LocationPermissionDeniedException extends LocationException {
 final class LocationPermissionPermanentlyDeniedException
     extends LocationException {
   const LocationPermissionPermanentlyDeniedException([
-    super.message = 'Location permission is permanently denied. Please enable it in system settings.',
+    super.message =
+        'Location permission is permanently denied. Please enable it in system settings.',
   ]);
 }
 

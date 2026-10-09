@@ -107,12 +107,14 @@ class TrackletMapController {
 
     if (_useMapbox && _mapboxMap != null) {
       try {
-        final coordinates = points
-            .map(
-              (p) =>
-                  mb.Point(coordinates: mb.Position(p.longitude, p.latitude)),
-            )
-            .toList();
+        final coordinates =
+            points
+                .map(
+                  (p) => mb.Point(
+                    coordinates: mb.Position(p.longitude, p.latitude),
+                  ),
+                )
+                .toList();
 
         _mapboxMap
             ?.cameraForCoordinates(
@@ -139,9 +141,8 @@ class TrackletMapController {
     }
 
     try {
-      final latLngs = points
-          .map((p) => ll.LatLng(p.latitude, p.longitude))
-          .toList();
+      final latLngs =
+          points.map((p) => ll.LatLng(p.latitude, p.longitude)).toList();
       final bounds = fmap.LatLngBounds.fromPoints(latLngs);
       _fallbackController.fitCamera(
         fmap.CameraFit.bounds(bounds: bounds, padding: padding),
@@ -198,21 +199,22 @@ class _TrackletMapViewState extends State<TrackletMapView> {
   Future<void> _onMapboxCreated(mb.MapboxMap mapboxMap) async {
     widget.controller.attachMapbox(mapboxMap);
     try {
-      _pointAnnotationManager = await mapboxMap.annotations
-          .createPointAnnotationManager();
-      _polylineAnnotationManager = await mapboxMap.annotations
-          .createPolylineAnnotationManager();
+      _pointAnnotationManager =
+          await mapboxMap.annotations.createPointAnnotationManager();
+      _polylineAnnotationManager =
+          await mapboxMap.annotations.createPolylineAnnotationManager();
 
       _pointAnnotationManager?.tapEvents(
         onTap: (annotation) {
           final customId = annotation.customData?['id'] as String?;
-          final marker = widget.markers
-              .where(
-                (m) =>
-                    m.id == annotation.id ||
-                    (customId != null && m.id == customId),
-              )
-              .firstOrNull;
+          final marker =
+              widget.markers
+                  .where(
+                    (m) =>
+                        m.id == annotation.id ||
+                        (customId != null && m.id == customId),
+                  )
+                  .firstOrNull;
           marker?.onTap?.call();
         },
       );
@@ -238,17 +240,18 @@ class _TrackletMapViewState extends State<TrackletMapView> {
     try {
       await _pointAnnotationManager?.deleteAll();
       if (widget.markers.isNotEmpty) {
-        final pointOptionsList = widget.markers.map((m) {
-          return mb.PointAnnotationOptions(
-            geometry: mb.Point(
-              coordinates: mb.Position(m.point.longitude, m.point.latitude),
-            ),
-            textField: m.title ?? '',
-            textSize: 12.0,
-            textColor: Colors.black.toARGB32(),
-            customData: <String, Object>{'id': m.id},
-          );
-        }).toList();
+        final pointOptionsList =
+            widget.markers.map((m) {
+              return mb.PointAnnotationOptions(
+                geometry: mb.Point(
+                  coordinates: mb.Position(m.point.longitude, m.point.latitude),
+                ),
+                textField: m.title ?? '',
+                textSize: 12.0,
+                textColor: Colors.black.toARGB32(),
+                customData: <String, Object>{'id': m.id},
+              );
+            }).toList();
 
         if (pointOptionsList.isNotEmpty) {
           await _pointAnnotationManager?.createMulti(pointOptionsList);
@@ -261,21 +264,20 @@ class _TrackletMapViewState extends State<TrackletMapView> {
     try {
       await _polylineAnnotationManager?.deleteAll();
       if (widget.polylines.isNotEmpty) {
-        final polylineOptionsList = widget.polylines
-            .where((p) => p.points.length >= 2)
-            .map((p) {
+        final polylineOptionsList =
+            widget.polylines.where((p) => p.points.length >= 2).map((p) {
               return mb.PolylineAnnotationOptions(
                 geometry: mb.LineString(
-                  coordinates: p.points
-                      .map((pt) => mb.Position(pt.longitude, pt.latitude))
-                      .toList(),
+                  coordinates:
+                      p.points
+                          .map((pt) => mb.Position(pt.longitude, pt.latitude))
+                          .toList(),
                 ),
                 lineColor: p.color.toARGB32(),
                 lineWidth: p.strokeWidth,
                 lineOpacity: 0.9,
               );
-            })
-            .toList();
+            }).toList();
 
         if (polylineOptionsList.isNotEmpty) {
           await _polylineAnnotationManager?.createMulti(polylineOptionsList);
@@ -354,35 +356,41 @@ class _TrackletMapViewState extends State<TrackletMapView> {
         ),
         if (widget.polylines.isNotEmpty)
           fmap.PolylineLayer(
-            polylines: widget.polylines
-                .where((p) => p.points.length >= 2)
-                .map(
-                  (p) => fmap.Polyline(
-                    points: p.points
-                        .map((pt) => ll.LatLng(pt.latitude, pt.longitude))
-                        .toList(),
-                    color: p.color,
-                    strokeWidth: p.strokeWidth,
-                    pattern: p.isDotted
-                        ? const fmap.StrokePattern.dotted()
-                        : const fmap.StrokePattern.solid(),
-                  ),
-                )
-                .toList(),
+            polylines:
+                widget.polylines
+                    .where((p) => p.points.length >= 2)
+                    .map(
+                      (p) => fmap.Polyline(
+                        points:
+                            p.points
+                                .map(
+                                  (pt) => ll.LatLng(pt.latitude, pt.longitude),
+                                )
+                                .toList(),
+                        color: p.color,
+                        strokeWidth: p.strokeWidth,
+                        pattern:
+                            p.isDotted
+                                ? const fmap.StrokePattern.dotted()
+                                : const fmap.StrokePattern.solid(),
+                      ),
+                    )
+                    .toList(),
           ),
         if (widget.markers.isNotEmpty)
           fmap.MarkerLayer(
-            markers: widget.markers
-                .map(
-                  (m) => fmap.Marker(
-                    point: ll.LatLng(m.point.latitude, m.point.longitude),
-                    width: m.width,
-                    height: m.height,
-                    alignment: m.alignment,
-                    child: m.child,
-                  ),
-                )
-                .toList(),
+            markers:
+                widget.markers
+                    .map(
+                      (m) => fmap.Marker(
+                        point: ll.LatLng(m.point.latitude, m.point.longitude),
+                        width: m.width,
+                        height: m.height,
+                        alignment: m.alignment,
+                        child: m.child,
+                      ),
+                    )
+                    .toList(),
           ),
       ],
     );

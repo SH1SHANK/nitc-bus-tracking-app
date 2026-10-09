@@ -100,11 +100,13 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           width: double.infinity,
                           height: 320.0,
                           fit: BoxFit.fitWidth,
-                          errorBuilder: (_, _, _) => Container(
-                            height: 320.0,
-                            color: TrackletColors.permissionHeaderGradientStart
-                                .withValues(alpha: 0.2),
-                          ),
+                          errorBuilder:
+                              (_, _, _) => Container(
+                                height: 320.0,
+                                color: TrackletColors
+                                    .permissionHeaderGradientStart
+                                    .withValues(alpha: 0.2),
+                              ),
                         ),
                       ),
                     ),
@@ -119,12 +121,13 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           width: 270.0,
                           height: 270.0,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => Image.asset(
-                            'assets/images/Young_Man_Laptop_Clean_Login_Design.png',
-                            width: 250.0,
-                            height: 250.0,
-                            fit: BoxFit.cover,
-                          ),
+                          errorBuilder:
+                              (_, _, _) => Image.asset(
+                                'assets/images/Young_Man_Laptop_Clean_Login_Design.png',
+                                width: 250.0,
+                                height: 250.0,
+                                fit: BoxFit.cover,
+                              ),
                         ),
                       ),
                     ),
@@ -205,15 +208,16 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   AutofillHints.newUsername,
                                   AutofillHints.email,
                                 ],
-                                onFieldSubmitted: (_) =>
-                                    _passwordFocusNode.requestFocus(),
+                                onFieldSubmitted:
+                                    (_) => _passwordFocusNode.requestFocus(),
                                 validator: (value) {
                                   final email = value?.trim() ?? '';
                                   if (email.isEmpty) {
                                     return 'Enter your email address.';
                                   }
-                                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                                      .hasMatch(email)) {
+                                  if (!RegExp(
+                                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                  ).hasMatch(email)) {
                                     return 'Enter a valid email address.';
                                   }
                                   if (!email.toLowerCase().endsWith(
@@ -258,29 +262,34 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 autofillHints: const [
                                   AutofillHints.newPassword,
                                 ],
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                    ? 'Create a password.'
-                                    : null,
+                                validator:
+                                    (value) =>
+                                        value == null || value.isEmpty
+                                            ? 'Create a password.'
+                                            : null,
                                 onChanged: (_) {
                                   if (_passwordMismatch) {
                                     setState(() => _passwordMismatch = false);
                                   }
                                 },
-                                onFieldSubmitted: (_) =>
-                                    _confirmPasswordFocusNode.requestFocus(),
+                                onFieldSubmitted:
+                                    (_) =>
+                                        _confirmPasswordFocusNode
+                                            .requestFocus(),
                                 decoration: authInputDecoration(
                                   label: 'Password',
                                   hint: 'Create a password',
                                   icon: Icons.lock_outline_rounded,
                                   suffixIcon: IconButton(
-                                    tooltip: _passwordVisibility
-                                        ? 'Hide password'
-                                        : 'Show password',
-                                    onPressed: () => setState(() {
-                                      _passwordVisibility =
-                                          !_passwordVisibility;
-                                    }),
+                                    tooltip:
+                                        _passwordVisibility
+                                            ? 'Hide password'
+                                            : 'Show password',
+                                    onPressed:
+                                        () => setState(() {
+                                          _passwordVisibility =
+                                              !_passwordVisibility;
+                                        }),
                                     icon: Icon(
                                       _passwordVisibility
                                           ? Icons.visibility_outlined
@@ -320,10 +329,11 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 autofillHints: const [
                                   AutofillHints.newPassword,
                                 ],
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                    ? 'Confirm your password.'
-                                    : null,
+                                validator:
+                                    (value) =>
+                                        value == null || value.isEmpty
+                                            ? 'Confirm your password.'
+                                            : null,
                                 onChanged: (_) {
                                   if (_passwordMismatch) {
                                     setState(() => _passwordMismatch = false);
@@ -335,13 +345,15 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   hint: 'Re-enter your password',
                                   icon: Icons.lock_reset_rounded,
                                   suffixIcon: IconButton(
-                                    tooltip: _confirmPasswordVisibility
-                                        ? 'Hide password'
-                                        : 'Show password',
-                                    onPressed: () => setState(() {
-                                      _confirmPasswordVisibility =
-                                          !_confirmPasswordVisibility;
-                                    }),
+                                    tooltip:
+                                        _confirmPasswordVisibility
+                                            ? 'Hide password'
+                                            : 'Show password',
+                                    onPressed:
+                                        () => setState(() {
+                                          _confirmPasswordVisibility =
+                                              !_confirmPasswordVisibility;
+                                        }),
                                     icon: Icon(
                                       _confirmPasswordVisibility
                                           ? Icons.visibility_outlined
@@ -405,9 +417,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                             child: AuthEntrance(
                               delay: 260.ms,
                               child: ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : _handleCreateAccount,
+                                onPressed:
+                                    _isLoading ? null : _handleCreateAccount,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: TrackletColors.primary,
                                   foregroundColor: TrackletColors.pure,
@@ -420,24 +431,25 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     ),
                                   ),
                                 ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: TrackletColors.pure,
+                                child:
+                                    _isLoading
+                                        ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: TrackletColors.pure,
+                                          ),
+                                        )
+                                        : Text(
+                                          'Create Account',
+                                          style: TrackletTypography.titleMedium
+                                              .copyWith(
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.w600,
+                                                color: TrackletColors.pure,
+                                              ),
                                         ),
-                                      )
-                                    : Text(
-                                        'Create Account',
-                                        style: TrackletTypography.titleMedium
-                                            .copyWith(
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                              color: TrackletColors.pure,
-                                            ),
-                                      ),
                               ),
                             ),
                           ),
@@ -488,11 +500,12 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     'assets/images/favicon.png',
                                     width: 20,
                                     height: 20,
-                                    errorBuilder: (_, _, _) => const Icon(
-                                      Icons.g_mobiledata_rounded,
-                                      size: 24,
-                                      color: TrackletColors.pure,
-                                    ),
+                                    errorBuilder:
+                                        (_, _, _) => const Icon(
+                                          Icons.g_mobiledata_rounded,
+                                          size: 24,
+                                          color: TrackletColors.pure,
+                                        ),
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
@@ -540,10 +553,11 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                           fontSize: 15.0,
                                           color: TrackletColors.primary,
                                         ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        context.push('/login');
-                                      },
+                                    recognizer:
+                                        TapGestureRecognizer()
+                                          ..onTap = () {
+                                            context.push('/login');
+                                          },
                                   ),
                                 ],
                               ),

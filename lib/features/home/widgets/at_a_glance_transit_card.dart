@@ -177,9 +177,10 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       isLive
                           ? Icons.my_location_rounded
                           : Icons.info_outline_rounded,
-                      color: isLive
-                          ? TrackletColors.busLive
-                          : TrackletColors.textSecondary,
+                      color:
+                          isLive
+                              ? TrackletColors.busLive
+                              : TrackletColors.textSecondary,
                       size: 17,
                     ),
                     const SizedBox(width: 7),

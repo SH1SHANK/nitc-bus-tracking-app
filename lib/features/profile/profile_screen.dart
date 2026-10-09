@@ -23,13 +23,15 @@ class ProfileScreen extends ConsumerWidget {
       appBar: const TrackletAppBar(title: 'Profile & Settings'),
       body: SafeArea(
         child: profileAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: TrackletColors.primary),
-          ),
-          error: (error, stack) => TrackletErrorState(
-            message: 'Unable to load profile data',
-            onRetry: () => ref.invalidate(profileStateProvider),
-          ),
+          loading:
+              () => const Center(
+                child: CircularProgressIndicator(color: TrackletColors.primary),
+              ),
+          error:
+              (error, stack) => TrackletErrorState(
+                message: 'Unable to load profile data',
+                onRetry: () => ref.invalidate(profileStateProvider),
+              ),
           data: (profile) {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(

@@ -205,23 +205,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                               padding: EdgeInsets.zero,
                             ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: TrackletColors.primaryBackground,
+                            child:
+                                _isLoading
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: TrackletColors.primaryBackground,
+                                      ),
+                                    )
+                                    : Text(
+                                      'Send Magic Link',
+                                      style: TrackletTypography.titleSmall
+                                          .copyWith(
+                                            color:
+                                                TrackletColors
+                                                    .primaryBackground,
+                                          ),
                                     ),
-                                  )
-                                : Text(
-                                    'Send Magic Link',
-                                    style: TrackletTypography.titleSmall
-                                        .copyWith(
-                                          color:
-                                              TrackletColors.primaryBackground,
-                                        ),
-                                  ),
                           ),
                         ),
                       ),

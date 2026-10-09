@@ -194,19 +194,15 @@ void main() {
       expect(find.text('Main Gate'), findsNWidgets(2));
       expect(find.text('Architecture'), findsOneWidget);
 
-      final secondLastStopX = tester
-          .getCenter(find.text('Center Circle').at(0))
-          .dx;
+      final secondLastStopX =
+          tester.getCenter(find.text('Center Circle').at(0)).dx;
       final lastStopX = tester.getCenter(find.text('Main Gate').at(0)).dx;
-      final boardingStopX = tester
-          .getCenter(find.text('Center Circle').at(1))
-          .dx;
-      final firstNextStopX = tester
-          .getCenter(find.text('Architecture').at(0))
-          .dx;
-      final repeatedNextStopX = tester
-          .getCenter(find.text('Center Circle').at(2))
-          .dx;
+      final boardingStopX =
+          tester.getCenter(find.text('Center Circle').at(1)).dx;
+      final firstNextStopX =
+          tester.getCenter(find.text('Architecture').at(0)).dx;
+      final repeatedNextStopX =
+          tester.getCenter(find.text('Center Circle').at(2)).dx;
       final finalStopX = tester.getCenter(find.text('Main Gate').at(1)).dx;
       expect(secondLastStopX, lessThan(lastStopX));
       expect(lastStopX, lessThan(boardingStopX));

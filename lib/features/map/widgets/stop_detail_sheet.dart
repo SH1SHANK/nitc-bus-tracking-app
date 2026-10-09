@@ -27,12 +27,13 @@ class StopDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final servingRoutes = routes.where((r) {
-      if (r.stopOccurrences.isNotEmpty) {
-        return r.stopOccurrences.any((o) => o.stopId == stop.id);
-      }
-      return r.stopIds.contains(stop.id);
-    }).toList();
+    final servingRoutes =
+        routes.where((r) {
+          if (r.stopOccurrences.isNotEmpty) {
+            return r.stopOccurrences.any((o) => o.stopId == stop.id);
+          }
+          return r.stopIds.contains(stop.id);
+        }).toList();
 
     return Material(
       color: TrackletColors.surfaceElevated,
@@ -152,46 +153,49 @@ class StopDetailSheet extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
-                children: servingRoutes.map((route) {
-                  return InkWell(
-                    onTap: () => onSelectRoute?.call(route),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: TrackletColors.background2,
+                children:
+                    servingRoutes.map((route) {
+                      return InkWell(
+                        onTap: () => onSelectRoute?.call(route),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: TrackletColors.primary.withValues(alpha: 0.2),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TrackletColors.background2,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: TrackletColors.primary.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: TrackletColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                route.code.isNotEmpty ? route.code : route.name,
+                                style: TrackletTypography.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: TrackletColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: TrackletColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            route.code.isNotEmpty ? route.code : route.name,
-                            style: TrackletTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: TrackletColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
           ],
         ),

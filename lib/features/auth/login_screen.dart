@@ -80,11 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 320.0,
                           fit: BoxFit.fitWidth,
-                          errorBuilder: (_, _, _) => Container(
-                            height: 320.0,
-                            color: TrackletColors.permissionHeaderGradientStart
-                                .withValues(alpha: 0.2),
-                          ),
+                          errorBuilder:
+                              (_, _, _) => Container(
+                                height: 320.0,
+                                color: TrackletColors
+                                    .permissionHeaderGradientStart
+                                    .withValues(alpha: 0.2),
+                              ),
                         ),
                       ),
                     ),
@@ -99,12 +101,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 250.0,
                           height: 250.0,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Image.asset(
-                            'assets/images/Young_Man_with_Laptop.png',
-                            width: 250.0,
-                            height: 250.0,
-                            fit: BoxFit.cover,
-                          ),
+                          errorBuilder:
+                              (_, _, _) => Image.asset(
+                                'assets/images/Young_Man_with_Laptop.png',
+                                width: 250.0,
+                                height: 250.0,
+                                fit: BoxFit.cover,
+                              ),
                         ),
                       ),
                     ),
@@ -185,15 +188,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   AutofillHints.username,
                                   AutofillHints.email,
                                 ],
-                                onFieldSubmitted: (_) =>
-                                    _passwordFocusNode.requestFocus(),
+                                onFieldSubmitted:
+                                    (_) => _passwordFocusNode.requestFocus(),
                                 validator: (value) {
                                   final email = value?.trim() ?? '';
                                   if (email.isEmpty) {
                                     return 'Enter your email address.';
                                   }
-                                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                                      .hasMatch(email)) {
+                                  if (!RegExp(
+                                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                  ).hasMatch(email)) {
                                     return 'Enter a valid email address.';
                                   }
                                   if (!email.toLowerCase().endsWith(
@@ -236,23 +240,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                 obscureText: !_passwordVisibility,
                                 textInputAction: TextInputAction.done,
                                 autofillHints: const [AutofillHints.password],
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                    ? 'Enter your password.'
-                                    : null,
+                                validator:
+                                    (value) =>
+                                        value == null || value.isEmpty
+                                            ? 'Enter your password.'
+                                            : null,
                                 onFieldSubmitted: (_) => _handleLogin(),
                                 decoration: authInputDecoration(
                                   label: 'Password',
                                   hint: 'Enter your password',
                                   icon: Icons.lock_outline_rounded,
                                   suffixIcon: IconButton(
-                                    tooltip: _passwordVisibility
-                                        ? 'Hide password'
-                                        : 'Show password',
-                                    onPressed: () => setState(() {
-                                      _passwordVisibility =
-                                          !_passwordVisibility;
-                                    }),
+                                    tooltip:
+                                        _passwordVisibility
+                                            ? 'Hide password'
+                                            : 'Show password',
+                                    onPressed:
+                                        () => setState(() {
+                                          _passwordVisibility =
+                                              !_passwordVisibility;
+                                        }),
                                     icon: Icon(
                                       _passwordVisibility
                                           ? Icons.visibility_outlined
@@ -325,24 +332,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: TrackletColors.pure,
+                                child:
+                                    _isLoading
+                                        ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: TrackletColors.pure,
+                                          ),
+                                        )
+                                        : Text(
+                                          'Login',
+                                          style: TrackletTypography.titleMedium
+                                              .copyWith(
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.w600,
+                                                color: TrackletColors.pure,
+                                              ),
                                         ),
-                                      )
-                                    : Text(
-                                        'Login',
-                                        style: TrackletTypography.titleMedium
-                                            .copyWith(
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600,
-                                              color: TrackletColors.pure,
-                                            ),
-                                      ),
                               ),
                             ),
                           ),
@@ -393,11 +401,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                     'assets/images/favicon.png',
                                     width: 20,
                                     height: 20,
-                                    errorBuilder: (_, _, _) => const Icon(
-                                      Icons.g_mobiledata_rounded,
-                                      size: 24,
-                                      color: TrackletColors.pure,
-                                    ),
+                                    errorBuilder:
+                                        (_, _, _) => const Icon(
+                                          Icons.g_mobiledata_rounded,
+                                          size: 24,
+                                          color: TrackletColors.pure,
+                                        ),
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
@@ -445,10 +454,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                           fontSize: 15.0,
                                           color: TrackletColors.primary,
                                         ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        context.push('/create-account');
-                                      },
+                                    recognizer:
+                                        TapGestureRecognizer()
+                                          ..onTap = () {
+                                            context.push('/create-account');
+                                          },
                                   ),
                                 ],
                               ),

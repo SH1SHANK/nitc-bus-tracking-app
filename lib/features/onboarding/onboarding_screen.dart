@@ -34,9 +34,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void initState() {
     super.initState();
     final currentStep = ref.read(onboardingProvider).currentStep;
-    final initialPage = currentStep >= 0 && currentStep < kTotalSteps
-        ? currentStep
-        : 0;
+    final initialPage =
+        currentStep >= 0 && currentStep < kTotalSteps ? currentStep : 0;
     _pageController = PageController(initialPage: initialPage);
   }
 
@@ -112,29 +111,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Scaffold(
         backgroundColor: TrackletColors.background,
         body: DecoratedBox(
-          decoration: state.currentStep == 1
-              ? const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFFAFBFF),
-                      Color(0xFFEAE8F9),
-                      Color(0xFFB5B1E7),
-                    ],
-                    stops: [0, 0.43, 1],
-                  ),
-                )
-              : const BoxDecoration(color: TrackletColors.background),
+          decoration:
+              state.currentStep == 1
+                  ? const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFFFAFBFF),
+                        Color(0xFFEAE8F9),
+                        Color(0xFFB5B1E7),
+                      ],
+                      stops: [0, 0.43, 1],
+                    ),
+                  )
+                  : const BoxDecoration(color: TrackletColors.background),
           child: SafeArea(
             child: Column(
               children: [
                 // The username step uses the reference's clean segmented header.
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: state.currentStep == 1
-                        ? TrackletSpacing.lg
-                        : TrackletSpacing.md,
+                    horizontal:
+                        state.currentStep == 1
+                            ? TrackletSpacing.lg
+                            : TrackletSpacing.md,
                     vertical: TrackletSpacing.xs,
                   ),
                   child: Column(
@@ -211,8 +212,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         isAvailable: state.isUsernameAvailable,
                         isCheckingUsername: state.isCheckingUsername,
                         onUsernameChanged: (u) => notifier.updateUsername(u),
-                        onMagicWandPressed: () =>
-                            notifier.generateRandomUsername(),
+                        onMagicWandPressed:
+                            () => notifier.generateRandomUsername(),
                         onContinue: _next,
                       ),
 
@@ -221,17 +222,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         locationGranted: state.locationPermissionGranted,
                         notificationsGranted:
                             state.notificationPermissionGranted,
-                        onEnablePermissions:
-                            ({
-                              required bool enableLocation,
-                              required bool enableNotifications,
-                            }) async {
-                              notifier.setLocationPermission(enableLocation);
-                              notifier.setNotificationPermission(
-                                enableNotifications,
-                              );
-                              _next();
-                            },
+                        onEnablePermissions: ({
+                          required bool enableLocation,
+                          required bool enableNotifications,
+                        }) async {
+                          notifier.setLocationPermission(enableLocation);
+                          notifier.setNotificationPermission(
+                            enableNotifications,
+                          );
+                          _next();
+                        },
                         onSkip: () {
                           notifier.setLocationPermission(false);
                           notifier.setNotificationPermission(false);

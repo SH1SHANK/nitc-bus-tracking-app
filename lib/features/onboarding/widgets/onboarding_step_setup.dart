@@ -128,7 +128,8 @@ class OnboardingStepSetup extends StatelessWidget {
                           ),
                           children: const [
                             TextSpan(
-                              text: 'I confirm that I have read and agree to the ',
+                              text:
+                                  'I confirm that I have read and agree to the ',
                             ),
                             TextSpan(
                               text: 'Terms of Service',

@@ -51,9 +51,10 @@ class RouteStopOccurrence {
     Map<String, dynamic> json, {
     Stop? stop,
   }) {
-    final nestedStop = json['stops'] is Map<String, dynamic>
-        ? Stop.fromJson(json['stops'] as Map<String, dynamic>)
-        : stop;
+    final nestedStop =
+        json['stops'] is Map<String, dynamic>
+            ? Stop.fromJson(json['stops'] as Map<String, dynamic>)
+            : stop;
 
     return RouteStopOccurrence(
       routeId: json['route_id']?.toString() ?? '',

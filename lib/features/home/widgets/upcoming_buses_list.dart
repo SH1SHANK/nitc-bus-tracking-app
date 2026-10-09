@@ -32,8 +32,8 @@ class UpcomingBusesList extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: buses.length,
-          separatorBuilder: (_, _) =>
-              const SizedBox(height: TrackletSpacing.sm),
+          separatorBuilder:
+              (_, _) => const SizedBox(height: TrackletSpacing.sm),
           itemBuilder: (context, index) {
             final bus = buses[index];
             return TrackletCard(

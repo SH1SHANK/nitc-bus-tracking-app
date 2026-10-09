@@ -105,28 +105,32 @@ class NextBusesCard extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              itemCount: buses.isNotEmpty
-                  ? buses.length
-                  : scheduledDepartures.length,
-              separatorBuilder: (context, index) => const Divider(
-                color: TrackletColors.border,
-                height: 1,
-                indent: 72,
-              ),
-              itemBuilder: (context, index) => buses.isNotEmpty
-                  ? _BusListItem(
-                      bus: buses[index],
-                      onTap: () => onBusTap?.call(buses[index]),
-                    )
-                  : _ScheduledDepartureListItem(
-                      departure: scheduledDepartures[index],
-                      route: routes
-                          .where(
-                            (route) =>
-                                route.id == scheduledDepartures[index].routeId,
+              itemCount:
+                  buses.isNotEmpty ? buses.length : scheduledDepartures.length,
+              separatorBuilder:
+                  (context, index) => const Divider(
+                    color: TrackletColors.border,
+                    height: 1,
+                    indent: 72,
+                  ),
+              itemBuilder:
+                  (context, index) =>
+                      buses.isNotEmpty
+                          ? _BusListItem(
+                            bus: buses[index],
+                            onTap: () => onBusTap?.call(buses[index]),
                           )
-                          .firstOrNull,
-                    ),
+                          : _ScheduledDepartureListItem(
+                            departure: scheduledDepartures[index],
+                            route:
+                                routes
+                                    .where(
+                                      (route) =>
+                                          route.id ==
+                                          scheduledDepartures[index].routeId,
+                                    )
+                                    .firstOrNull,
+                          ),
             ),
           ),
       ],

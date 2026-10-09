@@ -74,10 +74,10 @@ class _OnboardingAcademicProfilePageState
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
-    _learnMoreRecognizer = TapGestureRecognizer()
-      ..onTap = _showInformationSheet;
-    _requestRecognizer = TapGestureRecognizer()
-      ..onTap = _showRequestInstructions;
+    _learnMoreRecognizer =
+        TapGestureRecognizer()..onTap = _showInformationSheet;
+    _requestRecognizer =
+        TapGestureRecognizer()..onTap = _showRequestInstructions;
   }
 
   void _showInformationSheet() {
@@ -147,7 +147,8 @@ class _OnboardingAcademicProfilePageState
               ),
               children: [
                 const TextSpan(
-                  text: 'Tell us a few details about your academic profile so we can personalize your transit timings and campus bus routes. Why do we ask for this information? ',
+                  text:
+                      'Tell us a few details about your academic profile so we can personalize your transit timings and campus bus routes. Why do we ask for this information? ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',
@@ -232,21 +233,22 @@ class _OnboardingAcademicProfilePageState
                 color: TrackletColors.secondaryText,
                 size: 20,
               ),
-              suffixIcon: _nameController.text.isNotEmpty
-                  ? IconButton(
-                      tooltip: 'Clear name',
-                      onPressed: () {
-                        _nameController.clear();
-                        widget.onNameChanged('');
-                        setState(() {});
-                      },
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: TrackletColors.secondaryText,
-                      ),
-                    )
-                  : null,
+              suffixIcon:
+                  _nameController.text.isNotEmpty
+                      ? IconButton(
+                        tooltip: 'Clear name',
+                        onPressed: () {
+                          _nameController.clear();
+                          widget.onNameChanged('');
+                          setState(() {});
+                        },
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: TrackletColors.secondaryText,
+                        ),
+                      )
+                      : null,
             ),
             style: TrackletTypography.bodyMedium.copyWith(
               fontSize: 15.0,
@@ -333,8 +335,8 @@ class _OnboardingAcademicProfilePageState
                   value: widget.agreedToTerms,
                   activeColor: TrackletColors.primary,
                   checkColor: TrackletColors.pure,
-                  onChanged: (value) =>
-                      widget.onAgreementChanged(value ?? false),
+                  onChanged:
+                      (value) => widget.onAgreementChanged(value ?? false),
                 ),
               ),
               const SizedBox(width: 4),

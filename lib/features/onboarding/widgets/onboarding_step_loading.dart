@@ -91,20 +91,22 @@ class OnboardingStepLoading extends StatelessWidget {
                       child: Image.asset(
                         'assets/images/Abstract_Gradient_Background_4K.jpg',
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                TrackletColors.permissionPinkIcon.withValues(
-                                  alpha: 0.5,
+                        errorBuilder:
+                            (context, error, stackTrace) => Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    TrackletColors.permissionPinkIcon
+                                        .withValues(alpha: 0.5),
+                                    TrackletColors.velvetSky.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    Colors.transparent,
+                                  ],
                                 ),
-                                TrackletColors.velvetSky.withValues(alpha: 0.3),
-                                Colors.transparent,
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
                       ),
                     ).enterOnboarding(context, delay: 180.ms),
                   ),
@@ -149,8 +151,8 @@ class OnboardingStepLoading extends StatelessWidget {
                         tween: Tween<double>(end: normalizedProgress),
                         duration: reduceMotion ? Duration.zero : 300.ms,
                         curve: Curves.easeOutCubic,
-                        builder: (context, value, child) =>
-                            LinearProgressIndicator(
+                        builder:
+                            (context, value, child) => LinearProgressIndicator(
                               value: value,
                               backgroundColor: TrackletColors.alternate,
                               valueColor: const AlwaysStoppedAnimation<Color>(

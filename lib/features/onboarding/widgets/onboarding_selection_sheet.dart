@@ -39,14 +39,15 @@ class OnboardingSelectionSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => OnboardingSelectionSheet(
-        title: title,
-        subtitle: subtitle,
-        items: items,
-        selectedItem: selectedItem,
-        onSelected: onSelected,
-        showSearch: showSearch,
-      ),
+      builder:
+          (_) => OnboardingSelectionSheet(
+            title: title,
+            subtitle: subtitle,
+            items: items,
+            selectedItem: selectedItem,
+            onSelected: onSelected,
+            showSearch: showSearch,
+          ),
     );
   }
 
@@ -74,9 +75,10 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = widget.items
-        .where((item) => item.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+    final filtered =
+        widget.items
+            .where((item) => item.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
 
     return Container(
       constraints: BoxConstraints(
@@ -174,8 +176,8 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: filtered.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: TrackletSpacing.xs),
+              separatorBuilder:
+                  (_, _) => const SizedBox(height: TrackletSpacing.xs),
               itemBuilder: (context, index) {
                 final item = filtered[index];
                 final isSelected = item == widget.selectedItem;
@@ -192,16 +194,18 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? TrackletColors.primary.withValues(alpha: 0.08)
-                          : Colors.transparent,
+                      color:
+                          isSelected
+                              ? TrackletColors.primary.withValues(alpha: 0.08)
+                              : Colors.transparent,
                       borderRadius: TrackletRadii.roundedMd,
-                      border: isSelected
-                          ? Border.all(
-                              color: TrackletColors.primary,
-                              width: 1.5,
-                            )
-                          : null,
+                      border:
+                          isSelected
+                              ? Border.all(
+                                color: TrackletColors.primary,
+                                width: 1.5,
+                              )
+                              : null,
                     ),
                     child: Row(
                       children: [
@@ -209,12 +213,14 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                           child: Text(
                             item,
                             style: TrackletTypography.titleMedium.copyWith(
-                              color: isSelected
-                                  ? TrackletColors.primary
-                                  : TrackletColors.textPrimary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                              color:
+                                  isSelected
+                                      ? TrackletColors.primary
+                                      : TrackletColors.textPrimary,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
                             ),
                           ),
                         ),

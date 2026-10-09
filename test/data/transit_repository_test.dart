@@ -24,19 +24,22 @@ void main() {
       );
     });
 
-    test('returns canonical R1-R4 campus loop routes with explicit missing geometry', () async {
-      final routes = await repository.getRoutes();
-      expect(routes, hasLength(4));
+    test(
+      'returns canonical R1-R4 campus loop routes with explicit missing geometry',
+      () async {
+        final routes = await repository.getRoutes();
+        expect(routes, hasLength(4));
 
-      final routeCodes = routes.map((r) => r.code).toList();
-      expect(routeCodes, containsAll(['R1', 'R2', 'R3', 'R4']));
+        final routeCodes = routes.map((r) => r.code).toList();
+        expect(routeCodes, containsAll(['R1', 'R2', 'R3', 'R4']));
 
-      for (final route in routes) {
-        expect(route.isGeometryMissing, isTrue);
-        expect(route.path, isEmpty);
-        expect(route.stopOccurrences, isNotEmpty);
-      }
-    });
+        for (final route in routes) {
+          expect(route.isGeometryMissing, isTrue);
+          expect(route.path, isEmpty);
+          expect(route.stopOccurrences, isNotEmpty);
+        }
+      },
+    );
 
     test('fetches ordered route stop occurrences for selected route', () async {
       final r1Stops = await repository.getRouteStops(

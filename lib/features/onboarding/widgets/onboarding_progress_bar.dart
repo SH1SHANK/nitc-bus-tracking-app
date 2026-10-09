@@ -16,9 +16,10 @@ class OnboardingProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : const Duration(milliseconds: 260);
+    final duration =
+        MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 260);
 
     return Semantics(
       label: 'Onboarding progress',
@@ -38,9 +39,10 @@ class OnboardingProgressBar extends StatelessWidget {
                   curve: Curves.easeInOutCubic,
                   height: isActive ? 5 : 4,
                   decoration: BoxDecoration(
-                    color: isCompletedOrActive
-                        ? TrackletColors.primary
-                        : TrackletColors.primary.withValues(alpha: 0.16),
+                    color:
+                        isCompletedOrActive
+                            ? TrackletColors.primary
+                            : TrackletColors.primary.withValues(alpha: 0.16),
                     borderRadius: TrackletRadii.roundedFull,
                   ),
                 ),

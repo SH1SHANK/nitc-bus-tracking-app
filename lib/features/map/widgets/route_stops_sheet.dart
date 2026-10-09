@@ -102,9 +102,10 @@ class RouteStopsSheet extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? TrackletColors.primary.withValues(alpha: 0.1)
-                            : Colors.transparent,
+                        color:
+                            isSelected
+                                ? TrackletColors.primary.withValues(alpha: 0.1)
+                                : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -113,14 +114,16 @@ class RouteStopsSheet extends StatelessWidget {
                             width: 22,
                             height: 22,
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? TrackletColors.primary
-                                  : TrackletColors.background2,
+                              color:
+                                  isSelected
+                                      ? TrackletColors.primary
+                                      : TrackletColors.background2,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSelected
-                                    ? TrackletColors.primary
-                                    : TrackletColors.border,
+                                color:
+                                    isSelected
+                                        ? TrackletColors.primary
+                                        : TrackletColors.border,
                               ),
                             ),
                             child: Center(
@@ -129,9 +132,10 @@ class RouteStopsSheet extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: isSelected
-                                      ? TrackletColors.textInverse
-                                      : TrackletColors.textPrimary,
+                                  color:
+                                      isSelected
+                                          ? TrackletColors.textInverse
+                                          : TrackletColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -141,12 +145,14 @@ class RouteStopsSheet extends StatelessWidget {
                             child: Text(
                               stop?.name ?? 'Stop #${occurrence.sequence + 1}',
                               style: TrackletTypography.bodyMedium.copyWith(
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? TrackletColors.primary
-                                    : TrackletColors.textPrimary,
+                                fontWeight:
+                                    isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                color:
+                                    isSelected
+                                        ? TrackletColors.primary
+                                        : TrackletColors.textPrimary,
                               ),
                             ),
                           ),

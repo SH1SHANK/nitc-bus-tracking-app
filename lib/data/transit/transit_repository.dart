@@ -66,29 +66,31 @@ class SupabaseTransitRepository implements TransitRepository {
               'route_id, stop_id, sequence, distance_from_start, estimated_duration_sec',
             )
             .order('sequence', ascending: true);
-        allOccurrences = (rsResponse as List).map((rawRow) {
-          final row = rawRow as Map<String, dynamic>;
-          final stopId = row['stop_id']?.toString() ?? '';
-          final resolvedStop = stopMap[stopId];
-          return RouteStopOccurrence.fromJson(row, stop: resolvedStop);
-        }).toList();
+        allOccurrences =
+            (rsResponse as List).map((rawRow) {
+              final row = rawRow as Map<String, dynamic>;
+              final stopId = row['stop_id']?.toString() ?? '';
+              final resolvedStop = stopMap[stopId];
+              return RouteStopOccurrence.fromJson(row, stop: resolvedStop);
+            }).toList();
       } catch (rsError) {
         AppLogger.warning('Failed to fetch route_stops: $rsError');
       }
 
-      final routes = rawRoutes.map((row) {
-        final map = row as Map<String, dynamic>;
-        final routeId = (map['id'] ?? '').toString();
-        final occurrences =
-            allOccurrences.where((o) => o.routeId == routeId).toList()
-              ..sort((a, b) => a.sequence.compareTo(b.sequence));
+      final routes =
+          rawRoutes.map((row) {
+            final map = row as Map<String, dynamic>;
+            final routeId = (map['id'] ?? '').toString();
+            final occurrences =
+                allOccurrences.where((o) => o.routeId == routeId).toList()
+                  ..sort((a, b) => a.sequence.compareTo(b.sequence));
 
-        return BusRoute.fromJson(
-          map,
-          stops: stops,
-          stopOccurrences: occurrences,
-        );
-      }).toList();
+            return BusRoute.fromJson(
+              map,
+              stops: stops,
+              stopOccurrences: occurrences,
+            );
+          }).toList();
 
       return routes;
     }
@@ -132,9 +134,8 @@ class SupabaseTransitRepository implements TransitRepository {
       }).toList();
     }
 
-    final matchedRoute = _defaultNitcRoutes
-        .where((r) => r.id == routeId)
-        .firstOrNull;
+    final matchedRoute =
+        _defaultNitcRoutes.where((r) => r.id == routeId).firstOrNull;
     return matchedRoute?.stopOccurrences ?? const [];
   }
 
@@ -160,9 +161,10 @@ class SupabaseTransitRepository implements TransitRepository {
     if (_supabase != null) {
       try {
         final response = await _supabase.from('buses').select();
-        final buses = (response as List)
-            .map((e) => Bus.fromJson(e as Map<String, dynamic>))
-            .toList();
+        final buses =
+            (response as List)
+                .map((e) => Bus.fromJson(e as Map<String, dynamic>))
+                .toList();
         if (buses.isNotEmpty) return buses;
       } catch (e) {
         AppLogger.warning(
@@ -200,29 +202,31 @@ class SupabaseTransitRepository implements TransitRepository {
       }
 
       final now = DateTime.now();
-      _currentBuses = _currentBuses.map((bus) {
-        if (!bus.isLive || bus.routeId == null) return bus;
+      _currentBuses =
+          _currentBuses.map((bus) {
+            if (!bus.isLive || bus.routeId == null) return bus;
 
-        final route = _defaultNitcRoutes
-            .where((item) => item.id == bus.routeId)
-            .firstOrNull;
-        if (route == null || route.path.length < 2) return bus;
+            final route =
+                _defaultNitcRoutes
+                    .where((item) => item.id == bus.routeId)
+                    .firstOrNull;
+            if (route == null || route.path.length < 2) return bus;
 
-        final distanceMoved = bus.position.speedKmH * 1000 * 3 / 3600;
-        final distanceAlongRoute =
-            (_distanceAlongRoute[bus.id] ?? 0) + distanceMoved;
-        _distanceAlongRoute[bus.id] = distanceAlongRoute;
+            final distanceMoved = bus.position.speedKmH * 1000 * 3 / 3600;
+            final distanceAlongRoute =
+                (_distanceAlongRoute[bus.id] ?? 0) + distanceMoved;
+            _distanceAlongRoute[bus.id] = distanceAlongRoute;
 
-        return bus.copyWith(
-          lastUpdated: now,
-          position: _positionAlongRoute(
-            route,
-            distanceAlongRoute,
-            bus.position,
-            now,
-          ),
-        );
-      }).toList();
+            return bus.copyWith(
+              lastUpdated: now,
+              position: _positionAlongRoute(
+                route,
+                distanceAlongRoute,
+                bus.position,
+                now,
+              ),
+            );
+          }).toList();
 
       _busStreamController?.add(_currentBuses);
     });

@@ -74,17 +74,19 @@ List<ScheduledDeparture> upcomingDeparturesForStop({
   required List<BusRoute> routes,
   required DateTime now,
 }) {
-  final servingRouteIds = routes
-      .where((route) => route.stopIds.contains(stop.id))
-      .map((route) => route.id)
-      .toSet();
-  final upcoming = departures
-      .where(
-        (departure) =>
-            servingRouteIds.contains(departure.routeId) &&
-            !departure.onDate(now).isBefore(now),
-      )
-      .toList();
+  final servingRouteIds =
+      routes
+          .where((route) => route.stopIds.contains(stop.id))
+          .map((route) => route.id)
+          .toSet();
+  final upcoming =
+      departures
+          .where(
+            (departure) =>
+                servingRouteIds.contains(departure.routeId) &&
+                !departure.onDate(now).isBefore(now),
+          )
+          .toList();
   upcoming.sort((a, b) {
     final timeCompare = a.secondsAfterMidnight.compareTo(
       b.secondsAfterMidnight,
