@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.4
+  sdk: '>=3.7.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -24,7 +24,7 @@ dependencies:
   moon_design: ^1.1.0
   shared_preferences: ^2.5.6
   onesignal_flutter: ^5.7.0
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   flutter_tabler_icons: ^1.43.0
   phosphor_flutter: ^2.1.0
   animated_custom_dropdown: ^4.0.0
