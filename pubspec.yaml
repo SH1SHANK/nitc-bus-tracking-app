@@ -2,7 +2,7 @@ name: tracklet
 description: "Tracklet - NITC campus bus tracking application built with Flutter for Android and Web."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 0.1.0+1
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -29,7 +29,7 @@ dependencies:
   phosphor_flutter: ^2.1.0
   animated_custom_dropdown: ^4.0.0
   flutter_animate: ^4.5.0
-
+  url_launcher: ^6.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -42,7 +42,12 @@ flutter:
 
   assets:
     - assets/icons/
-    - assets/images/
+    - assets/images/Clean_Login_Design_Rectangle_10.png
+    - assets/images/Young_Man_Laptop_Clean_Login_Design.png
+    - assets/images/Young_Man_with_Laptop.png
+    - assets/images/favicon.png
+    - assets/images/Abstract_Gradient_Background_4K.jpg
+    - assets/images/Research_New_Pin_Crop.gif
   fonts:
     - family: Outfit
       fonts:
