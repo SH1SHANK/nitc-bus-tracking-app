@@ -5,10 +5,10 @@ import '../../core/geo/geo_point.dart';
 import '../../data/campus/campus_building_repository.dart';
 import '../../design_system/components/tracklet_empty_state.dart';
 import '../../design_system/components/tracklet_error_state.dart';
+import '../../design_system/components/tracklet_skeleton.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/maps/map_adapter.dart';
-import '../../services/maps/map_cartography.dart';
 import '../../services/maps/map_config.dart';
 import '../../data/transit/bus_route.dart';
 import '../../data/transit/stop.dart';
@@ -238,9 +238,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (mapState.isLoading) {
       return const Scaffold(
         backgroundColor: TrackletColors.background,
-        body: Center(
-          child: CircularProgressIndicator(color: TrackletColors.primary),
-        ),
+        body: TrackletMapSkeleton(),
       );
     }
 
@@ -285,26 +283,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     }
 
+    final labels = ref.watch(mapLabelsProvider);
     final activeStopIds = mapState.activeRouteStopIds;
-    final buildings = buildingsAsync.asData?.value ?? const [];
-    final labels = <MapLabelFeature>[
-      for (final building in buildings)
-        MapLabelFeature(
-          id: 'building-${building.id}',
-          name: building.name,
-          point: building.location,
-          kind: MapLabelKind.building,
-        ),
-      for (final stop in mapState.stops)
-        MapLabelFeature(
-          id: 'stop-${stop.id}',
-          name: stop.name,
-          point: stop.location,
-          kind: MapLabelKind.stop,
-          isSelected: mapState.selectedStop?.id == stop.id,
-          isRouteStop: activeStopIds.contains(stop.id),
-        ),
-    ];
     final markers = [
       for (final stop in mapState.stops)
         MapMarkerData(
