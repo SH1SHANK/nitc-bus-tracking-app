@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/geo/geo_point.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../data/transit/bus.dart';
@@ -17,18 +18,18 @@ class HomeTransitState {
     required this.routes,
     required this.buses,
     required this.scheduledDepartures,
-    required this.usesSimulatedTelemetry,
+
     required this.isLoading,
     this.errorMessage,
   });
 
   final Profile userProfile;
-  final Stop selectedStop;
+  final Stop? selectedStop;
   final List<Stop> stops;
   final List<BusRoute> routes;
   final List<Bus> buses;
   final List<ScheduledDeparture> scheduledDepartures;
-  final bool usesSimulatedTelemetry;
+
   final bool isLoading;
   final String? errorMessage;
 
@@ -39,7 +40,7 @@ class HomeTransitState {
     List<BusRoute>? routes,
     List<Bus>? buses,
     List<ScheduledDeparture>? scheduledDepartures,
-    bool? usesSimulatedTelemetry,
+
     bool? isLoading,
     String? errorMessage,
   }) {
@@ -50,8 +51,7 @@ class HomeTransitState {
       routes: routes ?? this.routes,
       buses: buses ?? this.buses,
       scheduledDepartures: scheduledDepartures ?? this.scheduledDepartures,
-      usesSimulatedTelemetry:
-          usesSimulatedTelemetry ?? this.usesSimulatedTelemetry,
+
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
     );
@@ -63,17 +63,27 @@ final activeBusesStreamProvider = StreamProvider.autoDispose<List<Bus>>((ref) {
   return repo.watchActiveBuses();
 });
 
+/// Periodic tick stream (every 30 seconds) used for updating live departure ETAs
+/// without causing a top-level screen rebuild.
+final homeClockProvider = StreamProvider.autoDispose<DateTime>((ref) async* {
+  yield DateTime.now();
+  yield* Stream.periodic(const Duration(seconds: 30), (_) => DateTime.now());
+});
+
 final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
   ref,
 ) async {
   final profileRepo = ref.watch(profileRepositoryProvider);
   final transitRepo = ref.watch(transitRepositoryProvider);
 
-  final profile = await profileRepo.getProfile();
-  final stops = await transitRepo.getStops();
-  final routes = await transitRepo.getRoutes();
-  final activeBuses = await transitRepo.getActiveBuses();
-  final scheduledDepartures = await transitRepo.getScheduledDepartures();
+  final (profile, stops, activeBuses, scheduledDepartures) =
+      await (
+        profileRepo.getProfile(),
+        transitRepo.getStops(),
+        transitRepo.getActiveBuses(),
+        transitRepo.getScheduledDepartures(),
+      ).wait;
+  final routes = await transitRepo.getRoutes(knownStops: stops);
 
   final selectedStop =
       stops
@@ -82,15 +92,7 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
                 stop.sourceStopId == 'main_gate' || stop.name == 'Main Gate',
           )
           .firstOrNull ??
-      (stops.isNotEmpty
-          ? stops.first
-          : const Stop(
-            id: 'stop-default',
-            name: 'Main Gate',
-            code: 'MG',
-            location: GeoPoint(latitude: 11.320083, longitude: 75.932722),
-            walkingTimeMinutes: 2,
-          ));
+      stops.firstOrNull;
 
   return HomeTransitState(
     userProfile: profile,
@@ -99,7 +101,7 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
     routes: routes,
     buses: activeBuses,
     scheduledDepartures: scheduledDepartures,
-    usesSimulatedTelemetry: transitRepo.usesSimulatedTelemetry,
+
     isLoading: false,
   );
 });
