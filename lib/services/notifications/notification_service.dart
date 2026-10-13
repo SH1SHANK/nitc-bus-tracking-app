@@ -12,6 +12,8 @@ abstract class NotificationService {
   Future<void> initialize();
   Future<bool> requestPermission();
   Future<bool> hasPermission();
+  Future<void> optIn();
+  Future<void> optOut();
   Future<void> setExternalUserId(String externalId);
   Future<void> removeExternalUserId();
   Future<void> setTag(String key, String value);
@@ -21,6 +23,16 @@ abstract class NotificationService {
 
 class OneSignalNotificationService implements NotificationService {
   bool _isInitialized = false;
+
+  @override
+  Future<void> optIn() async {
+    await requestPermission();
+  }
+
+  @override
+  Future<void> optOut() async {
+    await deleteTag('transit_alerts');
+  }
 
   @override
   Future<void> initialize() async {
