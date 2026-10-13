@@ -11,6 +11,10 @@ abstract final class TrackletRadii {
   static const double banner = 14.0;
   static const double lg = 16.0;
   static const double xl = 24.0;
+  static const double dialog = 16.0;
+  static const double avatar = 28.0;
+  static const double compact = 6.0;
+  static const double pill = 20.0;
   static const double full = 9999.0;
 
   // BorderRadius helpers

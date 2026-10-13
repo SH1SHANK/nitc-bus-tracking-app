@@ -43,6 +43,11 @@ abstract final class TrackletColors {
   static const Color absentRed = Color(0xFFE44D2E);
   static const Color warning = Color(0xFFFFD700);
   static const Color error = Color(0xFFFF5963);
+  static const Color warningStrong = Color(0xFFF39C12);
+  static const Color disabled = Color(0xFFBDC2C8);
+  static const Color dangerSurface = Color(0xFFFFEBEE);
+  static const Color dangerInputSurface = Color(0xFFFFF5F5);
+  static const Color scrim = Color(0x33000000);
   static const Color errorBorder = Color(0xFFFE3E00);
 
   // Accents & Alpha Tints
