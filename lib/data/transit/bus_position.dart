@@ -53,7 +53,8 @@ class BusPosition {
         longitude: (json['longitude'] as num).toDouble(),
       ),
       heading: (json['heading'] as num?)?.toDouble() ?? 0.0,
-      speedKmH: (json['speed_kmh'] as num?)?.toDouble() ?? 0.0,
+      speedKmH:
+          ((json['speed_kmh'] ?? json['speed']) as num?)?.toDouble() ?? 0.0,
       accuracyMeters:
           (json['accuracy'] as num?)?.toDouble() ??
           (json['accuracy_meters'] as num?)?.toDouble() ??
@@ -62,10 +63,13 @@ class BusPosition {
           (json['seq'] as num?)?.toInt() ??
           (json['sequence_number'] as num?)?.toInt() ??
           0,
-      timestamp:
-          json['timestamp'] != null
-              ? DateTime.parse(json['timestamp'] as String)
-              : DateTime.now(),
+      timestamp: DateTime.parse(
+        (json['timestamp'] ??
+                json['recorded_at'] ??
+                json['last_seen'] ??
+                DateTime.now().toIso8601String())
+            as String,
+      ),
     );
   }
 

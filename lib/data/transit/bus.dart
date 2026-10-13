@@ -8,9 +8,9 @@ enum BusStatus {
 
   static BusStatus fromString(String? value) {
     return switch (value?.toLowerCase()) {
-      'live' => BusStatus.live,
+      'live' || 'active' || 'moving' => BusStatus.live,
       'delayed' => BusStatus.delayed,
-      'due' => BusStatus.due,
+      'due' || 'stationary' => BusStatus.due,
       _ => BusStatus.offline,
     };
   }
@@ -82,17 +82,22 @@ class Bus {
 
   factory Bus.fromJson(Map<String, dynamic> json) {
     return Bus(
-      id: json['id'] as String,
-      numberPlate: json['number_plate'] as String? ?? 'KL-11-NITC',
-      name: json['name'] as String? ?? 'Campus Bus',
+      id: (json['id'] ?? json['bus_id']) as String,
+      numberPlate:
+          (json['number_plate'] ?? json['bus_number']) as String? ?? '',
+      name: (json['name'] ?? json['display_name']) as String? ?? 'Campus Bus',
       routeId: json['route_id'] as String?,
       status: BusStatus.fromString(json['status'] as String?),
       position: BusPosition.fromJson(json),
       occupancy: json['occupancy'] as String? ?? 'seats_available',
-      lastUpdated:
-          json['last_updated'] != null
-              ? DateTime.parse(json['last_updated'] as String)
-              : DateTime.now(),
+      lastUpdated: DateTime.parse(
+        (json['last_updated'] ??
+                json['last_seen'] ??
+                json['recorded_at'] ??
+                json['timestamp'] ??
+                DateTime.now().toIso8601String())
+            as String,
+      ),
     );
   }
 
