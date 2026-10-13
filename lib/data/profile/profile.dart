@@ -6,12 +6,12 @@ class Profile {
     this.username,
     this.rollNumber,
     required this.email,
-    this.role = 'student',
-    this.department = 'Computer Science & Engineering',
-    this.branch = 'Computer Science & Engineering',
-    this.batch = '2026',
-    this.semester = 'Semester 6',
-    this.hostel = 'MBH II',
+    this.role = 'Student',
+    this.department = '',
+    this.branch = '',
+    this.batch = '',
+    this.semester = '',
+    this.hostel = '',
     this.notificationsEnabled = true,
     this.locationPermissionGranted = false,
     this.hasCompletedOnboarding = false,
@@ -87,28 +87,40 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
-      id: json['id'] as String? ?? 'user-nitc-shashank',
-      name: json['name'] as String? ?? 'Shashank Mergu',
-      username: json['username'] as String? ?? 'shashank',
-      rollNumber: json['roll_number'] as String? ?? 'B210000CS',
-      email: json['email'] as String? ?? 'shashank@nitc.ac.in',
-      role: json['role'] as String? ?? 'student',
+      id: json['id'] as String? ?? json['user_id'] as String? ?? '',
+      name:
+          json['name'] as String? ?? json['full_name'] as String? ?? 'Student',
+      username: json['username'] as String?,
+      rollNumber: json['roll_number'] as String?,
+      email: json['email'] as String? ?? '',
+      role: json['role'] as String? ?? 'Student',
       department:
           json['department'] as String? ??
-          json['branch'] as String? ??
-          'Computer Science & Engineering',
+          json['department_name'] as String? ??
+          json['department_id'] as String? ??
+          '',
       branch:
           json['branch'] as String? ??
-          json['department'] as String? ??
-          'Computer Science & Engineering',
-      batch: json['batch'] as String? ?? '2026',
-      semester: json['semester'] as String? ?? 'Semester 6',
-      hostel: json['hostel'] as String? ?? 'MBH II',
-      notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
+          json['department_name'] as String? ??
+          json['department_id'] as String? ??
+          '',
+      batch: json['batch'] as String? ?? '',
+      semester: json['semester'] as String? ?? '',
+      hostel: json['hostel'] as String? ?? '',
+      notificationsEnabled:
+          json['notifications_enabled'] as bool? ??
+          (json['notification_prefs'] as Map?)?['notifications_enabled']
+              as bool? ??
+          true,
       locationPermissionGranted:
-          json['location_permission_granted'] as bool? ?? false,
+          json['location_permission_granted'] as bool? ??
+          (json['notification_prefs'] as Map?)?['location_permission_granted']
+              as bool? ??
+          false,
       hasCompletedOnboarding:
-          json['has_completed_onboarding'] as bool? ?? false,
+          json['has_completed_onboarding'] as bool? ??
+          json['onboarding_completed'] as bool? ??
+          false,
     );
   }
 

@@ -23,7 +23,7 @@ Future<void> initializeSupabase() async {
     }
   } else {
     AppLogger.info(
-      'Running with local/mock transit data (Supabase credentials not configured)',
+      'Supabase credentials are not configured; transit data is unavailable.',
     );
   }
 }
