@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
-import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
-import '../providers/onboarding_provider.dart';
 
 /// Step 9: Optional Transit & Hostel preferences with terms agreement.
 class OnboardingStepSetup extends StatelessWidget {
@@ -21,6 +20,8 @@ class OnboardingStepSetup extends StatelessWidget {
     required this.onStopChanged,
     required this.onToggleTerms,
     required this.onContinue,
+    this.hostels = const [],
+    this.stops = const [],
   });
 
   final String selectedHostel;
@@ -30,9 +31,14 @@ class OnboardingStepSetup extends StatelessWidget {
   final ValueChanged<String> onStopChanged;
   final ValueChanged<bool> onToggleTerms;
   final VoidCallback onContinue;
+  final List<String> hostels;
+  final List<String> stops;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveHostels = hostels;
+    final effectiveStops = stops;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.screenMargin,
@@ -66,7 +72,7 @@ class OnboardingStepSetup extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.xs),
           TrackletDropdown(
-            items: kNitcHostels,
+            items: effectiveHostels,
             initialItem: selectedHostel.isNotEmpty ? selectedHostel : null,
             hintText: 'Select Hostel',
             prefixIcon: const Icon(
@@ -88,7 +94,7 @@ class OnboardingStepSetup extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.xs),
           TrackletDropdown(
-            items: kNitcPrimaryStops,
+            items: effectiveStops,
             initialItem: selectedStop.isNotEmpty ? selectedStop : null,
             hintText: 'Select Primary Stop',
             prefixIcon: const Icon(

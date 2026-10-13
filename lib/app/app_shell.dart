@@ -71,10 +71,7 @@ class AppShell extends StatelessWidget {
           // Center Floating Elevated MAP Button
           Positioned(
             top: -18,
-            child: _ElevatedCenterMapButton(
-              isSelected: currentIndex == 1,
-              onTap: () => _onTabSelected(1),
-            ),
+            child: _ElevatedCenterMapButton(onTap: () => _onTabSelected(1)),
           ),
         ],
       ),
@@ -134,12 +131,8 @@ class _NavBarItem extends StatelessWidget {
 }
 
 class _ElevatedCenterMapButton extends StatelessWidget {
-  const _ElevatedCenterMapButton({
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _ElevatedCenterMapButton({required this.onTap});
 
-  final bool isSelected;
   final VoidCallback onTap;
 
   @override
@@ -170,11 +163,10 @@ class _ElevatedCenterMapButton extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 3),
-          Text(
+          const Text(
             'MAP',
             style: TextStyle(
-              color:
-                  isSelected ? TrackletColors.primary : TrackletColors.primary,
+              color: TrackletColors.primary,
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.6,

@@ -12,7 +12,7 @@ import '../providers/onboarding_provider.dart';
 import 'onboarding_entrance.dart';
 
 /// All-in-One Academic Profile Setup Page matching Attendrix Onboarding Layout.
-/// Includes name, branch, batch, hostel, and an information acknowledgement.
+/// Dynamic database-driven selection for Branch, Batch, Hostel, and Agreement.
 class OnboardingAcademicProfilePage extends StatefulWidget {
   const OnboardingAcademicProfilePage({
     super.key,
@@ -27,6 +27,15 @@ class OnboardingAcademicProfilePage extends StatefulWidget {
     required this.onHostelChanged,
     required this.onAgreementChanged,
     required this.onContinue,
+    this.branches = const [],
+    this.hostels = const [],
+    this.batches = kNitcBatches,
+    this.isLoadingDepartments = false,
+    this.isLoadingHostels = false,
+    this.departmentsError,
+    this.hostelsError,
+    this.onRetryDepartments,
+    this.onRetryHostels,
   });
 
   final String name;
@@ -41,6 +50,16 @@ class OnboardingAcademicProfilePage extends StatefulWidget {
   final ValueChanged<bool> onAgreementChanged;
   final VoidCallback onContinue;
 
+  final List<String> branches;
+  final List<String> hostels;
+  final List<String> batches;
+  final bool isLoadingDepartments;
+  final bool isLoadingHostels;
+  final String? departmentsError;
+  final String? hostelsError;
+  final VoidCallback? onRetryDepartments;
+  final VoidCallback? onRetryHostels;
+
   @override
   State<OnboardingAcademicProfilePage> createState() =>
       _OnboardingAcademicProfilePageState();
@@ -51,24 +70,6 @@ class _OnboardingAcademicProfilePageState
   late final TextEditingController _nameController;
   late final TapGestureRecognizer _learnMoreRecognizer;
   late final TapGestureRecognizer _requestRecognizer;
-
-  static const List<String> kNitcHostels = [
-    'Mega Hostel (MBH - Phase 1)',
-    'Mega Hostel (MBH - Phase 2)',
-    'A Hostel',
-    'B Hostel',
-    'C Hostel',
-    'D Hostel',
-    'E Hostel',
-    'F Hostel',
-    'G Hostel',
-    'PG 1 Hostel',
-    'PG 2 Hostel',
-    'Ladies Hostel (LH - Main Block)',
-    'Ladies Hostel (LH - Mega Block)',
-    'International Hostel',
-    'Day Scholar / Off-Campus',
-  ];
 
   @override
   void initState() {
@@ -116,6 +117,9 @@ class _OnboardingAcademicProfilePageState
         isBatchValid &&
         isHostelValid &&
         widget.agreedToTerms;
+
+    final hasError =
+        widget.departmentsError != null || widget.hostelsError != null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -171,6 +175,54 @@ class _OnboardingAcademicProfilePageState
             ),
           ).enterOnboarding(context, delay: 50.ms),
           const SizedBox(height: 18),
+
+          if (hasError)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: TrackletColors.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                border: Border.all(
+                  color: TrackletColors.error.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: TrackletColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      widget.departmentsError ??
+                          widget.hostelsError ??
+                          'Unable to load campus options.',
+                      style: const TextStyle(
+                        fontFamily: TrackletTypography.primaryFontFamily,
+                        fontSize: 12,
+                        color: TrackletColors.error,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      widget.onRetryDepartments?.call();
+                      widget.onRetryHostels?.call();
+                    },
+                    child: const Text(
+                      'Retry',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: TrackletColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Field 1: Full Name
           _buildFieldLabel('What is your full name?'),
@@ -262,9 +314,16 @@ class _OnboardingAcademicProfilePageState
           _buildFieldLabel('Which branch do you belong to?'),
           const SizedBox(height: 6),
           TrackletDropdown(
-            items: kNitcBranches,
+            items: widget.branches,
             initialItem: widget.branch.isNotEmpty ? widget.branch : null,
-            hintText: 'Select Branch',
+            hintText:
+                widget.isLoadingDepartments
+                    ? 'Loading departments...'
+                    : widget.departmentsError != null
+                    ? 'Failed to load departments'
+                    : widget.branches.isEmpty
+                    ? 'No departments found'
+                    : 'Select Branch',
             prefixIcon: const Icon(
               Icons.account_tree_outlined,
               color: TrackletColors.secondaryText,
@@ -282,7 +341,7 @@ class _OnboardingAcademicProfilePageState
           _buildFieldLabel('Which batch do you belong to?'),
           const SizedBox(height: 6),
           TrackletDropdown(
-            items: kNitcBatches,
+            items: widget.batches,
             initialItem: widget.batch.isNotEmpty ? widget.batch : null,
             hintText: 'Select Batch',
             prefixIcon: const Icon(
@@ -302,9 +361,16 @@ class _OnboardingAcademicProfilePageState
           _buildFieldLabel('Which hostel do you belong to?'),
           const SizedBox(height: 6),
           TrackletDropdown(
-            items: kNitcHostels,
+            items: widget.hostels,
             initialItem: widget.hostel.isNotEmpty ? widget.hostel : null,
-            hintText: 'Select Hostel',
+            hintText:
+                widget.isLoadingHostels
+                    ? 'Loading hostels...'
+                    : widget.hostelsError != null
+                    ? 'Failed to load hostels'
+                    : widget.hostels.isEmpty
+                    ? 'No hostels found'
+                    : 'Select Hostel',
             prefixIcon: const Icon(
               Icons.home_work_outlined,
               color: TrackletColors.secondaryText,

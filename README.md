@@ -49,13 +49,17 @@ lib/
 ├── design_system/                 # Reusable Tracklet design system foundation
 │   ├── components/                # TrackletButton, TrackletCard, TrackletStatusBadge, etc.
 │   ├── theme/                     # TrackletTheme combining Material 3 & MoonDesign
-│   ├── tokens/                    # Colors, typography (DM Sans), spacing, radii
+│   ├── tokens/                    # Colors, Outfit/Satoshi typography, spacing, radii
 │   └── design_system.dart         # Barrel export
 │
 ├── data/                          # Data models and repository implementations
+│   ├── academic/                  # Database-driven department catalog
+│   ├── auth/                      # Authentication state, results, and repository
+│   ├── campus/                    # Campus building and hostel data
+│   ├── preferences/               # Persisted user preference model/state
 │   ├── profile/                   # User Profile model & ProfileRepository
 │   ├── supabase/                  # Supabase client provider & safe initialization
-│   └── transit/                   # Bus, BusPosition, BusRoute, Stop, TransitRepository
+│   └── transit/                   # Bus, route, stop, geometry, and repository
 │
 ├── services/                      # Platform & hardware capability wrappers
 │   ├── location/                  # LocationService (geolocator wrapper with typed states)
@@ -64,9 +68,12 @@ lib/
 │   └── storage/                   # SharedPreferences key-value wrapper
 │
 └── features/                      # Feature modules
-    ├── home/                      # Minimal greeting, nearest stop, next bus card, upcoming buses
-    ├── map/                       # Spatial live campus map, bus/stop markers, telemetry sheet
-    └── profile/                   # Academic profile, notification settings, app info
+    ├── auth/                      # Sign-in, registration, and password recovery
+    ├── home/                      # Nearest stop, next bus, and upcoming departures
+    ├── map/                       # Campus map, bus/stop markers, route details
+    ├── onboarding/                # Academic profile and setup flow
+    ├── profile/                   # Academic profile and account information
+    └── settings/                  # Preferences, notifications, and help
 ```
 
 ### Architectural Guardrails
@@ -158,7 +165,7 @@ Edit `config/env.json` with your development endpoints. `config/env.json` is git
 }
 ```
 
-*Note: If no Supabase or OneSignal credentials are supplied, Tracklet automatically operates in seamless local/offline seed simulation mode for NITC campus transit.*
+Supabase credentials are required for authentication and database-driven transit data. When transit data is unavailable, Tracklet shows an empty or retryable state instead of substituting synthetic campus stops, routes, or buses. OneSignal remains optional.
 
 ### 3. Run the Application
 

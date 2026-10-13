@@ -10,8 +10,10 @@ import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
 import '../onboarding/providers/onboarding_provider.dart';
 import 'auth_field_decoration.dart';
+import 'auth_validators.dart';
+import 'providers/auth_provider.dart';
 
-/// Authentic Attendrix Create Account Screen layout and styling.
+/// Authentic Attendrix Create Account Screen layout, styling, and Supabase Auth integration.
 class CreateAccountScreen extends ConsumerStatefulWidget {
   const CreateAccountScreen({super.key});
 
@@ -28,10 +30,15 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
+
   bool _passwordVisibility = false;
   bool _confirmPasswordVisibility = false;
-  bool _passwordMismatch = false;
   bool _isLoading = false;
+
+  bool get _passwordsMatch =>
+      _passwordController.text.isNotEmpty &&
+      _confirmPasswordController.text.isNotEmpty &&
+      _passwordController.text == _confirmPasswordController.text;
 
   @override
   void dispose() {
@@ -44,27 +51,128 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     super.dispose();
   }
 
-  void _handleCreateAccount() {
+  Future<void> _handleCreateAccount() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() => _passwordMismatch = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Passwords do not match. Please re-enter matching passwords.',
+            style: TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+        ),
+      );
       _confirmPasswordFocusNode.requestFocus();
       return;
     }
 
-    setState(() {
-      _passwordMismatch = false;
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .signUp(email, password);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      if (result.requiresVerification) {
+        _showVerificationDialog(email);
+      } else {
         ref.read(onboardingProvider.notifier).reset();
         context.go('/onboarding');
       }
-    });
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.errorMessage ?? 'Registration failed. Please try again.',
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    final result =
+        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      ref.read(onboardingProvider.notifier).reset();
+      context.go('/onboarding');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.errorMessage ?? 'Google Sign-In failed.',
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+        ),
+      );
+    }
+  }
+
+  void _showVerificationDialog(String email) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: TrackletColors.primaryBackground,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(TrackletRadii.card),
+            ),
+            title: Text(
+              'Verification Email Sent',
+              style: TrackletTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: TrackletColors.primaryText,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'We have sent a verification link to:\n$email\n\nPlease check your inbox and verify your email before logging in.',
+                  style: TrackletTypography.bodyMedium.copyWith(
+                    color: TrackletColors.secondaryText,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  context.go('/login');
+                },
+                child: Text(
+                  'Proceed to Login',
+                  style: TrackletTypography.titleSmall.copyWith(
+                    color: TrackletColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -210,23 +318,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 ],
                                 onFieldSubmitted:
                                     (_) => _passwordFocusNode.requestFocus(),
-                                validator: (value) {
-                                  final email = value?.trim() ?? '';
-                                  if (email.isEmpty) {
-                                    return 'Enter your email address.';
-                                  }
-                                  if (!RegExp(
-                                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                                  ).hasMatch(email)) {
-                                    return 'Enter a valid email address.';
-                                  }
-                                  if (!email.toLowerCase().endsWith(
-                                    '@nitc.ac.in',
-                                  )) {
-                                    return 'Use your NITC institute email ending in @nitc.ac.in.';
-                                  }
-                                  return null;
-                                },
+                                validator: validateNitcEmail,
                                 decoration: authInputDecoration(
                                   label: 'Email address',
                                   hint: 'name@nitc.ac.in',
@@ -262,16 +354,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 autofillHints: const [
                                   AutofillHints.newPassword,
                                 ],
-                                validator:
-                                    (value) =>
-                                        value == null || value.isEmpty
-                                            ? 'Create a password.'
-                                            : null,
-                                onChanged: (_) {
-                                  if (_passwordMismatch) {
-                                    setState(() => _passwordMismatch = false);
-                                  }
-                                },
+                                onChanged: (_) => setState(() {}),
+                                validator: validatePassword,
                                 onFieldSubmitted:
                                     (_) =>
                                         _confirmPasswordFocusNode
@@ -315,12 +399,12 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                             0.0,
                             0.0,
                             0.0,
-                            4.0,
+                            16.0,
                           ),
                           child: SizedBox(
                             width: double.infinity,
                             child: AuthEntrance(
-                              delay: 210.ms,
+                              delay: 200.ms,
                               child: TextFormField(
                                 controller: _confirmPasswordController,
                                 focusNode: _confirmPasswordFocusNode,
@@ -329,21 +413,17 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 autofillHints: const [
                                   AutofillHints.newPassword,
                                 ],
+                                onChanged: (_) => setState(() {}),
                                 validator:
-                                    (value) =>
-                                        value == null || value.isEmpty
-                                            ? 'Confirm your password.'
-                                            : null,
-                                onChanged: (_) {
-                                  if (_passwordMismatch) {
-                                    setState(() => _passwordMismatch = false);
-                                  }
-                                },
+                                    (value) => validatePasswordConfirmation(
+                                      value,
+                                      _passwordController.text,
+                                    ),
                                 onFieldSubmitted: (_) => _handleCreateAccount(),
                                 decoration: authInputDecoration(
-                                  label: 'Confirm password',
+                                  label: 'Confirm Password',
                                   hint: 'Re-enter your password',
-                                  icon: Icons.lock_reset_rounded,
+                                  icon: Icons.lock_outline_rounded,
                                   suffixIcon: IconButton(
                                     tooltip:
                                         _confirmPasswordVisibility
@@ -373,35 +453,29 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           ),
                         ),
 
-                        // Password Mismatch Error Indicator
-                        if (_passwordMismatch)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                              4.0,
-                              4.0,
-                              0.0,
-                              6.0,
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: TrackletColors.errorBorder,
-                                  size: 16.0,
-                                ),
-                                const SizedBox(width: 4.0),
-                                Text(
-                                  'Passwords do not match.',
-                                  style: TrackletTypography.caption.copyWith(
-                                    fontSize: 13.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: TrackletColors.errorBorder,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 180),
+                          child:
+                              _passwordsMatch
+                                  ? const Padding(
+                                    key: ValueKey('password-match'),
+                                    padding: EdgeInsets.only(bottom: 12),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle_outline,
+                                          size: 16,
+                                          color: TrackletColors.success,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text('Passwords match'),
+                                      ],
+                                    ),
+                                  )
+                                  : const SizedBox(
+                                    key: ValueKey('password-unmatched'),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        const SizedBox(height: 12.0),
+                        ),
 
                         // Create Account Button
                         Padding(
@@ -415,7 +489,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                             width: double.infinity,
                             height: 48.0,
                             child: AuthEntrance(
-                              delay: 260.ms,
+                              delay: 250.ms,
                               child: ElevatedButton(
                                 onPressed:
                                     _isLoading ? null : _handleCreateAccount,
@@ -480,9 +554,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                             width: double.infinity,
                             height: 45.0,
                             child: ElevatedButton(
-                              onPressed: () {
-                                context.go('/onboarding');
-                              },
+                              onPressed:
+                                  _isLoading ? null : _handleGoogleSignIn,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: TrackletColors.altPrimaryText,
                                 foregroundColor: TrackletColors.pure,
@@ -523,7 +596,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           ),
                         ),
 
-                        // Already have an account? Sign In Link
+                        // Already have account link
                         Align(
                           alignment: const AlignmentDirectional(0.0, 0.0),
                           child: Padding(
@@ -546,7 +619,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                         ),
                                   ),
                                   TextSpan(
-                                    text: 'Sign In',
+                                    text: 'Log In Here',
                                     style: TrackletTypography.bodyMedium
                                         .copyWith(
                                           fontWeight: FontWeight.bold,

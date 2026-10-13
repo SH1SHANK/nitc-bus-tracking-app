@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/tracklet_fonts.dart';
 import '../../design_system/tokens/spacing.dart';
+import '../../services/location/location_service.dart';
+import '../../services/notifications/notification_service.dart';
 import 'providers/onboarding_provider.dart';
 import 'widgets/onboarding_academic_profile_page.dart';
 import 'widgets/onboarding_progress_bar.dart';
@@ -27,6 +30,8 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final PageController _pageController;
+  bool _isCompleting = false;
+  String? _completionError;
 
   static const int kTotalSteps = 4;
 
@@ -61,22 +66,37 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _next() {
     final current = ref.read(onboardingProvider).currentStep;
-    if (current >= kTotalSteps - 1) return;
+    if (current >= kTotalSteps - 1 || _isCompleting) return;
 
     final next = current + 1;
     _goToStep(next);
 
     if (next == kTotalSteps - 1) {
-      ref
-          .read(onboardingProvider.notifier)
-          .runInitializationSequence(
-            onComplete: () {
-              if (mounted) {
-                context.go('/');
-              }
-            },
-          );
+      _startCompletion();
     }
+  }
+
+  void _startCompletion() {
+    setState(() {
+      _isCompleting = true;
+      _completionError = null;
+    });
+    ref
+        .read(onboardingProvider.notifier)
+        .runInitializationSequence(
+          onComplete: () {
+            if (mounted) {
+              context.go('/');
+            }
+          },
+          onError: (error) {
+            if (!mounted) return;
+            setState(() {
+              _isCompleting = false;
+              _completionError = error;
+            });
+          },
+        );
   }
 
   void _previous() {
@@ -160,8 +180,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               showBackButton
                                   ? 'Step ${state.currentStep + 1} of $kTotalSteps'
                                   : 'Setting up Tracklet',
-                              style: const TextStyle(
-                                fontFamily: 'Outfit',
+                              style: TrackletFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: TrackletColors.textSecondary,
@@ -198,6 +217,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         batch: state.batch,
                         hostel: state.hostel,
                         agreedToTerms: state.agreedToTerms,
+                        branches: state.departments.map((d) => d.name).toList(),
+                        hostels: state.hostels.map((h) => h.name).toList(),
+                        batches: kNitcBatches,
+                        isLoadingDepartments: state.isLoadingDepartments,
+                        isLoadingHostels: state.isLoadingHostels,
+                        departmentsError: state.departmentsError,
+                        hostelsError: state.hostelsError,
+                        onRetryDepartments: notifier.loadDepartments,
+                        onRetryHostels: notifier.loadHostels,
                         onNameChanged: (n) => notifier.setName(n),
                         onBranchChanged: (b) => notifier.setBranch(b),
                         onBatchChanged: (b) => notifier.setBatch(b),
@@ -226,10 +254,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           required bool enableLocation,
                           required bool enableNotifications,
                         }) async {
-                          notifier.setLocationPermission(enableLocation);
-                          notifier.setNotificationPermission(
-                            enableNotifications,
-                          );
+                          if (enableLocation) {
+                            final perm =
+                                await ref
+                                    .read(locationStateProvider.notifier)
+                                    .requestPermission();
+                            notifier.setLocationPermission(
+                              perm == LocationPermissionState.granted,
+                            );
+                          } else {
+                            notifier.setLocationPermission(false);
+                          }
+
+                          if (enableNotifications) {
+                            try {
+                              await ref
+                                  .read(notificationServiceProvider)
+                                  .optIn();
+                              notifier.setNotificationPermission(true);
+                            } catch (_) {
+                              notifier.setNotificationPermission(false);
+                            }
+                          } else {
+                            notifier.setNotificationPermission(false);
+                          }
+
                           _next();
                         },
                         onSkip: () {
@@ -243,6 +292,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       OnboardingStepLoading(
                         progress: state.loadingProgress,
                         statusText: state.loadingStatus,
+                        errorMessage: _completionError,
+                        onRetry:
+                            _completionError == null
+                                ? null
+                                : () {
+                                  _startCompletion();
+                                },
                       ),
                     ],
                   ),

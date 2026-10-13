@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
@@ -8,16 +10,18 @@ import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
+import 'providers/auth_provider.dart';
 
-/// Authentic Attendrix-styled Forgot Password screen.
-class ForgotPasswordScreen extends StatefulWidget {
+/// Authentic Attendrix-styled Forgot Password screen with Supabase Auth magic link recovery.
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _focusNode = FocusNode();
   bool _isLoading = false;
@@ -29,7 +33,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _handleSendLink() {
+  Future<void> _handleSendLink() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,15 +48,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter a valid email address.',
+            style: TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.push(
-          '/reset-password-sent?email=${Uri.encodeComponent(email)}',
-        );
-      }
-    });
+
+    await ref.read(authNotifierProvider.notifier).sendPasswordRecovery(email);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    // Generic confirmation prevents email enumeration
+    unawaited(
+      context.push('/reset-password-sent?email=${Uri.encodeComponent(email)}'),
+    );
   }
 
   @override
@@ -119,6 +138,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       cursorColor: TrackletColors.primaryText,
                       style: TrackletTypography.bodyMedium.copyWith(
                         color: TrackletColors.primaryText,
+                        fontWeight: FontWeight.w600,
                       ),
                       decoration: InputDecoration(
                         isDense: false,

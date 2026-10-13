@@ -1,0 +1,203 @@
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../data/auth/auth_repository.dart';
+import '../../../data/profile/profile_repository.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../../data/auth/auth_result.dart';
+import '../../../data/auth/auth_state.dart';
+
+/// Riverpod Notifier managing authentication states and operations.
+class AuthNotifier extends Notifier<AuthState> {
+  StreamSubscription<AuthState>? _authSub;
+
+  AuthRepository get _authRepository => ref.read(authRepositoryProvider);
+  Ref get _ref => ref;
+
+  @override
+  AuthState build() {
+    final repo = ref.watch(authRepositoryProvider);
+    _init(repo);
+    ref.onDispose(() {
+      _authSub?.cancel();
+    });
+    return repo.currentAuthState;
+  }
+
+  void _init(AuthRepository repo) {
+    _authSub?.cancel();
+    _authSub = repo.authStateChanges.listen((newState) {
+      state = newState;
+    });
+
+    // Check immediate status
+    if (repo.isAuthenticated) {
+      final user = repo.currentUser;
+      final session = repo.currentSession;
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: user,
+        session: session,
+        email: user?.email,
+      );
+    } else {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
+  /// Sign in with student email and password.
+  Future<AuthResult> signIn(String email, String password) async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.signInWithEmail(email, password);
+
+    if (result.isSuccess) {
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: result.user,
+        session: result.session,
+        email: result.user?.email ?? email.trim(),
+      );
+      _ref.invalidate(profileStateProvider);
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: result.errorMessage,
+      );
+    }
+
+    return result;
+  }
+
+  /// Register a new student account.
+  Future<AuthResult> signUp(
+    String email,
+    String password, {
+    String? fullName,
+  }) async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.signUpWithEmail(
+      email,
+      password,
+      fullName: fullName,
+    );
+
+    if (result.isSuccess) {
+      if (result.requiresVerification) {
+        state = AuthState(
+          status: AuthStatus.verificationRequired,
+          user: result.user,
+          email: email.trim(),
+        );
+      } else {
+        state = AuthState(
+          status: AuthStatus.authenticated,
+          user: result.user,
+          session: result.session,
+          email: email.trim(),
+        );
+        _ref.invalidate(profileStateProvider);
+      }
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: result.errorMessage,
+      );
+    }
+
+    return result;
+  }
+
+  /// Send password recovery magic link to email.
+  Future<AuthResult> sendPasswordRecovery(String email) async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.resetPasswordForEmail(email);
+
+    if (result.isSuccess) {
+      state = AuthState(
+        status: AuthStatus.passwordRecoverySent,
+        email: email.trim(),
+        lastActionTime: DateTime.now(),
+      );
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: result.errorMessage,
+      );
+    }
+
+    return result;
+  }
+
+  /// Update password during recovery or session.
+  Future<AuthResult> updatePassword(String newPassword) async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.updatePassword(newPassword);
+
+    if (result.isSuccess) {
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: result.user ?? _authRepository.currentUser,
+        session: _authRepository.currentSession,
+        email: result.user?.email ?? _authRepository.currentUser?.email,
+      );
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.passwordRecoveryInProgress,
+        errorMessage: result.errorMessage,
+      );
+    }
+
+    return result;
+  }
+
+  /// Resend email verification.
+  Future<AuthResult> resendVerification(String email) async {
+    return _authRepository.resendVerificationEmail(email);
+  }
+
+  /// Sign in with Google OAuth.
+  Future<AuthResult> signInWithGoogle() async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.signInWithGoogle();
+    if (!result.isSuccess) {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: result.errorMessage,
+      );
+    }
+    return result;
+  }
+
+  /// Explicitly enter password recovery mode (e.g. from deep link callback).
+  void setRecoveryInProgress({String? email}) {
+    state = AuthState(
+      status: AuthStatus.passwordRecoveryInProgress,
+      email: email,
+    );
+  }
+
+  /// Sign out current student session.
+  Future<void> signOut() async {
+    await _authRepository.signOut();
+    _ref.invalidate(profileStateProvider);
+    _ref.invalidate(profileRepositoryProvider);
+    state = const AuthState(status: AuthStatus.unauthenticated);
+  }
+
+  /// Clear any transient error messages.
+  void clearError() {
+    if (state.errorMessage != null) {
+      state = state.copyWith(clearError: true);
+    }
+  }
+}
+
+/// Main Riverpod provider for Authentication state.
+final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

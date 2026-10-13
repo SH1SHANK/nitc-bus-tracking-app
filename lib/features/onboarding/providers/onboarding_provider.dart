@@ -2,26 +2,17 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../data/academic/department.dart';
+import '../../../data/academic/department_repository.dart';
+import '../../../data/campus/hostel.dart';
+import '../../../data/campus/hostel_repository.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
+import '../../../data/supabase/supabase_client_provider.dart';
+import '../../../data/transit/stop.dart';
+import '../../../data/transit/transit_repository.dart';
 import '../../profile/providers/profile_provider.dart';
-
-/// Available NITC Academic Branches
-const List<String> kNitcBranches = [
-  'Computer Science & Engineering',
-  'Electronics & Communication Engineering',
-  'Electrical & Electronics Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Architecture',
-  'Biotechnology',
-  'Materials Science & Engineering',
-  'Production Engineering',
-  'Energy Engineering',
-];
 
 /// Available Batches
 const List<String> kNitcBatches = [
@@ -32,35 +23,6 @@ const List<String> kNitcBatches = [
   'M26',
   'M25',
   'Doctoral Research Scholar (Ph.D)',
-];
-
-/// Available Hostels / Campus Hubs
-const List<String> kNitcHostels = [
-  'Mega Hostel Boys (MBH II)',
-  'Old Mega Hostel Boys (MBH I)',
-  'Ladies Hostel (LH)',
-  'Mega Hostel Ladies (MLH)',
-  'A Hostel',
-  'B Hostel',
-  'C Hostel',
-  'D Hostel',
-  'E Hostel',
-  'F Hostel',
-  'G Hostel',
-  'PG I',
-  'PG II',
-  'Day Scholar / Off-Campus Stay',
-];
-
-/// Available Primary Bus Stops
-const List<String> kNitcPrimaryStops = [
-  'Main Building',
-  'Main Gate',
-  'ATM Circle',
-  'Architecture Building',
-  'East Campus',
-  'MHB II Hostel',
-  'LH Hostel',
 ];
 
 class OnboardingState {
@@ -79,6 +41,15 @@ class OnboardingState {
     this.agreedToTerms = false,
     this.loadingProgress = 0.0,
     this.loadingStatus = 'Preparing your campus profile...',
+    this.departments = const [],
+    this.isLoadingDepartments = false,
+    this.departmentsError,
+    this.hostels = const [],
+    this.isLoadingHostels = false,
+    this.hostelsError,
+    this.stops = const [],
+    this.isLoadingStops = false,
+    this.stopsError,
   });
 
   final int currentStep;
@@ -96,6 +67,21 @@ class OnboardingState {
   final double loadingProgress;
   final String loadingStatus;
 
+  // Supabase Source-of-Truth Institutional Data
+  final List<Department> departments;
+  final bool isLoadingDepartments;
+  final String? departmentsError;
+
+  final List<Hostel> hostels;
+  final bool isLoadingHostels;
+  final String? hostelsError;
+
+  final List<Stop> stops;
+  final bool isLoadingStops;
+  final String? stopsError;
+
+  static const _errorSentinel = Object();
+
   OnboardingState copyWith({
     int? currentStep,
     String? name,
@@ -111,6 +97,15 @@ class OnboardingState {
     bool? agreedToTerms,
     double? loadingProgress,
     String? loadingStatus,
+    List<Department>? departments,
+    bool? isLoadingDepartments,
+    Object? departmentsError = _errorSentinel,
+    List<Hostel>? hostels,
+    bool? isLoadingHostels,
+    Object? hostelsError = _errorSentinel,
+    List<Stop>? stops,
+    bool? isLoadingStops,
+    Object? stopsError = _errorSentinel,
   }) {
     return OnboardingState(
       currentStep: currentStep ?? this.currentStep,
@@ -129,14 +124,106 @@ class OnboardingState {
       agreedToTerms: agreedToTerms ?? this.agreedToTerms,
       loadingProgress: loadingProgress ?? this.loadingProgress,
       loadingStatus: loadingStatus ?? this.loadingStatus,
+      departments: departments ?? this.departments,
+      isLoadingDepartments: isLoadingDepartments ?? this.isLoadingDepartments,
+      departmentsError:
+          identical(departmentsError, _errorSentinel)
+              ? this.departmentsError
+              : departmentsError as String?,
+      hostels: hostels ?? this.hostels,
+      isLoadingHostels: isLoadingHostels ?? this.isLoadingHostels,
+      hostelsError:
+          identical(hostelsError, _errorSentinel)
+              ? this.hostelsError
+              : hostelsError as String?,
+      stops: stops ?? this.stops,
+      isLoadingStops: isLoadingStops ?? this.isLoadingStops,
+      stopsError:
+          identical(stopsError, _errorSentinel)
+              ? this.stopsError
+              : stopsError as String?,
     );
   }
 }
 
-class OnboardingNotifier extends StateNotifier<OnboardingState> {
-  OnboardingNotifier(this._ref) : super(const OnboardingState());
+class OnboardingNotifier extends Notifier<OnboardingState> {
+  bool _isInitializing = false;
+  Ref get _ref => ref;
 
-  final Ref _ref;
+  @override
+  OnboardingState build() {
+    Future.microtask(loadInstitutionalData);
+    return const OnboardingState();
+  }
+
+  Future<void> loadInstitutionalData() async {
+    await loadDepartments();
+    await loadHostels();
+    await loadStops();
+  }
+
+  Future<void> loadDepartments() async {
+    if (!ref.mounted) return;
+    state = state.copyWith(isLoadingDepartments: true, departmentsError: null);
+    try {
+      final repo = _ref.read(departmentRepositoryProvider);
+      final list = await repo.getDepartments();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        departments: list,
+        isLoadingDepartments: false,
+        departmentsError: null,
+      );
+    } catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isLoadingDepartments: false,
+        departmentsError: 'Could not load departments: $e',
+      );
+    }
+  }
+
+  Future<void> loadHostels() async {
+    if (!ref.mounted) return;
+    state = state.copyWith(isLoadingHostels: true, hostelsError: null);
+    try {
+      final repo = _ref.read(hostelRepositoryProvider);
+      final list = await repo.getHostels();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        hostels: list,
+        isLoadingHostels: false,
+        hostelsError: null,
+      );
+    } catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isLoadingHostels: false,
+        hostelsError: 'Could not load hostels: $e',
+      );
+    }
+  }
+
+  Future<void> loadStops() async {
+    if (!ref.mounted) return;
+    state = state.copyWith(isLoadingStops: true, stopsError: null);
+    try {
+      final repo = _ref.read(transitRepositoryProvider);
+      final list = await repo.getStops();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        stops: list,
+        isLoadingStops: false,
+        stopsError: null,
+      );
+    } catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isLoadingStops: false,
+        stopsError: 'Could not load stops: $e',
+      );
+    }
+  }
 
   void nextStep() {
     if (state.currentStep < 10) {
@@ -156,6 +243,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
 
   void reset() {
     state = const OnboardingState();
+    loadInstitutionalData();
   }
 
   void setName(String name) {
@@ -227,17 +315,24 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
 
   Future<void> runInitializationSequence({
     required void Function() onComplete,
+    void Function(String error)? onError,
   }) async {
+    if (_isInitializing) return;
+    _isInitializing = true;
     final repo = _ref.read(profileRepositoryProvider);
     state = state.copyWith(
       loadingProgress: 0.15,
       loadingStatus: 'Preparing your campus profile...',
     );
+
+    // Use the authenticated user's real ID and email, falling back gracefully
+    // when running without Supabase credentials (e.g. development seed mode).
+    final currentUser = _ref.read(supabaseClientProvider)?.auth.currentUser;
     final profile = Profile(
-      id: 'user-${state.username}',
+      id: currentUser?.id ?? 'user-${state.username}',
       name: state.name,
       username: state.username,
-      email: '${state.username.toLowerCase()}@nitc.ac.in',
+      email: currentUser?.email ?? '',
       department: state.branch,
       branch: state.branch,
       batch: state.batch,
@@ -248,24 +343,36 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       hasCompletedOnboarding: true,
     );
 
-    state = state.copyWith(
-      loadingProgress: 0.55,
-      loadingStatus: 'Saving your profile and preferences...',
-    );
-    await repo.saveProfile(profile);
-    await repo.setOnboardingCompleted(true);
-    _ref.invalidate(profileStateProvider);
+    try {
+      state = state.copyWith(
+        loadingProgress: 0.55,
+        loadingStatus: 'Saving your profile and preferences...',
+      );
+      await repo.saveProfile(profile);
+      await repo.setOnboardingCompleted(true);
+      _ref.invalidate(profileStateProvider);
 
-    state = state.copyWith(
-      loadingProgress: 1.0,
-      loadingStatus: 'You’re all set. Welcome to Tracklet.',
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 280));
-    onComplete();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        loadingProgress: 1.0,
+        loadingStatus: 'You’re all set. Welcome to Tracklet.',
+      );
+      _isInitializing = false;
+      if (!ref.mounted) return;
+      onComplete();
+    } catch (e) {
+      _isInitializing = false;
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        loadingProgress: 0.0,
+        loadingStatus: 'Failed to complete profile setup: $e',
+      );
+      onError?.call(e.toString());
+    }
   }
 }
 
 final onboardingProvider =
-    StateNotifierProvider<OnboardingNotifier, OnboardingState>((ref) {
-      return OnboardingNotifier(ref);
-    });
+    NotifierProvider<OnboardingNotifier, OnboardingState>(
+      OnboardingNotifier.new,
+    );

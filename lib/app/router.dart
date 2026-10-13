@@ -5,11 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/create_account_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
+import '../data/auth/auth_state.dart';
+import '../features/auth/providers/auth_provider.dart';
+import '../features/auth/reset_password_screen.dart';
 import '../features/auth/reset_password_sent_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/profile/providers/profile_provider.dart';
 import 'app_shell.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -59,10 +63,89 @@ CustomTransitionPage<T> _buildSmoothPage<T>({
   );
 }
 
-GoRouter createRouter({String initialLocation = '/login'}) {
+/// Creates a GoRouter instance with protected route guards and auth redirect logic.
+GoRouter createRouter({
+  String initialLocation = '/login',
+  Ref? ref,
+  Listenable? refreshListenable,
+}) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: initialLocation,
+    refreshListenable: refreshListenable,
+    redirect: (context, state) {
+      if (ref == null) return null;
+
+      final authState = ref.read(authNotifierProvider);
+      final profileAsync = ref.read(profileStateProvider);
+
+      final loc = state.uri.path;
+
+      // Deep link / Callback handler for auth recovery
+      if (loc == '/auth/callback') {
+        final type = state.uri.queryParameters['type'];
+        if (type == 'recovery') {
+          return '/reset-password';
+        }
+        return '/login';
+      }
+
+      final isAuthRoute =
+          loc == '/login' ||
+          loc == '/create-account' ||
+          loc == '/forgot-password' ||
+          loc == '/reset-password-sent';
+
+      // While initializing, let splash/login load
+      if (authState.status == AuthStatus.uninitialized) {
+        return null;
+      }
+
+      // If user is in password recovery flow
+      if (authState.status == AuthStatus.passwordRecoveryInProgress) {
+        if (loc != '/reset-password') {
+          return '/reset-password';
+        }
+        return null;
+      }
+
+      // If accessing /reset-password without recovery state or active authentication
+      if (loc == '/reset-password' && !authState.isAuthenticated) {
+        return '/forgot-password';
+      }
+
+      // If not authenticated
+      if (!authState.isAuthenticated) {
+        if (!isAuthRoute) {
+          return '/login';
+        }
+        return null;
+      }
+
+      // Do not treat a still-loading profile as incomplete onboarding.
+      if (profileAsync.isLoading || profileAsync.hasError) {
+        return null;
+      }
+
+      // If authenticated
+      final profile = profileAsync.value;
+      final bool onboardingComplete = profile?.hasCompletedOnboarding ?? false;
+
+      // If onboarding is incomplete, restrict access to onboarding screen
+      if (!onboardingComplete) {
+        if (loc != '/onboarding') {
+          return '/onboarding';
+        }
+        return null;
+      }
+
+      // If onboarding is complete and user visits an auth/onboarding page, redirect to home
+      if (isAuthRoute || loc == '/onboarding') {
+        return '/';
+      }
+
+      return null;
+    },
     routes: [
       // Fullscreen Onboarding Flow
       GoRoute(
@@ -120,8 +203,18 @@ GoRouter createRouter({String initialLocation = '/login'}) {
               ),
             ),
       ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/reset-password',
+        name: 'resetPassword',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const ResetPasswordScreen(),
+            ),
+      ),
 
-      // Main Navigation Shell (Home, Map, Profile)
+      // Main Navigation Shell (Home, Map, Profile, Settings)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell);
@@ -174,6 +267,19 @@ GoRouter createRouter({String initialLocation = '/login'}) {
   );
 }
 
+/// Bridge Listenable to notify GoRouter when Auth or Profile state changes
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen(authNotifierProvider, (previous, next) => notifyListeners());
+    ref.listen(profileStateProvider, (previous, next) => notifyListeners());
+  }
+}
+
+final routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
+  return _RouterRefreshNotifier(ref);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  return createRouter();
+  final refreshNotifier = ref.watch(routerRefreshProvider);
+  return createRouter(ref: ref, refreshListenable: refreshNotifier);
 });

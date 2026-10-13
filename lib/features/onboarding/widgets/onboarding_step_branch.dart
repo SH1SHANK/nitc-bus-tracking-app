@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../../../design_system/components/icons/tracklet_icon.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
-import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/components/tracklet_button.dart';
+import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
-import '../providers/onboarding_provider.dart';
 
 /// Step 3: Academic profile — Branch selection with Attendrix aesthetic.
 class OnboardingStepBranch extends StatelessWidget {
@@ -17,11 +16,13 @@ class OnboardingStepBranch extends StatelessWidget {
     required this.selectedBranch,
     required this.onBranchChanged,
     required this.onContinue,
+    this.branches = const [],
   });
 
   final String selectedBranch;
   final ValueChanged<String> onBranchChanged;
   final VoidCallback onContinue;
+  final List<String> branches;
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +94,10 @@ class OnboardingStepBranch extends StatelessWidget {
           const SizedBox(height: 8),
 
           TrackletDropdown(
-            items: kNitcBranches,
+            items: branches,
             initialItem: selectedBranch.isNotEmpty ? selectedBranch : null,
-            hintText: 'Select Branch',
+            hintText:
+                branches.isEmpty ? 'No departments available' : 'Select Branch',
             prefixIcon: const Icon(
               Icons.account_tree_outlined,
               color: TrackletColors.secondaryText,

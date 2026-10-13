@@ -1,23 +1,26 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
+import '../profile/providers/profile_provider.dart';
 import 'auth_field_decoration.dart';
+import 'providers/auth_provider.dart';
 
-/// Authentic Attendrix Login Screen layout and styling.
-class LoginScreen extends StatefulWidget {
+/// Authentic Attendrix Login Screen layout, styling, and Supabase Auth integration.
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -35,16 +38,75 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .signIn(email, password);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      final profile = await ref.read(profileStateProvider.future);
+      if (!mounted) return;
+
+      if (profile.hasCompletedOnboarding) {
         context.go('/');
+      } else {
+        context.go('/onboarding');
       }
-    });
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.errorMessage ??
+                'Sign in failed. Please check your credentials.',
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    final result =
+        await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result.isSuccess) {
+      final profile = await ref.read(profileStateProvider.future);
+      if (!mounted) return;
+
+      if (profile.hasCompletedOnboarding) {
+        context.go('/');
+      } else {
+        context.go('/onboarding');
+      }
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.errorMessage ?? 'Google Sign-In failed.',
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+        ),
+      );
+    }
   }
 
   @override
@@ -381,9 +443,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             height: 45.0,
                             child: ElevatedButton(
-                              onPressed: () {
-                                context.go('/');
-                              },
+                              onPressed:
+                                  _isLoading ? null : _handleGoogleSignIn,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: TrackletColors.altPrimaryText,
                                 foregroundColor: TrackletColors.pure,

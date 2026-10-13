@@ -17,11 +17,13 @@ class OnboardingStepBatch extends StatelessWidget {
     required this.selectedBatch,
     required this.onBatchChanged,
     required this.onContinue,
+    this.batches = kNitcBatches,
   });
 
   final String selectedBatch;
   final ValueChanged<String> onBatchChanged;
   final VoidCallback onContinue;
+  final List<String> batches;
 
   @override
   Widget build(BuildContext context) {

@@ -13,10 +13,14 @@ class OnboardingStepLoading extends StatelessWidget {
     super.key,
     required this.progress,
     required this.statusText,
+    this.errorMessage,
+    this.onRetry,
   });
 
   final double progress;
   final String statusText;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +144,23 @@ class OnboardingStepLoading extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
+                if (errorMessage != null) ...[
+                  Text(
+                    'We could not save your setup. Check your connection and try again.',
+                    textAlign: TextAlign.center,
+                    style: TrackletTypography.bodySmall.copyWith(
+                      color: TrackletColors.errorBorder,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Try again'),
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 Semantics(
                   label: 'Tracklet setup progress',
                   value: '${(normalizedProgress * 100).round()} percent',

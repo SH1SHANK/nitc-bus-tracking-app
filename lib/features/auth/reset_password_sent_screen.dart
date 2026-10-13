@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
@@ -9,12 +11,74 @@ import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
+import 'providers/auth_provider.dart';
 
-/// Authentic Attendrix Reset Password Sent confirmation screen.
-class ResetPasswordSentScreen extends StatelessWidget {
+/// Authentic Attendrix Reset Password Sent confirmation screen with resend cooldown.
+class ResetPasswordSentScreen extends ConsumerStatefulWidget {
   const ResetPasswordSentScreen({super.key, this.email});
 
   final String? email;
+
+  @override
+  ConsumerState<ResetPasswordSentScreen> createState() =>
+      _ResetPasswordSentScreenState();
+}
+
+class _ResetPasswordSentScreenState
+    extends ConsumerState<ResetPasswordSentScreen> {
+  int _cooldownSeconds = 0;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCooldown() {
+    setState(() => _cooldownSeconds = 60);
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_cooldownSeconds <= 1) {
+        timer.cancel();
+        setState(() => _cooldownSeconds = 0);
+      } else {
+        setState(() => _cooldownSeconds--);
+      }
+    });
+  }
+
+  Future<void> _handleResend() async {
+    if (_cooldownSeconds > 0) return;
+
+    final targetEmail = widget.email ?? '';
+    if (targetEmail.isNotEmpty) {
+      await ref
+          .read(authNotifierProvider.notifier)
+          .sendPasswordRecovery(targetEmail);
+    }
+
+    _startCooldown();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'A new password reset link has been dispatched to your email.',
+          style: TextStyle(
+            color: TrackletColors.info,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        duration: Duration(milliseconds: 4000),
+        backgroundColor: TrackletColors.success,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,29 +190,25 @@ class ResetPasswordSentScreen extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: 'Resend Mail',
+                      text:
+                          _cooldownSeconds > 0
+                              ? 'Resend in ${_cooldownSeconds}s'
+                              : 'Resend Mail',
                       style: TrackletTypography.bodyMedium.copyWith(
-                        color: TrackletColors.primary,
+                        color:
+                            _cooldownSeconds > 0
+                                ? TrackletColors.secondaryText
+                                : TrackletColors.primary,
                         fontWeight: FontWeight.w800,
                       ),
-                      mouseCursor: SystemMouseCursors.click,
+                      mouseCursor:
+                          _cooldownSeconds > 0
+                              ? SystemMouseCursors.basic
+                              : SystemMouseCursors.click,
                       recognizer:
                           TapGestureRecognizer()
-                            ..onTap = () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'A New Mail has Been Sent Successfully!',
-                                    style: TextStyle(
-                                      color: TrackletColors.info,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  duration: Duration(milliseconds: 4000),
-                                  backgroundColor: TrackletColors.success,
-                                ),
-                              );
-                            },
+                            ..onTap =
+                                _cooldownSeconds > 0 ? null : _handleResend,
                     ),
                   ],
                 ),
