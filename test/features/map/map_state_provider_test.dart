@@ -14,9 +14,6 @@ import 'package:tracklet/features/map/providers/map_state_provider.dart';
 import 'package:tracklet/services/maps/map_config.dart';
 
 class MockTransitRepository implements TransitRepository {
-  @override
-  bool get usesSimulatedTelemetry => false;
-
   final List<Stop> mockStops = [
     const Stop(
       id: 'stop-1',
@@ -73,7 +70,8 @@ class MockTransitRepository implements TransitRepository {
   Future<List<Stop>> getStops() async => mockStops;
 
   @override
-  Future<List<BusRoute>> getRoutes() async => mockRoutes;
+  Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async =>
+      mockRoutes;
 
   @override
   Future<List<RouteStopOccurrence>> getRouteStops(String routeId) {

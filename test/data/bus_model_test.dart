@@ -38,6 +38,30 @@ void main() {
       expect(fromJson.position.timestamp, equals(now));
     });
 
+    test('parses live-position RPC fields without assuming table columns', () {
+      final bus = Bus.fromJson({
+        'bus_id': 'bus-2',
+        'bus_number': 'NITC-02',
+        'display_name': 'Campus Shuttle',
+        'route_id': 'route-1',
+        'status': 'moving',
+        'latitude': 11.3216,
+        'longitude': 75.9337,
+        'speed': 18.5,
+        'heading': 120,
+        'last_seen': '2026-10-10T10:00:00Z',
+        'recorded_at': '2026-10-10T09:59:58Z',
+      });
+
+      expect(bus.id, 'bus-2');
+      expect(bus.numberPlate, 'NITC-02');
+      expect(bus.name, 'Campus Shuttle');
+      expect(bus.status, BusStatus.live);
+      expect(bus.position.speedKmH, 18.5);
+      expect(bus.position.timestamp, DateTime.parse('2026-10-10T09:59:58Z'));
+      expect(bus.lastUpdated, DateTime.parse('2026-10-10T10:00:00Z'));
+    });
+
     test('parses fallback status as offline', () {
       final bus = Bus.fromJson({
         'id': 'bus-offline',

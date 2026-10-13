@@ -139,16 +139,13 @@ class TestTransitRepository implements TransitRepository {
   ];
 
   @override
-  bool get usesSimulatedTelemetry => false;
-
-  @override
   Future<List<Stop>> getStops() async {
     if (simulateError) throw Exception('Simulated network error');
     return testStops;
   }
 
   @override
-  Future<List<BusRoute>> getRoutes() async {
+  Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async {
     if (simulateError) throw Exception('Simulated network error');
     if (testStops.isEmpty) return [];
     return testRoutes;

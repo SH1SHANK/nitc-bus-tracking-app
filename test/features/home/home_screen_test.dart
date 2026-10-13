@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tracklet/data/transit/bus.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
+import 'package:tracklet/data/transit/route_stop_occurrence.dart';
 import 'package:tracklet/data/transit/scheduled_departure.dart';
 import 'package:tracklet/data/transit/stop.dart';
+import 'package:tracklet/data/transit/transit_repository.dart';
 import 'package:tracklet/features/home/home_screen.dart';
+
 import 'package:tracklet/features/home/widgets/live_bus_route_preview.dart';
 import 'package:tracklet/features/home/widgets/next_bus_card.dart';
 import 'package:tracklet/features/home/widgets/next_buses_card.dart';
@@ -17,10 +21,10 @@ void main() {
     testWidgets('renders campus routes and honest empty telemetry states', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(const HomeScreen());
+      await _pumpHome(tester);
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Shashank'), findsOneWidget);
+      expect(find.textContaining('Student'), findsOneWidget);
       expect(find.text('Where are you headed?'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.byType(NextBusCard), findsOneWidget);
@@ -47,11 +51,31 @@ void main() {
       );
     });
 
+    testWidgets(
+      'shows an empty state when no transit data source is configured',
+      (tester) async {
+        await tester.pumpTrackletWidget(
+          const HomeScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(
+              SupabaseTransitRepository(null),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Campus transit unavailable'), findsOneWidget);
+        expect(find.text('Retry'), findsOneWidget);
+        expect(find.text('Main Gate'), findsNothing);
+        expect(find.byType(NextBusCard), findsNothing);
+      },
+    );
+
     testWidgets('shows the closest stop and walking estimate from location', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(
-        const HomeScreen(),
+      await _pumpHome(
+        tester,
         overrides: [
           locationStateProvider.overrideWith(
             () => _FixedLocationNotifier(
@@ -72,8 +96,8 @@ void main() {
     testWidgets('hides campus walking estimates for a distant location', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(
-        const HomeScreen(),
+      await _pumpHome(
+        tester,
         overrides: [
           locationStateProvider.overrideWith(
             () => _FixedLocationNotifier(
@@ -96,7 +120,7 @@ void main() {
     testWidgets('stop search suggests and selects a campus destination', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(const HomeScreen());
+      await _pumpHome(tester);
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'Architecture');
@@ -311,7 +335,7 @@ void main() {
     });
 
     testWidgets('opens drawer on tapping hamburger icon', (tester) async {
-      await tester.pumpTrackletWidget(const HomeScreen());
+      await _pumpHome(tester);
       await tester.pumpAndSettle();
 
       final menuIcon = find.byIcon(Icons.menu_rounded);
@@ -326,6 +350,75 @@ void main() {
       expect(find.text('Log Out'), findsOneWidget);
     });
   });
+}
+
+Future<void> _pumpHome(
+  WidgetTester tester, {
+  List<dynamic> overrides = const [],
+}) {
+  return tester.pumpTrackletWidget(
+    const HomeScreen(),
+    overrides: [
+      transitRepositoryProvider.overrideWithValue(_HomeTestTransitRepository()),
+      ...overrides,
+    ],
+  );
+}
+
+const _homeTestStops = <Stop>[
+  Stop(
+    id: 'main-gate',
+    sourceStopId: 'main_gate',
+    name: 'Main Gate',
+    code: 'MG',
+    location: GeoPoint(latitude: 11.320083, longitude: 75.932722),
+    walkingTimeMinutes: 2,
+  ),
+  Stop(
+    id: 'architecture',
+    sourceStopId: 'architecture',
+    name: 'Architecture',
+    code: 'ARC',
+    location: GeoPoint(latitude: 11.323028, longitude: 75.936722),
+  ),
+];
+
+const _homeTestRoutes = <BusRoute>[
+  BusRoute(
+    id: 'route-test',
+    name: 'Main Gate to Architecture',
+    code: 'R1',
+    stopIds: ['main-gate', 'architecture'],
+  ),
+];
+
+class _HomeTestTransitRepository implements TransitRepository {
+  @override
+  Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async =>
+      _homeTestRoutes;
+
+  @override
+  Future<List<Stop>> getStops() async => _homeTestStops;
+
+  @override
+  Future<List<RouteStopOccurrence>> getRouteStops(String routeId) async =>
+      const [];
+
+  @override
+  Future<List<Bus>> getActiveBuses() async => const [];
+
+  @override
+  Future<List<ScheduledDeparture>> getScheduledDepartures() async => const [];
+
+  @override
+  Stream<List<Bus>> watchActiveBuses() => Stream.value(const []);
+
+  @override
+  Future<Stop?> getNearestStop(GeoPoint userLocation) async =>
+      _homeTestStops.first;
+
+  @override
+  Future<Bus?> getBusById(String busId) async => null;
 }
 
 class _FixedLocationNotifier extends LocationNotifier {
