@@ -32,7 +32,7 @@ BusArrivalEstimate? estimateNextBus({
 
     final speedMetersPerMinute =
         (bus.position.speedKmH > 2 ? bus.position.speedKmH : 12.0) * 1000 / 60;
-    final distanceMeters = _distanceToStop(bus.position.point, stop.location);
+    final distanceMeters = bus.position.point.distanceToMeters(stop.location);
     estimates.add(
       BusArrivalEstimate(
         bus: bus,
@@ -128,5 +128,3 @@ double? routeProgressFraction({
 
   return closestIndex / (path.length - 1);
 }
-
-double _distanceToStop(GeoPoint from, GeoPoint to) => from.distanceToMeters(to);

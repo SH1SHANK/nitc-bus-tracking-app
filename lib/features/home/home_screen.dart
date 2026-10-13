@@ -10,7 +10,9 @@ import '../../data/profile/profile.dart';
 import '../../data/transit/bus.dart';
 import '../../data/transit/bus_route.dart';
 import '../../data/transit/stop.dart';
+import '../../design_system/components/tracklet_empty_state.dart';
 import '../../design_system/components/tracklet_error_state.dart';
+import '../../design_system/components/tracklet_skeleton.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
@@ -36,16 +38,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _destinationQuery = '';
   Stop? _destinationStop;
   bool _showStopSuggestions = false;
-  DateTime _clockNow = DateTime.now();
-  Timer? _clockTimer;
 
   @override
   void initState() {
     super.initState();
     _destinationFocusNode.addListener(_handleDestinationFocusChange);
-    _clockTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() => _clockNow = DateTime.now());
-    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
@@ -66,7 +63,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   void dispose() {
-    _clockTimer?.cancel();
     _destinationFocusNode.removeListener(_handleDestinationFocusChange);
     _destinationController.dispose();
     _destinationFocusNode.dispose();
@@ -87,10 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         orElse: () => null,
       ),
       body: homeStateAsync.when(
-        loading:
-            () => const Center(
-              child: CircularProgressIndicator(color: TrackletColors.primary),
-            ),
+        loading: () => const TrackletHomeSkeleton(),
         error:
             (error, stack) => SafeArea(
               child: TrackletErrorState(
@@ -99,24 +92,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
         data: (state) {
+          if (state.stops.isEmpty) {
+            return SafeArea(
+              child: TrackletEmptyState(
+                title: 'Campus transit unavailable',
+                description:
+                    'Transit stops will appear here when the campus data source is available.',
+                actionLabel: 'Retry',
+                onAction: () => ref.invalidate(homeStateProvider),
+              ),
+            );
+          }
+
           final profile = state.userProfile;
           final firstName =
               profile.name.isNotEmpty
                   ? profile.name.split(' ').first
                   : 'Student';
           final buses = liveBusesAsync.value ?? state.buses;
-          final stops =
-              state.stops.isNotEmpty ? state.stops : [state.selectedStop];
+          final stops = state.stops;
+          final selectedStop = state.selectedStop ?? stops.first;
           final nearestStop =
               locationState.currentLocation == null
                   ? null
                   : nearestCampusStopTo(locationState.currentLocation!, stops);
           final boardingStop =
               nearestStop ??
-              stops
-                  .where((stop) => stop.id == state.selectedStop.id)
-                  .firstOrNull ??
-              stops.first;
+              stops.where((stop) => stop.id == selectedStop.id).firstOrNull ??
+              selectedStop;
           final nearestStopDistanceMeters =
               nearestStop == null
                   ? null
@@ -157,11 +160,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     state.routes,
                   ).compareTo(_etaFor(b, boardingStop, state.routes)),
                 );
+          final clockNow = ref.watch(homeClockProvider).value ?? DateTime.now();
           final upcomingDepartures = upcomingDeparturesForStop(
             stop: boardingStop,
             departures: state.scheduledDepartures,
             routes: state.routes,
-            now: _clockNow,
+            now: clockNow,
           );
           final scheduledNext =
               arrival == null ? upcomingDepartures.firstOrNull : null;
@@ -199,10 +203,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final headerWidget =
               reduceMotion
                   ? header
-                  : header
-                      .animate()
-                      .fadeIn(duration: 380.ms)
-                      .slideY(begin: -0.025);
+                  : RepaintBoundary(
+                    child: header
+                        .animate()
+                        .fadeIn(duration: 380.ms)
+                        .slideY(begin: -0.025),
+                  );
           final nextBusCard = NextBusCard(
             selectedStop: boardingStop,
             arrival: arrival,
@@ -224,10 +230,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final nextBusWidget =
               reduceMotion
                   ? nextBusCard
-                  : nextBusCard
-                      .animate()
-                      .fadeIn(delay: 80.ms, duration: 420.ms)
-                      .slideY(begin: 0.06, curve: Curves.easeOutCubic);
+                  : RepaintBoundary(
+                    child: nextBusCard
+                        .animate()
+                        .fadeIn(delay: 80.ms, duration: 420.ms)
+                        .slideY(begin: 0.06, curve: Curves.easeOutCubic),
+                  );
 
           return RefreshIndicator(
             color: TrackletColors.primary,
@@ -268,10 +276,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
                         nextBusWidget,
-                        if (state.usesSimulatedTelemetry) ...[
-                          const SizedBox(height: TrackletSpacing.sm),
-                          const _SimulationNotice(),
-                        ],
+
                         const SizedBox(height: TrackletSpacing.lg),
                         NextBusesCard(
                           stopName: boardingStop.name,
@@ -1192,40 +1197,6 @@ class _HeaderButton extends StatelessWidget {
         height: 40,
         child: Icon(icon, color: TrackletColors.textPrimary, size: 22),
       ),
-    ),
-  );
-}
-
-class _SimulationNotice extends StatelessWidget {
-  const _SimulationNotice();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-    decoration: BoxDecoration(
-      color: TrackletColors.notificationYellowBgLight,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: TrackletColors.notificationYellowBg),
-    ),
-    child: const Row(
-      children: [
-        Icon(
-          Icons.info_outline_rounded,
-          color: TrackletColors.notificationAmber,
-          size: 16,
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'Demo bus locations are simulated along campus routes.',
-            style: TextStyle(
-              color: TrackletColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     ),
   );
 }
