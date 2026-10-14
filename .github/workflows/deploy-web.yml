@@ -138,14 +138,21 @@ jobs:
             echo "::error::VERCEL_TOKEN secret is not configured in GitHub repository. Deployment cannot proceed."
             exit 1
           fi
-          mkdir -p .vercel
-          cat <<EOF > .vercel/project.json
-          {
-            "projectId": "${VERCEL_PROJECT_ID:-prj_ZFJrv00jhf0od5HGQI716NF6pi3O}",
-            "orgId": "${VERCEL_ORG_ID:-team_wa0u1PPxPRJhDKxQmE0I7OOS}",
-            "projectName": "tracklet"
-          }
-          EOF
+          if [ -n "$VERCEL_PROJECT_ID" ]; then
+            mkdir -p .vercel
+            cat <<EOF > .vercel/project.json
+            {
+              "projectId": "$VERCEL_PROJECT_ID",
+              "orgId": "${VERCEL_ORG_ID:-team_wa0u1PPxPRJhDKxQmE0I7OOS}",
+              "projectName": "nitc-bus-tracking-app"
+            }
+            EOF
+          else
+            echo "Auto-linking to existing Vercel project nitc-bus-tracking-app..."
+            vercel link --yes --token="$VERCEL_TOKEN"
+          fi
+          echo "Linked Vercel project configuration:"
+          cat .vercel/project.json
 
       - name: Prepare prebuilt Vercel output structure
         run: python3 tool/prepare_vercel_prebuilt.py
@@ -180,10 +187,6 @@ jobs:
           echo "SMOKE_URL=$SMOKE_URL" >> $GITHUB_ENV
           echo "Smoke verification URL: $SMOKE_URL"
 
-      - name: Scrub .vercel/ local state
-        if: always()
-        run: rm -rf .vercel
-
       - name: Set up Flutter SDK for smoke assertions
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -208,3 +211,7 @@ jobs:
             echo "::error::Automated rollback failed! Immediate manual operator intervention required."
             exit 1
           fi
+
+      - name: Scrub .vercel/ local state
+        if: always()
+        run: rm -rf .vercel
