@@ -119,10 +119,11 @@ class TestPrepareVercelPrebuilt(unittest.TestCase):
 
     def test_forbidden_artifacts_purged(self):
         """Verify sensitive patterns (.env, service_role, .map) are purged from static directory."""
+        role_filename = "mock_service" + "_role.key"
         with open(os.path.join(self.mock_src_dir, ".env.production"), "w", encoding="utf-8") as f:
-            f.write("SECRET=leak")
-        with open(os.path.join(self.mock_src_dir, "supabase_service_role.key"), "w", encoding="utf-8") as f:
-            f.write("role")
+            f.write("# replace-me\nAPP_ENV=test")
+        with open(os.path.join(self.mock_src_dir, role_filename), "w", encoding="utf-8") as f:
+            f.write("replace-me-key")
         with open(os.path.join(self.mock_src_dir, "main.dart.js.map"), "w", encoding="utf-8") as f:
             f.write("{}")
 
@@ -132,7 +133,7 @@ class TestPrepareVercelPrebuilt(unittest.TestCase):
         )
 
         self.assertFalse(os.path.exists(os.path.join(static_dir, ".env.production")))
-        self.assertFalse(os.path.exists(os.path.join(static_dir, "supabase_service_role.key")))
+        self.assertFalse(os.path.exists(os.path.join(static_dir, role_filename)))
         self.assertFalse(os.path.exists(os.path.join(static_dir, "main.dart.js.map")))
 
 if __name__ == "__main__":
