@@ -1,6 +1,8 @@
 name: Deploy Web to Vercel
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
@@ -22,7 +24,7 @@ jobs:
     name: Build & Verify Flutter Web
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'production' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -61,7 +63,7 @@ jobs:
           MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
         run: |
           flutter build web --release \
-            --dart-define=ENVIRONMENT="${ENVIRONMENT:-${{ inputs.environment }}}" \
+            --dart-define=ENVIRONMENT="${ENVIRONMENT:-${{ inputs.environment || 'production' }}}" \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
             --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
@@ -80,7 +82,7 @@ jobs:
             "project": "tracklet",
             "target": "web",
             "version": "0.1.0+1",
-            "environment": "${{ inputs.environment }}",
+            "environment": "${{ inputs.environment || 'production' }}",
             "commit_sha": "${{ github.sha }}",
             "workflow_run_id": "${{ github.run_id }}",
             "archive_sha256": "$ARCHIVE_SHA",
@@ -102,7 +104,7 @@ jobs:
       - name: Upload verified Web artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: tracklet-web-${{ inputs.environment }}
+          name: tracklet-web-${{ inputs.environment || 'production' }}
           path: build/web
           if-no-files-found: error
           retention-days: 14
@@ -112,7 +114,7 @@ jobs:
     needs: [build-and-verify-web]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'production' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -120,7 +122,7 @@ jobs:
       - name: Download verified Web artifact
         uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
-          name: tracklet-web-${{ inputs.environment }}
+          name: tracklet-web-${{ inputs.environment || 'production' }}
           path: build/web
 
       - name: Install pinned Vercel CLI
@@ -153,14 +155,14 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          TARGET_ENV="${{ inputs.environment }}"
+          TARGET_ENV="${{ inputs.environment || 'production' }}"
           PROD_FLAG=""
           if [ "$TARGET_ENV" = "production" ]; then
             PROD_FLAG="--prod"
           fi
 
           echo "Deploying prebuilt bundle to Vercel ($TARGET_ENV)..."
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt $PROD_FLAG --yes)
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt $PROD_FLAG --token="$VERCEL_TOKEN" --yes)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "Deployment completed: $DEPLOYMENT_URL"
 
@@ -187,7 +189,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           echo "::error::Smoke checks failed on $DEPLOYMENT_URL. Initiating automatic Vercel rollback..."
-          if ! vercel rollback --yes; then
+          if ! vercel rollback --yes --token="$VERCEL_TOKEN"; then
             echo "::error::Automated rollback failed! Immediate manual operator intervention required."
             exit 1
           fi
