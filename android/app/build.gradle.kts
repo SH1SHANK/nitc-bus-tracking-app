@@ -89,12 +89,20 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             } else if (isStrictSigning) {
-                throw GradleException(
-                    "Production release build failed: Missing release signing configuration.\n" +
-                    "CI builds strictly require signing credentials via android/key.properties or environment variables\n" +
-                    "(ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PATH, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ANDROID_STORE_PASSWORD).\n" +
-                    "Debug signing fallback is strictly prohibited in CI."
-                )
+                val isReleaseBuildRequested = gradle.startParameter.taskNames.any {
+                    it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true)
+                }
+                if (isReleaseBuildRequested) {
+                    throw GradleException(
+                        "Production release build failed: Missing release signing configuration.\n" +
+                        "CI builds strictly require signing credentials via android/key.properties or environment variables\n" +
+                        "(ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PATH, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ANDROID_STORE_PASSWORD).\n" +
+                        "Debug signing fallback is strictly prohibited in CI."
+                    )
+                } else {
+                    logger.warn("WARNING: Non-release task requested without signing credentials. Falling back to debug signing for configuration.")
+                    signingConfig = signingConfigs.getByName("debug")
+                }
             } else {
                 logger.warn("WARNING: Building release variant with debug signing for local testing. For production builds, configure android/key.properties.")
                 signingConfig = signingConfigs.getByName("debug")

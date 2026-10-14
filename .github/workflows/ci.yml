@@ -100,4 +100,6 @@ jobs:
         uses: ./.github/actions/flutter-setup
 
       - name: Build Android debug APK
+        env:
+          ALLOW_UNSIGNED: "true"
         run: flutter build apk --debug
