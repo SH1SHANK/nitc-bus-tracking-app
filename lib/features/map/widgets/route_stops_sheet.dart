@@ -35,14 +35,25 @@ class RouteStopsSheet extends StatelessWidget {
   final String? errorMessage;
   final VoidCallback? onRetry;
 
+  Color _parseRouteColor(String? colorHex) {
+    if (colorHex == null || colorHex.isEmpty) return TrackletColors.primary;
+    try {
+      final hex = colorHex.replaceFirst('#', '');
+      return Color(int.parse(hex.length == 6 ? 'FF$hex' : hex, radix: 16));
+    } catch (_) {
+      return TrackletColors.primary;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.sizeOf(context).height * 0.52;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.54;
+    final routeColor = _parseRouteColor(route.colorHex);
 
     return Material(
       color: TrackletColors.surfaceElevated,
-      elevation: 3,
-      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.14),
+      elevation: 4,
+      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.16),
       borderRadius: TrackletRadii.roundedLg,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
@@ -82,17 +93,28 @@ class RouteStopsSheet extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          Container(
-                            width: 34,
-                            height: 4,
-                            decoration: const BoxDecoration(
-                              color: TrackletColors.border,
-                              borderRadius: TrackletRadii.roundedFull,
+                          Center(
+                            child: Container(
+                              width: 36,
+                              height: 4,
+                              decoration: const BoxDecoration(
+                                color: TrackletColors.border,
+                                borderRadius: TrackletRadii.roundedFull,
+                              ),
                             ),
                           ),
                           const SizedBox(height: TrackletSpacing.sm),
                           Row(
                             children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: routeColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: TrackletSpacing.sm),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,6 +126,7 @@ class RouteStopsSheet extends StatelessWidget {
                                       style: TrackletTypography.titleSmall
                                           .copyWith(
                                             fontWeight: FontWeight.w700,
+                                            color: TrackletColors.textPrimary,
                                           ),
                                     ),
                                     const SizedBox(height: 1),
@@ -122,7 +145,7 @@ class RouteStopsSheet extends StatelessWidget {
                                 isExpanded
                                     ? Icons.keyboard_arrow_down_rounded
                                     : Icons.keyboard_arrow_up_rounded,
-                                color: TrackletColors.primary,
+                                color: routeColor,
                                 size: 24,
                               ),
                             ],
@@ -179,15 +202,13 @@ class RouteStopsSheet extends StatelessWidget {
                   )
                 else
                   Flexible(
-                    child: ListView.separated(
+                    child: ListView.builder(
                       shrinkWrap: true,
                       padding: const EdgeInsets.only(
                         top: TrackletSpacing.xs,
                         bottom: TrackletSpacing.xs,
                       ),
                       itemCount: stopOccurrences.length,
-                      separatorBuilder:
-                          (context, index) => const SizedBox(height: 2),
                       itemBuilder: (context, index) {
                         final occurrence = stopOccurrences[index];
                         final stop = occurrence.stop;
@@ -195,6 +216,8 @@ class RouteStopsSheet extends StatelessWidget {
                             selectedStop != null &&
                             stop != null &&
                             selectedStop!.id == stop.id;
+                        final isFirst = index == 0;
+                        final isLast = index == stopOccurrences.length - 1;
 
                         return Semantics(
                           button: stop != null,
@@ -208,76 +231,140 @@ class RouteStopsSheet extends StatelessWidget {
                             onTap:
                                 stop == null ? null : () => onSelectStop(stop),
                             borderRadius: TrackletRadii.roundedSm,
-                            child: Container(
-                              constraints: const BoxConstraints(minHeight: 48),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: TrackletSpacing.sm,
-                                vertical: TrackletSpacing.xs,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isSelected
-                                        ? TrackletColors.background2
-                                        : Colors.transparent,
-                                borderRadius: TrackletRadii.roundedSm,
-                              ),
+                            child: IntrinsicHeight(
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Container(
-                                    width: 26,
-                                    height: 26,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isSelected
-                                              ? TrackletColors.primary
-                                              : TrackletColors.surface,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color:
-                                            isSelected
-                                                ? TrackletColors.primary
-                                                : TrackletColors.border,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '${occurrence.sequence + 1}',
-                                      style: TrackletTypography.labelSmall
-                                          .copyWith(
+                                  SizedBox(
+                                    width: 32,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // Timeline line
+                                        Positioned(
+                                          top: isFirst ? 18 : 0,
+                                          bottom: isLast ? 18 : 0,
+                                          width: 2,
+                                          child: Container(
+                                            color: TrackletColors.border,
+                                          ),
+                                        ),
+                                        // Stepper circle
+                                        Container(
+                                          width: 24,
+                                          height: 24,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
                                             color:
                                                 isSelected
-                                                    ? TrackletColors.textInverse
-                                                    : TrackletColors
-                                                        .textSecondary,
-                                            fontWeight: FontWeight.w700,
+                                                    ? routeColor
+                                                    : TrackletColors.surface,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color:
+                                                  isSelected
+                                                      ? routeColor
+                                                      : TrackletColors.border,
+                                              width: isSelected ? 2 : 1.5,
+                                            ),
                                           ),
+                                          child: Text(
+                                            '${occurrence.sequence + 1}',
+                                            style: TrackletTypography.labelSmall
+                                                .copyWith(
+                                                  color:
+                                                      isSelected
+                                                          ? TrackletColors
+                                                              .textInverse
+                                                          : TrackletColors
+                                                              .textSecondary,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 10,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: TrackletSpacing.sm),
                                   Expanded(
-                                    child: Text(
-                                      stop?.name ?? 'Stop unavailable',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TrackletTypography.bodyMedium
-                                          .copyWith(
-                                            fontWeight:
-                                                isSelected
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w500,
-                                            color: TrackletColors.textPrimary,
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        minHeight: 44,
+                                      ),
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 2,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: TrackletSpacing.sm,
+                                        vertical: TrackletSpacing.xs,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            isSelected
+                                                ? routeColor.withValues(
+                                                  alpha: 0.08,
+                                                )
+                                                : Colors.transparent,
+                                        borderRadius: TrackletRadii.roundedSm,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  stop?.name ??
+                                                      'Stop unavailable',
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TrackletTypography
+                                                      .bodyMedium
+                                                      .copyWith(
+                                                        fontWeight:
+                                                            isSelected
+                                                                ? FontWeight
+                                                                    .w700
+                                                                : FontWeight
+                                                                    .w500,
+                                                        color:
+                                                            TrackletColors
+                                                                .textPrimary,
+                                                      ),
+                                                ),
+                                                if (stop?.code.isNotEmpty ==
+                                                    true)
+                                                  Text(
+                                                    stop!.code,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TrackletTypography
+                                                        .caption
+                                                        .copyWith(
+                                                          color:
+                                                              TrackletColors
+                                                                  .textSecondary,
+                                                        ),
+                                                  ),
+                                              ],
+                                            ),
                                           ),
+                                          if (isSelected)
+                                            Icon(
+                                              Icons.check_circle_rounded,
+                                              size: 16,
+                                              color: routeColor,
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  if (stop?.code.isNotEmpty == true) ...[
-                                    const SizedBox(width: TrackletSpacing.xs),
-                                    Text(
-                                      stop!.code,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TrackletTypography.caption,
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/transit/bus.dart';
+import 'package:tracklet/data/transit/bus_stop_event.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
 import 'package:tracklet/data/transit/route_geometry.dart';
 import 'package:tracklet/data/transit/route_stop_occurrence.dart';
@@ -95,6 +96,8 @@ class MockTransitRepository implements TransitRepository {
 
   @override
   Future<Bus?> getBusById(String busId) async => null;
+  @override
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
 }
 
 void main() {
@@ -161,6 +164,20 @@ void main() {
         final state = container.read(mapStateNotifierProvider);
         expect(state.selectedRoute?.id, 'route-r1');
         expect(state.selectedRouteStops, hasLength(3));
+      },
+    );
+
+    test(
+      'missing road geometry stays missing instead of joining stops',
+      () async {
+        final notifier = container.read(mapStateNotifierProvider.notifier);
+        await notifier.loadTransitData();
+
+        await notifier.selectRoute(mockRepo.mockRoutes.first);
+
+        final state = container.read(mapStateNotifierProvider);
+        expect(state.isGeometryMissing, isTrue);
+        expect(state.selectedRoute!.path, isEmpty);
       },
     );
 

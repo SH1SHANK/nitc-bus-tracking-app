@@ -36,12 +36,12 @@ class StopDetailSheet extends StatelessWidget {
 
     return Material(
       color: TrackletColors.surfaceElevated,
-      elevation: 3,
-      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.14),
+      elevation: 4,
+      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.16),
       borderRadius: TrackletRadii.roundedLg,
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.32,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.36,
         ),
         padding: const EdgeInsets.all(TrackletSpacing.md),
         decoration: BoxDecoration(
@@ -57,17 +57,18 @@ class StopDetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 42,
+                    height: 42,
                     alignment: Alignment.center,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: TrackletColors.background2,
-                      borderRadius: TrackletRadii.roundedSm,
+                      borderRadius: TrackletRadii.roundedMd,
+                      border: Border.all(color: TrackletColors.border),
                     ),
                     child: const Icon(
                       Icons.place_rounded,
                       color: TrackletColors.primary,
-                      size: 21,
+                      size: 22,
                     ),
                   ),
                   const SizedBox(width: TrackletSpacing.sm),
@@ -81,14 +82,20 @@ class StopDetailSheet extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.titleSmall.copyWith(
                             fontWeight: FontWeight.w700,
+                            color: TrackletColors.textPrimary,
                           ),
                         ),
                         if (stop.code.isNotEmpty)
-                          Text(
-                            stop.code,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TrackletTypography.caption,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              stop.code,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TrackletTypography.caption.copyWith(
+                                color: TrackletColors.textSecondary,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -112,36 +119,49 @@ class StopDetailSheet extends StatelessWidget {
                   stop.description!.trim(),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TrackletTypography.bodySmall,
+                  style: TrackletTypography.bodySmall.copyWith(
+                    color: TrackletColors.textSecondary,
+                  ),
                 ),
               ],
               const SizedBox(height: TrackletSpacing.sm),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.directions_walk_rounded,
-                    size: 16,
-                    color: TrackletColors.textSecondary,
-                  ),
-                  const SizedBox(width: TrackletSpacing.xs),
-                  Text(
-                    'About ${stop.walkingTimeMinutes} min walk',
-                    style: TrackletTypography.bodySmall.copyWith(
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: const BoxDecoration(
+                  color: TrackletColors.background,
+                  borderRadius: TrackletRadii.roundedSm,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.directions_walk_rounded,
+                      size: 16,
                       color: TrackletColors.textSecondary,
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${servingRoutes.length} ${servingRoutes.length == 1 ? 'route' : 'routes'}',
-                    style: TrackletTypography.labelSmall.copyWith(
-                      color: TrackletColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(width: TrackletSpacing.xs),
+                    Text(
+                      'About ${stop.walkingTimeMinutes} min walk',
+                      style: TrackletTypography.bodySmall.copyWith(
+                        color: TrackletColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                    const Spacer(),
+                    Text(
+                      '${servingRoutes.length} ${servingRoutes.length == 1 ? 'route' : 'routes'}',
+                      style: TrackletTypography.labelSmall.copyWith(
+                        color: TrackletColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               if (servingRoutes.isNotEmpty) ...[
-                const SizedBox(height: TrackletSpacing.xs),
+                const SizedBox(height: TrackletSpacing.sm),
                 Wrap(
                   spacing: TrackletSpacing.xs,
                   runSpacing: TrackletSpacing.xs,
@@ -165,7 +185,7 @@ class StopDetailSheet extends StatelessWidget {
                           color: TrackletColors.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
-                        backgroundColor: TrackletColors.background,
+                        backgroundColor: TrackletColors.surfaceElevated,
                         side: const BorderSide(color: TrackletColors.border),
                         shape: const StadiumBorder(),
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/auth_validators.dart';
 import '../features/auth/create_account_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -114,8 +115,8 @@ GoRouter createRouter({
         return '/forgot-password';
       }
 
-      // If not authenticated
-      if (!authState.isAuthenticated) {
+      // If not authenticated or domain unauthorized
+      if (!authState.isAuthenticated || !isNitcEmail(authState.email)) {
         if (!isAuthRoute) {
           return '/login';
         }

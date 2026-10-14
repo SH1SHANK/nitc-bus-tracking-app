@@ -30,20 +30,24 @@ class Bus {
     required this.numberPlate,
     required this.name,
     this.routeId,
+    this.tripId,
     required this.status,
     required this.position,
     this.occupancy = 'seats_available',
     required this.lastUpdated,
+    this.isStale = false,
   });
 
   final String id;
   final String numberPlate;
   final String name;
   final String? routeId;
+  final String? tripId;
   final BusStatus status;
   final BusPosition position;
   final String occupancy;
   final DateTime lastUpdated;
+  final bool isStale;
 
   bool get isLive => status == BusStatus.live;
 
@@ -52,20 +56,24 @@ class Bus {
     String? numberPlate,
     String? name,
     String? routeId,
+    String? tripId,
     BusStatus? status,
     BusPosition? position,
     String? occupancy,
     DateTime? lastUpdated,
+    bool? isStale,
   }) {
     return Bus(
       id: id ?? this.id,
       numberPlate: numberPlate ?? this.numberPlate,
       name: name ?? this.name,
       routeId: routeId ?? this.routeId,
+      tripId: tripId ?? this.tripId,
       status: status ?? this.status,
       position: position ?? this.position,
       occupancy: occupancy ?? this.occupancy,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      isStale: isStale ?? this.isStale,
     );
   }
 
@@ -75,27 +83,35 @@ class Bus {
     'number_plate': numberPlate,
     'name': name,
     'route_id': routeId,
+    'trip_id': tripId,
     'status': status.name,
     'occupancy': occupancy,
     'last_updated': lastUpdated.toIso8601String(),
+    'is_stale': isStale,
   };
 
-  factory Bus.fromJson(Map<String, dynamic> json) {
+  factory Bus.fromJson(
+    Map<String, dynamic> json, {
+    DateTime Function()? clock,
+  }) {
+    final fallbackTime = (clock ?? DateTime.now)();
     return Bus(
       id: (json['id'] ?? json['bus_id']) as String,
       numberPlate:
           (json['number_plate'] ?? json['bus_number']) as String? ?? '',
       name: (json['name'] ?? json['display_name']) as String? ?? 'Campus Bus',
       routeId: json['route_id'] as String?,
+      tripId: (json['active_trip_id'] ?? json['trip_id']) as String?,
       status: BusStatus.fromString(json['status'] as String?),
-      position: BusPosition.fromJson(json),
+      position: BusPosition.fromJson(json, clock: () => fallbackTime),
       occupancy: json['occupancy'] as String? ?? 'seats_available',
+      isStale: (json['is_stale'] as bool?) ?? false,
       lastUpdated: DateTime.parse(
         (json['last_updated'] ??
                 json['last_seen'] ??
                 json['recorded_at'] ??
                 json['timestamp'] ??
-                DateTime.now().toIso8601String())
+                fallbackTime.toIso8601String())
             as String,
       ),
     );
@@ -108,13 +124,16 @@ class Bus {
           runtimeType == other.runtimeType &&
           id == other.id &&
           numberPlate == other.numberPlate &&
+          tripId == other.tripId &&
           status == other.status &&
+          isStale == other.isStale &&
           position == other.position;
 
   @override
-  int get hashCode => Object.hash(id, numberPlate, status, position);
+  int get hashCode =>
+      Object.hash(id, numberPlate, tripId, status, isStale, position);
 
   @override
   String toString() =>
-      'Bus(id: $id, name: $name, status: ${status.name}, pos: $position)';
+      'Bus(id: $id, name: $name, status: ${status.name}, isStale: $isStale, pos: $position)';
 }

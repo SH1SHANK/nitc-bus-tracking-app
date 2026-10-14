@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 import '../../core/logging/app_logger.dart';
+import 'nitc_email_validator.dart';
 import 'auth_result.dart';
 import 'auth_state.dart';
 import '../supabase/supabase_client_provider.dart';
@@ -80,14 +81,28 @@ class SupabaseAuthRepository implements AuthRepository {
       final currentUser = client.auth.currentUser;
 
       if (currentSession != null && currentUser != null) {
-        _emitState(
-          AuthState(
-            status: AuthStatus.authenticated,
-            user: currentUser,
-            session: currentSession,
-            email: currentUser.email,
-          ),
-        );
+        if (!isNitcEmail(currentUser.email)) {
+          AppLogger.warning(
+            'Active session rejected for unauthorized email: ${currentUser.email}',
+          );
+          unawaited(client.auth.signOut());
+          _emitState(
+            const AuthState(
+              status: AuthStatus.unauthenticated,
+              errorMessage:
+                  'Please sign in using your @nitc.ac.in institute email address.',
+            ),
+          );
+        } else {
+          _emitState(
+            AuthState(
+              status: AuthStatus.authenticated,
+              user: currentUser,
+              session: currentSession,
+              email: currentUser.email,
+            ),
+          );
+        }
       } else {
         _emitState(const AuthState(status: AuthStatus.unauthenticated));
       }
@@ -103,6 +118,20 @@ class SupabaseAuthRepository implements AuthRepository {
 
           switch (event) {
             case AuthChangeEvent.signedIn:
+              if (user != null && !isNitcEmail(user.email)) {
+                AppLogger.warning(
+                  'Signed-in user rejected for unauthorized email: ${user.email}',
+                );
+                unawaited(client.auth.signOut());
+                _emitState(
+                  const AuthState(
+                    status: AuthStatus.unauthenticated,
+                    errorMessage:
+                        'Please sign in using your @nitc.ac.in institute email address.',
+                  ),
+                );
+                break;
+              }
               _emitState(
                 AuthState(
                   status: AuthStatus.authenticated,
@@ -128,6 +157,20 @@ class SupabaseAuthRepository implements AuthRepository {
             case AuthChangeEvent.tokenRefreshed:
             case AuthChangeEvent.userUpdated:
               if (user != null) {
+                if (!isNitcEmail(user.email)) {
+                  AppLogger.warning(
+                    'Token refresh/update rejected for unauthorized email: ${user.email}',
+                  );
+                  unawaited(client.auth.signOut());
+                  _emitState(
+                    const AuthState(
+                      status: AuthStatus.unauthenticated,
+                      errorMessage:
+                          'Please sign in using your @nitc.ac.in institute email address.',
+                    ),
+                  );
+                  break;
+                }
                 _emitState(
                   AuthState(
                     status: AuthStatus.authenticated,
@@ -180,6 +223,11 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<AuthResult> signInWithEmail(String email, String password) async {
     final cleanEmail = email.trim();
+    if (!isNitcEmail(cleanEmail)) {
+      return AuthResult.failure(
+        'Please sign in using your @nitc.ac.in institute email address.',
+      );
+    }
     final client = _supabase;
 
     if (client == null) {
@@ -224,6 +272,11 @@ class SupabaseAuthRepository implements AuthRepository {
     String? fullName,
   }) async {
     final cleanEmail = email.trim();
+    if (!isNitcEmail(cleanEmail)) {
+      return AuthResult.failure(
+        'Please sign in using your @nitc.ac.in institute email address.',
+      );
+    }
     final client = _supabase;
 
     if (client == null) {
@@ -392,6 +445,7 @@ class SupabaseAuthRepository implements AuthRepository {
       final success = await client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: redirectTo,
+        queryParams: const {'hd': 'nitc.ac.in'},
       );
       if (success) {
         return AuthResult.success();
@@ -431,6 +485,18 @@ class SupabaseAuthRepository implements AuthRepository {
       final msg = error.message.toLowerCase();
       final statusCode = error.statusCode;
 
+      if (msg.contains('nitc.ac.in') ||
+          msg.contains('institute email') ||
+          msg.contains('signups from this email domain') ||
+          msg.contains('signups are restricted') ||
+          msg.contains('access restricted') ||
+          msg.contains('domain')) {
+        return 'Please sign in using your @nitc.ac.in institute email address.';
+      }
+      if (msg.contains('google account email is not verified') ||
+          msg.contains('email is not verified')) {
+        return 'Google account email is not verified.';
+      }
       if (msg.contains('invalid login credentials') ||
           msg.contains('invalid credentials') ||
           msg.contains('invalid username or password')) {
@@ -460,6 +526,13 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     final str = error.toString().toLowerCase();
+    if (str.contains('nitc.ac.in') ||
+        str.contains('institute email') ||
+        str.contains('signups are restricted') ||
+        str.contains('access restricted') ||
+        str.contains('domain')) {
+      return 'Please sign in using your @nitc.ac.in institute email address.';
+    }
     if (str.contains('socketexception') || str.contains('timeout')) {
       return 'Could not connect to the campus authentication server. Please check your internet connection.';
     }

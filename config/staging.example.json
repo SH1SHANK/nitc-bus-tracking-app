@@ -3,7 +3,6 @@
   "SUPABASE_URL": "https://your-staging-project.supabase.co",
   "SUPABASE_ANON_KEY": "your-staging-anon-key",
   "ONESIGNAL_APP_ID": "your-staging-onesignal-app-id",
-  "MAPBOX_PUBLIC_TOKEN": "",
   "MAP_TILE_URL_TEMPLATE": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
   "MAP_ATTRIBUTION": "© OpenStreetMap contributors"
 }

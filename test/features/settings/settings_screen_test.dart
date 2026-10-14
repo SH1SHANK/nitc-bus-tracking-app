@@ -8,6 +8,7 @@ import 'package:tracklet/features/settings/dialogs/favorite_stop_picker_dialog.d
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/profile/profile.dart';
 import 'package:tracklet/data/transit/bus.dart';
+import 'package:tracklet/data/transit/bus_stop_event.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
 import 'package:tracklet/data/transit/route_stop_occurrence.dart';
 import 'package:tracklet/data/transit/scheduled_departure.dart';
@@ -97,6 +98,8 @@ class _SettingsTransitRepository implements TransitRepository {
 
   @override
   Future<Bus?> getBusById(String busId) async => null;
+  @override
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
 }
 
 void main() {

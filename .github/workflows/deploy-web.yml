@@ -25,7 +25,7 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Flutter and install locked dependencies
         uses: ./.github/actions/flutter-setup
@@ -36,7 +36,6 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
-          MAPBOX_PUBLIC_TOKEN: ${{ vars.MAPBOX_PUBLIC_TOKEN }}
           MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
           MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
         run: |
@@ -45,16 +44,34 @@ jobs:
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
             --dart-define=ONESIGNAL_APP_ID="$ONESIGNAL_APP_ID" \
-            --dart-define=MAPBOX_PUBLIC_TOKEN="$MAPBOX_PUBLIC_TOKEN" \
             --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
             --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
 
+      - name: Generate build metadata and sanitize bundle
+        run: |
+          cat <<EOF > build/web/BUILD_METADATA.json
+          {
+            "project": "tracklet",
+            "target": "web",
+            "version": "0.1.0+1",
+            "environment": "${{ inputs.environment }}",
+            "commit_sha": "${{ github.sha }}",
+            "ref": "${{ github.ref }}",
+            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          }
+          EOF
+          # Ensure no stray secret files are packaged
+          find build/web -name "*.env*" -type f -delete
+          find build/web -name "*service_role*" -type f -delete
+          find build/web -name "*keystore*" -type f -delete
+
       - name: Upload Web artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: tracklet-web-${{ inputs.environment }}
           path: build/web
           if-no-files-found: error
+          retention-days: 14
 
 # Hosting is intentionally not selected here because this repository currently
 # has no Vercel, Firebase, Netlify, or GitHub Pages deployment configuration.

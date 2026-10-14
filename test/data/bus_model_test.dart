@@ -44,6 +44,9 @@ void main() {
         'bus_number': 'NITC-02',
         'display_name': 'Campus Shuttle',
         'route_id': 'route-1',
+        'trip_id': 'trip-1',
+        'epoch': 3,
+        'seq': 17,
         'status': 'moving',
         'latitude': 11.3216,
         'longitude': 75.9337,
@@ -51,13 +54,19 @@ void main() {
         'heading': 120,
         'last_seen': '2026-10-10T10:00:00Z',
         'recorded_at': '2026-10-10T09:59:58Z',
+        'is_stale': false,
       });
 
       expect(bus.id, 'bus-2');
       expect(bus.numberPlate, 'NITC-02');
       expect(bus.name, 'Campus Shuttle');
       expect(bus.status, BusStatus.live);
+      expect(bus.isStale, isFalse);
+      expect(bus.tripId, 'trip-1');
       expect(bus.position.speedKmH, 18.5);
+      expect(bus.position.speedMetersPerSecond, closeTo(18.5 / 3.6, 0.0001));
+      expect(bus.position.epoch, 3);
+      expect(bus.position.sequenceNumber, 17);
       expect(bus.position.timestamp, DateTime.parse('2026-10-10T09:59:58Z'));
       expect(bus.lastUpdated, DateTime.parse('2026-10-10T10:00:00Z'));
     });
@@ -74,6 +83,22 @@ void main() {
 
       expect(bus.status, equals(BusStatus.offline));
       expect(bus.isLive, isFalse);
+      expect(bus.position.hasSpeed, isFalse);
+    });
+
+    test('uses active trip alias and deterministic timestamp fallback', () {
+      final clockTime = DateTime.utc(2026, 10, 14, 10);
+      final bus = Bus.fromJson({
+        'bus_id': 'bus-fallback',
+        'active_trip_id': 'trip-active',
+        'latitude': 11.32,
+        'longitude': 75.93,
+      }, clock: () => clockTime);
+      expect(bus.tripId, 'trip-active');
+      expect(bus.position.epoch, isNull);
+      expect(bus.position.sequenceNumber, isNull);
+      expect(bus.position.timestamp, clockTime);
+      expect(bus.lastUpdated, clockTime);
     });
   });
 }

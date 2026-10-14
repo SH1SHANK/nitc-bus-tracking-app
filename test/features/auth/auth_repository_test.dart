@@ -109,6 +109,35 @@ void main() {
       );
     });
 
+    test(
+      'signInWithEmail rejects unauthorized domain with exact message',
+      () async {
+        final result = await repository.signInWithEmail(
+          'user@gmail.com',
+          'password123',
+        );
+
+        expect(result.isSuccess, isFalse);
+        expect(
+          result.errorMessage,
+          'Please sign in using your @nitc.ac.in institute email address.',
+        );
+      },
+    );
+
+    test('signUpWithEmail rejects spoofed domain with exact message', () async {
+      final result = await repository.signUpWithEmail(
+        'user@fake-nitc.ac.in',
+        'password123',
+      );
+
+      expect(result.isSuccess, isFalse);
+      expect(
+        result.errorMessage,
+        'Please sign in using your @nitc.ac.in institute email address.',
+      );
+    });
+
     test('signOut clears authenticated state', () async {
       await repository.signOut();
       expect(repository.isAuthenticated, isFalse);

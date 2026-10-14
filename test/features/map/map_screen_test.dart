@@ -4,13 +4,18 @@ import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/campus/campus_building.dart';
 import 'package:tracklet/data/campus/campus_building_repository.dart';
 import 'package:tracklet/data/transit/bus.dart';
+import 'package:tracklet/data/transit/bus_position.dart';
+import 'package:tracklet/data/transit/bus_stop_event.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
 import 'package:tracklet/data/transit/route_geometry.dart';
 import 'package:tracklet/data/transit/route_stop_occurrence.dart';
 import 'package:tracklet/data/transit/scheduled_departure.dart';
 import 'package:tracklet/data/transit/stop.dart';
 import 'package:tracklet/data/transit/transit_repository.dart';
+import 'package:tracklet/features/home/providers/home_provider.dart';
 import 'package:tracklet/features/map/map_screen.dart';
+import 'package:tracklet/features/map/widgets/bus_detail_sheet.dart';
+import 'package:tracklet/features/map/widgets/bus_marker_widget.dart';
 import 'package:tracklet/features/map/widgets/map_controls.dart';
 import 'package:tracklet/features/map/widgets/route_selector_card.dart';
 import 'package:tracklet/features/map/widgets/route_stops_sheet.dart';
@@ -169,6 +174,8 @@ class TestTransitRepository implements TransitRepository {
 
   @override
   Future<Bus?> getBusById(String busId) async => null;
+  @override
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
 }
 
 void main() {
@@ -365,21 +372,23 @@ void main() {
       },
     );
 
-    testWidgets('responsive layouts work at phone and tablet widths', (
+    testWidgets('map fits 320x568 and 390x844 with 1.3 text scaling', (
       tester,
     ) async {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      for (final size in [
-        const Size(320, 640),
-        const Size(390, 844),
-        const Size(1024, 768),
-      ]) {
+      for (final size in [const Size(320, 568), const Size(390, 844)]) {
         tester.view.physicalSize = size;
         await tester.pumpTrackletWidget(
-          const MapScreen(),
+          MediaQuery(
+            data: MediaQueryData(
+              size: size,
+              textScaler: const TextScaler.linear(1.3),
+            ),
+            child: const MapScreen(),
+          ),
           overrides: [
             transitRepositoryProvider.overrideWithValue(
               TestTransitRepository(),
@@ -388,14 +397,15 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(tester.takeException(), isNull, reason: 'layout $size');
+        final layoutException = tester.takeException();
+        expect(layoutException, isNull, reason: 'layout $size');
         expect(find.byType(RouteSelectorCard), findsOneWidget);
-
-        if (size.width == 320) {
-          await tester.tap(find.text('2 stops · Ordered route stops'));
-          await tester.pumpAndSettle();
-          expect(tester.takeException(), isNull, reason: 'expanded $size');
-        }
+        final controls = tester.getRect(find.byType(MapControls));
+        expect(controls.top, greaterThanOrEqualTo(0));
+        expect(controls.bottom, lessThanOrEqualTo(size.height));
+        await tester.tap(find.text('2 stops · Ordered route stops'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: 'expanded $size');
       }
     });
 
@@ -416,6 +426,110 @@ void main() {
       expect(find.text('Try Again'), findsOneWidget);
     });
 
+    testWidgets('clearing a selected route returns to overview state', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(
+        const MapScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(TestTransitRepository()),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RouteStopsSheet), findsOneWidget);
+      expect(find.byTooltip('Clear selected route'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Clear selected route'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RouteStopsSheet), findsNothing);
+      expect(find.text('Choose a route'), findsOneWidget);
+    });
+
+    testWidgets(
+      'closing stop details smoothly restores active route stops sheet',
+      (tester) async {
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(
+              TestTransitRepository(),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RouteStopsSheet), findsOneWidget);
+
+        // Tap East Campus stop marker to open StopDetailSheet
+        await tester.tap(find.text('East Campus'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(StopDetailSheet), findsOneWidget);
+        expect(find.byType(RouteStopsSheet), findsNothing);
+
+        // Close stop detail sheet
+        await tester.tap(find.byTooltip('Close stop details'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(StopDetailSheet), findsNothing);
+        expect(find.byType(RouteStopsSheet), findsOneWidget);
+        expect(find.text('East ↔ MBH (R1)'), findsWidgets);
+      },
+    );
+
+    testWidgets('map controls trigger campus recentering and route fitting', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(
+        const MapScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(TestTransitRepository()),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      // Tap show all stops on route
+      await tester.tap(find.byTooltip('Show all stops on this route'));
+      await tester.pumpAndSettle();
+
+      // Tap recenter on campus
+      await tester.tap(find.byTooltip('Recenter on NIT Calicut campus'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'respects reduced-motion setting without breaking transitions',
+      (tester) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(reduceMotion: true);
+        addTearDown(() {
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue();
+        });
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(
+              TestTransitRepository(),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RouteStopsSheet), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Recenter on NIT Calicut campus'));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('shows an empty state when database data has no active stops', (
       tester,
     ) async {
@@ -429,6 +543,77 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No campus stops yet'), findsOneWidget);
+    });
+
+    testWidgets('renders live bus marker and opens bus detail sheet on tap', (
+      tester,
+    ) async {
+      final liveBus = Bus(
+        id: 'bus-sim-1',
+        numberPlate: 'KL 11 BH 0001',
+        name: 'Bus 1 (East ↔ MBH)',
+        routeId: 'route-1',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: const GeoPoint(latitude: 11.32168, longitude: 75.93367),
+          heading: 45.0,
+          speedKmH: 20.0,
+          accuracyMeters: 4.0,
+          sequenceNumber: 1,
+          timestamp: DateTime.now(),
+        ),
+        lastUpdated: DateTime.now(),
+      );
+
+      final repository = TestTransitRepository();
+
+      await tester.pumpTrackletWidget(
+        const MapScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(repository),
+          activeBusesStreamProvider.overrideWith(
+            (ref) => Stream.value([liveBus]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BusMarkerWidget), findsOneWidget);
+
+      await tester.tap(find.byType(BusMarkerWidget));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BusDetailSheet), findsOneWidget);
+      expect(find.text('Bus 1 (East ↔ MBH)'), findsOneWidget);
+      expect(find.text('KL 11 BH 0001'), findsOneWidget);
+      expect(find.text('Next stop'), findsOneWidget);
+      expect(find.text('Unavailable'), findsOneWidget);
+
+      await tester.tap(find.text('More detail'));
+      await tester.pumpAndSettle();
+      expect(find.text('ETA'), findsOneWidget);
+      expect(find.text('Follow bus'), findsOneWidget);
+
+      tester
+          .widget<TrackletMapView>(find.byType(TrackletMapView))
+          .onUserGesture!
+          .call();
+      await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
+      expect(find.text('Resume following'), findsOneWidget);
+      await tester.tap(find.text('Resume following'));
+      await tester.pumpAndSettle();
+      expect(find.text('Resume following'), findsNothing);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BusDetailSheet),
+          matching: find.byType(IconButton),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BusDetailSheet), findsNothing);
     });
   });
 }

@@ -1,10 +1,14 @@
+export '../../data/auth/nitc_email_validator.dart';
+
+import '../../data/auth/nitc_email_validator.dart';
+
 String? validateNitcEmail(String? value) {
   final email = value?.trim() ?? '';
   if (email.isEmpty) return 'Enter your email address.';
   if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
     return 'Enter a valid email address.';
   }
-  if (email.toLowerCase().split('@').last != 'nitc.ac.in') {
+  if (!isNitcEmail(email)) {
     return 'Use your NITC institute email ending in @nitc.ac.in.';
   }
   return null;

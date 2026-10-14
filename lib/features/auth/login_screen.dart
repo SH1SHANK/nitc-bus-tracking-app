@@ -111,6 +111,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authNotifierProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.errorMessage!,
+              style: const TextStyle(color: TrackletColors.info),
+            ),
+            backgroundColor: TrackletColors.errorBorder,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return GestureDetector(

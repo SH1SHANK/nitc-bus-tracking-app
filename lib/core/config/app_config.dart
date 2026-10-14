@@ -28,14 +28,6 @@ class AppConfig {
   static bool get hasSupabaseCredentials =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
-  // Mapbox public client configuration. Never place a secret token here.
-  static const String mapboxPublicToken = String.fromEnvironment(
-    'MAPBOX_PUBLIC_TOKEN',
-    defaultValue: '',
-  );
-
-  static bool get hasMapboxToken => mapboxPublicToken.trim().isNotEmpty;
-
   // OneSignal Configuration
   static const String onesignalAppId = String.fromEnvironment(
     'ONESIGNAL_APP_ID',

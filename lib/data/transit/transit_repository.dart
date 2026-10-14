@@ -7,6 +7,7 @@ import '../../core/geo/geo_point.dart';
 import '../../core/logging/app_logger.dart';
 import '../supabase/supabase_client_provider.dart';
 import 'bus.dart';
+import 'bus_stop_event.dart';
 import 'bus_route.dart';
 import 'route_stop_occurrence.dart';
 import 'scheduled_departure.dart';
@@ -22,13 +23,25 @@ abstract class TransitRepository {
   Stream<List<Bus>> watchActiveBuses();
   Future<Stop?> getNearestStop(GeoPoint userLocation);
   Future<Bus?> getBusById(String busId);
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId);
 }
 
 class SupabaseTransitRepository implements TransitRepository {
-  SupabaseTransitRepository(this._supabase);
+  SupabaseTransitRepository(
+    this._supabase, {
+    DateTime Function()? clock,
+    Future<List<BusStopEvent>> Function(String tripId)? stopEventLoader,
+  }) : _clock = clock ?? DateTime.now,
+       _stopEventLoader = stopEventLoader;
 
   final SupabaseClient? _supabase;
+  final DateTime Function() _clock;
+  final Future<List<BusStopEvent>> Function(String tripId)? _stopEventLoader;
   List<Bus> _lastKnownBuses = const [];
+  final Map<String, ({List<BusStopEvent> events, DateTime expiresAt})>
+  _stopEventCache = {};
+  final Map<String, Future<List<BusStopEvent>>> _stopEventRequests = {};
+  final Map<String, int> _stopEventGenerations = {};
 
   @override
   Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async {
@@ -166,13 +179,33 @@ class SupabaseTransitRepository implements TransitRepository {
 
   Future<List<Bus>> _fetchActiveBuses(SupabaseClient client) async {
     try {
-      final response = await client.rpc<List<dynamic>>(
-        'get_active_bus_positions',
-      );
-      _lastKnownBuses =
+      List<dynamic> response;
+      try {
+        response = await client.rpc<List<dynamic>>(
+          'get_active_bus_positions_v2',
+        );
+      } catch (_) {
+        // Older deployments keep the original RPC shape without epoch/seq.
+        response = await client.rpc<List<dynamic>>('get_active_bus_positions');
+      }
+      final buses =
           response
               .map((row) => Bus.fromJson(row as Map<String, dynamic>))
               .toList();
+      for (final previous in _lastKnownBuses) {
+        final current = buses.where((bus) => bus.id == previous.id).firstOrNull;
+        if (current != null &&
+            (current.tripId != previous.tripId ||
+                current.routeId != previous.routeId)) {
+          if (previous.tripId != null) {
+            invalidateBusStopEvents(previous.tripId!);
+          }
+          if (current.tripId != null) {
+            invalidateBusStopEvents(current.tripId!);
+          }
+        }
+      }
+      _lastKnownBuses = buses;
       return _lastKnownBuses;
     } catch (error, stackTrace) {
       AppLogger.error(
@@ -191,6 +224,7 @@ class SupabaseTransitRepository implements TransitRepository {
 
     late final RealtimeChannel channel;
     late final StreamController<List<Bus>> controller;
+    Timer? pollTimer;
     var refreshInProgress = false;
     var refreshPending = false;
 
@@ -228,9 +262,15 @@ class SupabaseTransitRepository implements TransitRepository {
                   callback: (_) => unawaited(refresh()),
                 )
                 .subscribe();
+        // Narrow rider RPCs do not grant table SELECT, so retain bounded refresh
+        // even when Realtime row authorization correctly rejects raw state.
+        pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+          unawaited(refresh());
+        });
         unawaited(refresh());
       },
       onCancel: () async {
+        pollTimer?.cancel();
         await client.removeChannel(channel);
         await controller.close();
       },
@@ -261,6 +301,84 @@ class SupabaseTransitRepository implements TransitRepository {
     if (cached != null) return cached;
     final buses = await getActiveBuses();
     return buses.where((bus) => bus.id == busId).firstOrNull;
+  }
+
+  @override
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async {
+    final loader = _stopEventLoader;
+    if (loader != null) return _cachedStopEvents(tripId, () => loader(tripId));
+    final client = _supabase;
+    if (client == null) return const [];
+    return _cachedStopEvents(tripId, () => _fetchBusStopEvents(client, tripId));
+  }
+
+  Future<List<BusStopEvent>> _cachedStopEvents(
+    String tripId,
+    Future<List<BusStopEvent>> Function() load,
+  ) async {
+    final cached = _stopEventCache[tripId];
+    if (cached != null && _clock().isBefore(cached.expiresAt)) {
+      return cached.events;
+    }
+    final pending = _stopEventRequests[tripId];
+    if (pending != null) return pending;
+    final generation = _stopEventGenerations[tripId] ?? 0;
+    final request = Future<List<BusStopEvent>>.sync(
+      load,
+    ).then<List<BusStopEvent>>(
+      (events) {
+        if ((_stopEventGenerations[tripId] ?? 0) == generation) {
+          _stopEventCache[tripId] = (
+            events: List.unmodifiable(events),
+            expiresAt: _clock().add(const Duration(seconds: 10)),
+          );
+        }
+        return events;
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        AppLogger.error(
+          'Failed to fetch stop progress for active bus trip',
+          error: error,
+          stackTrace: stackTrace,
+          tag: 'TransitRepository',
+        );
+        return const <BusStopEvent>[];
+      },
+    );
+    _stopEventRequests[tripId] = request;
+    try {
+      return await request;
+    } finally {
+      if (identical(_stopEventRequests[tripId], request)) {
+        unawaited(_stopEventRequests.remove(tripId));
+      }
+    }
+  }
+
+  void invalidateBusStopEvents(String tripId) {
+    _stopEventGenerations.update(
+      tripId,
+      (value) => value + 1,
+      ifAbsent: () => 1,
+    );
+    _stopEventCache.remove(tripId);
+    unawaited(_stopEventRequests.remove(tripId));
+  }
+
+  Future<List<BusStopEvent>> _fetchBusStopEvents(
+    SupabaseClient client,
+    String tripId,
+  ) async {
+    final rows = await client.rpc<List<dynamic>>(
+      'get_active_trip_stop_events',
+      params: {'p_trip_id': tripId},
+    );
+    return rows
+        .map(
+          (row) => BusStopEvent.fromJson(Map<String, dynamic>.from(row as Map)),
+        )
+        .where((event) => event.stopId.isNotEmpty)
+        .toList();
   }
 }
 

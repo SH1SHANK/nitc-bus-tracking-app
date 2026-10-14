@@ -5,14 +5,13 @@ import '../../../core/logging/app_logger.dart';
 import '../../../data/campus/campus_building_repository.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
-import '../../../data/transit/route_geometry.dart';
 import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../data/transit/stop.dart';
 import '../../../data/transit/transit_repository.dart';
 import '../../../services/maps/map_cartography.dart';
 import '../../../services/maps/map_config.dart';
 
-/// Immutable state for the Mapbox campus map screen.
+/// Immutable state for the campus map screen.
 class MapScreenState {
   const MapScreenState({
     this.stops = const [],
@@ -62,22 +61,30 @@ class MapScreenState {
     bool? isLoadingRouteStops,
     String? routeStopsError,
     bool clearSelectedStop = false,
+    bool clearSelectedRoute = false,
     bool clearError = false,
     bool clearRouteStopsError = false,
   }) {
     return MapScreenState(
       stops: stops ?? this.stops,
       routes: routes ?? this.routes,
-      selectedRoute: selectedRoute ?? this.selectedRoute,
-      selectedRouteStops: selectedRouteStops ?? this.selectedRouteStops,
+      selectedRoute:
+          clearSelectedRoute ? null : (selectedRoute ?? this.selectedRoute),
+      selectedRouteStops:
+          clearSelectedRoute
+              ? const []
+              : (selectedRouteStops ?? this.selectedRouteStops),
       selectedStop:
           clearSelectedStop ? null : (selectedStop ?? this.selectedStop),
       cameraCenter: cameraCenter ?? this.cameraCenter,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      isLoadingRouteStops: isLoadingRouteStops ?? this.isLoadingRouteStops,
+      isLoadingRouteStops:
+          clearSelectedRoute
+              ? false
+              : (isLoadingRouteStops ?? this.isLoadingRouteStops),
       routeStopsError:
-          clearRouteStopsError
+          clearRouteStopsError || clearSelectedRoute
               ? null
               : (routeStopsError ?? this.routeStopsError),
     );
@@ -172,26 +179,8 @@ class MapStateNotifier extends Notifier<MapScreenState> {
         return;
       }
 
-      final resolvedRoute =
-          route.isGeometryAvailable
-              ? route
-              : route.copyWith(
-                geometry: RouteGeometry.available(
-                  path:
-                      occurrences
-                          .map((occurrence) => occurrence.stop?.location)
-                          .whereType<GeoPoint>()
-                          .toList(),
-                ),
-                path:
-                    occurrences
-                        .map((occurrence) => occurrence.stop?.location)
-                        .whereType<GeoPoint>()
-                        .toList(),
-              );
-
       state = state.copyWith(
-        selectedRoute: resolvedRoute,
+        selectedRoute: route,
         selectedRouteStops: occurrences,
         isLoadingRouteStops: false,
         clearRouteStopsError: true,
@@ -212,6 +201,10 @@ class MapStateNotifier extends Notifier<MapScreenState> {
         routeStopsError: 'Could not load this route’s stops. Please retry.',
       );
     }
+  }
+
+  void clearRoute() {
+    state = state.copyWith(clearSelectedRoute: true, clearSelectedStop: true);
   }
 
   void selectBus(Bus bus) {

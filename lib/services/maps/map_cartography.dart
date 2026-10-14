@@ -36,7 +36,7 @@ enum MapBaseLayerTreatment {
   subtleRoad,
 }
 
-/// Pure cartography configuration shared by the Mapbox adapter and tests.
+/// Pure cartography configuration shared by map components and tests.
 abstract final class TrackletMapCartography {
   static const String campusBuildingSourceId =
       'tracklet-campus-building-labels';
@@ -132,7 +132,7 @@ abstract final class TrackletMapCartography {
       point.longitude <= 180;
 
   /// Stop layers follow building labels and are split by interaction priority.
-  /// Selected labels allow overlap; ordinary labels yield through Mapbox's
+  /// Selected labels allow overlap; ordinary labels yield through standard
   /// symbol collision placement instead of truncating database names.
   static List<Map<String, Object?>> labelLayerDefinitions() => [
     _symbolLayer(

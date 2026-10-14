@@ -21,7 +21,7 @@ jobs:
     environment: production
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Validate release signing secrets
         env:
@@ -36,7 +36,7 @@ jobs:
           test -n "$ANDROID_STORE_PASSWORD" || (echo 'Missing ANDROID_STORE_PASSWORD' >&2; exit 1)
 
       - name: Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
         with:
           distribution: zulu
           java-version: '17'
@@ -63,12 +63,28 @@ jobs:
       - name: Build production App Bundle
         run: flutter build appbundle --release
 
+      - name: Generate build metadata and sanitize bundle
+        run: |
+          cat <<EOF > build/app/outputs/bundle/release/BUILD_METADATA.json
+          {
+            "project": "tracklet",
+            "target": "android",
+            "version": "0.1.0+1",
+            "commit_sha": "${{ github.sha }}",
+            "ref": "${{ github.ref }}",
+            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          }
+          EOF
+          # Remove signing keys and secrets after build
+          rm -f android/app/upload-keystore.jks android/key.properties
+
       - name: Upload App Bundle artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: tracklet-android-aab-${{ github.ref_name }}
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: build/app/outputs/bundle/release/
           if-no-files-found: error
+          retention-days: 14
 
 # Google Play publishing is intentionally not automated until a Play Console
 # service account and an explicit release approval process exist.

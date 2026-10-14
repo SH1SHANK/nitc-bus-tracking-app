@@ -9,17 +9,19 @@ class MapControls extends StatelessWidget {
   const MapControls({
     super.key,
     required this.onRecenterCampus,
+    this.onRecenterBus,
     this.onFitRoute,
   });
 
   final VoidCallback onRecenterCampus;
+  final VoidCallback? onRecenterBus;
   final VoidCallback? onFitRoute;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: TrackletColors.surfaceElevated,
-      elevation: 2,
+      elevation: 3,
       shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.12),
       borderRadius: TrackletRadii.roundedMd,
       child: Container(
@@ -30,13 +32,31 @@ class MapControls extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onRecenterBus != null) ...[
+              _ControlButton(
+                icon: Icons.directions_bus_filled_rounded,
+                tooltip: 'Recenter on selected bus',
+                onPressed: onRecenterBus!,
+              ),
+              const Divider(
+                height: 1,
+                indent: 8,
+                endIndent: 8,
+                color: TrackletColors.border,
+              ),
+            ],
             if (onFitRoute != null) ...[
               _ControlButton(
                 icon: Icons.route_rounded,
                 tooltip: 'Show all stops on this route',
                 onPressed: onFitRoute!,
               ),
-              const Divider(height: 1, indent: 9, endIndent: 9),
+              const Divider(
+                height: 1,
+                indent: 8,
+                endIndent: 8,
+                color: TrackletColors.border,
+              ),
             ],
             _ControlButton(
               icon: Icons.explore_outlined,

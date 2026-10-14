@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/data/transit/bus.dart';
+import 'package:tracklet/data/transit/bus_stop_event.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
 import 'package:tracklet/data/transit/route_stop_occurrence.dart';
@@ -419,6 +420,8 @@ class _HomeTestTransitRepository implements TransitRepository {
 
   @override
   Future<Bus?> getBusById(String busId) async => null;
+  @override
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
 }
 
 class _FixedLocationNotifier extends LocationNotifier {
