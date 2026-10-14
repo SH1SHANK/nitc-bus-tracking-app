@@ -1,14 +1,19 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": false,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/auth/callback",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!assets/|canvaskit/|icons/|favicon\\.png|flutter.*|main\\.dart\\.js|manifest\\.json|version\\.json|BUILD_METADATA\\.json).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
-      "source": "/(flutter_service_worker.js|flutter_bootstrap.js|version.json)",
+      "source": "/(index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -22,6 +27,44 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/canvaskit/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(self), camera=(), microphone=(), payment=(), usb=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.googleusercontent.com; connect-src 'self' https://fnngudikrvelpuhngtlw.supabase.co wss://fnngudikrvelpuhngtlw.supabase.co https://bus-telemetry-api.onrender.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.onesignal.com https://onesignal.com https://unpkg.com; worker-src 'self' blob:; frame-ancestors 'none'; frame-src 'self' https://accounts.google.com; form-action 'self' https://accounts.google.com https://fnngudikrvelpuhngtlw.supabase.co; base-uri 'self';"
         }
       ]
     }

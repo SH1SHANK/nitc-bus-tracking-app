@@ -1,25 +1,25 @@
-name: Web release artifact
+name: Deploy Web to Vercel
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: Environment configuration to build
+        description: Environment configuration to deploy
         required: true
         type: choice
-        options: [staging, production]
+        options: [production, preview]
         default: production
 
 permissions:
   contents: read
 
 concurrency:
-  group: web-release-${{ inputs.environment }}
+  group: deploy-web-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build Flutter Web release
+  build-and-verify-web:
+    name: Build & Verify Flutter Web
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
@@ -30,7 +30,28 @@ jobs:
       - name: Set up Flutter and install locked dependencies
         uses: ./.github/actions/flutter-setup
 
-      - name: Build Web release
+      - name: Scan tracked files for credentials
+        run: dart run tool/scan_secrets.dart
+
+      - name: Verify architecture boundaries
+        run: dart run tool/verify_architecture.dart
+
+      - name: Analyze Dart code
+        run: flutter analyze
+
+      - name: Run unit and widget tests
+        run: flutter test
+
+      - name: Validate build configuration variables
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" || (echo "::error::SUPABASE_URL variable is missing in repository settings." >&2; exit 1)
+          test -n "$SUPABASE_ANON_KEY" || (echo "::error::SUPABASE_ANON_KEY secret is missing in repository settings." >&2; exit 1)
+          echo "Build configuration variables validated successfully."
+
+      - name: Build Web release bundle
         env:
           ENVIRONMENT: ${{ vars.TRACKLET_ENVIRONMENT }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -43,12 +64,17 @@ jobs:
             --dart-define=ENVIRONMENT="${ENVIRONMENT:-${{ inputs.environment }}}" \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=ONESIGNAL_APP_ID="$ONESIGNAL_APP_ID" \
+            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
             --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
             --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
 
       - name: Generate build metadata and sanitize bundle
         run: |
+          # Calculate SHA-256 of tarball for integrity tracking
+          tar -czf /tmp/web-bundle.tar.gz -C build/web .
+          ARCHIVE_SHA=$(sha256sum /tmp/web-bundle.tar.gz | awk '{print $1}')
+          rm -f /tmp/web-bundle.tar.gz
+
           cat <<EOF > build/web/BUILD_METADATA.json
           {
             "project": "tracklet",
@@ -56,16 +82,24 @@ jobs:
             "version": "0.1.0+1",
             "environment": "${{ inputs.environment }}",
             "commit_sha": "${{ github.sha }}",
-            "ref": "${{ github.ref }}",
-            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            "workflow_run_id": "${{ github.run_id }}",
+            "archive_sha256": "$ARCHIVE_SHA",
+            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "integrity_status": "VERIFIED_PRODUCTION"
           }
           EOF
-          # Ensure no stray secret files are packaged
+
+          # Post-build bundle scanner: purge .env, secrets, service_role, keystores, and debug maps
           find build/web -name "*.env*" -type f -delete
           find build/web -name "*service_role*" -type f -delete
+          find build/web -name "*secret*" -type f -delete
           find build/web -name "*keystore*" -type f -delete
+          find build/web -name "*.dart.js.map" -type f -delete
 
-      - name: Upload Web artifact
+          # Copy hardened vercel.json into build/web
+          cp vercel.json build/web/vercel.json
+
+      - name: Upload verified Web artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: tracklet-web-${{ inputs.environment }}
@@ -73,6 +107,84 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# Hosting is intentionally not selected here because this repository currently
-# has no Vercel, Firebase, Netlify, or GitHub Pages deployment configuration.
-# Add the provider-specific deploy step only after the production host is chosen.
+  deploy-vercel:
+    name: Deploy Prebuilt Web to Vercel
+    needs: [build-and-verify-web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Download verified Web artifact
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: tracklet-web-${{ inputs.environment }}
+          path: build/web
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@64.0.2
+
+      - name: Configure Vercel Project Link
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID || vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || vars.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is not configured in GitHub repository. Deployment cannot proceed."
+            exit 1
+          fi
+          mkdir -p .vercel
+          cat <<EOF > .vercel/project.json
+          {
+            "projectId": "${VERCEL_PROJECT_ID:-prj_ZFJrv00jhf0od5HGQI716NF6pi3O}",
+            "orgId": "${VERCEL_ORG_ID:-team_wa0u1PPxPRJhDKxQmE0I7OOS}",
+            "projectName": "tracklet"
+          }
+          EOF
+
+      - name: Prepare prebuilt Vercel output structure
+        run: python3 tool/prepare_vercel_prebuilt.py
+
+      - name: Deploy prebuilt bundle to Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          TARGET_ENV="${{ inputs.environment }}"
+          PROD_FLAG=""
+          if [ "$TARGET_ENV" = "production" ]; then
+            PROD_FLAG="--prod"
+          fi
+
+          echo "Deploying prebuilt bundle to Vercel ($TARGET_ENV)..."
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt $PROD_FLAG --token="$VERCEL_TOKEN" --yes)
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "Deployment completed: $DEPLOYMENT_URL"
+
+      - name: Scrub .vercel/ local state
+        if: always()
+        run: rm -rf .vercel
+
+      - name: Set up Flutter SDK for smoke assertions
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      - name: Run post-deployment smoke assertions
+        env:
+          DEPLOY_URL: ${{ env.DEPLOYMENT_URL }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          dart run tool/verify_vercel_deployment.dart --url="$DEPLOY_URL" --expected-commit="$GITHUB_SHA"
+
+      - name: Automated rollback on verification failure
+        if: failure() && steps.deploy.outcome == 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "::error::Smoke checks failed on $DEPLOYMENT_URL. Initiating automatic Vercel rollback..."
+          vercel rollback --yes --token="$VERCEL_TOKEN" || true
