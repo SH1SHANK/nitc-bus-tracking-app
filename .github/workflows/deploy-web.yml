@@ -166,6 +166,9 @@ jobs:
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "Deployment completed: $DEPLOYMENT_URL"
 
+          # Allow Anycast edge DNS and alias propagation to start settling
+          sleep 5
+
           # Determine the target URL for smoke verification:
           # In production, the public canonical domain is accessible publicly and reflects the live deployment.
           # For preview environments, target the specific preview deployment URL.

@@ -71,53 +71,88 @@ void main(List<String> args) async {
 
   try {
     // -------------------------------------------------------------
-    // Assertion 1: Verify BUILD_METADATA.json
+    // Assertion 1: Verify BUILD_METADATA.json (with CDN propagation polling)
     // -------------------------------------------------------------
     stdout.writeln('[1/4] Verifying $url/BUILD_METADATA.json ...');
     final metaUri = Uri.parse('$url/BUILD_METADATA.json');
-    final metaReq = await createRequest(metaUri);
-    final metaRes = await metaReq.close();
 
-    if (metaRes.statusCode != 200) {
+    Map<String, dynamic>? metadata;
+    HttpClientResponse? metaRes;
+    const maxRetries = 15;
+    const retryDelay = Duration(seconds: 3);
+
+    for (var attempt = 1; attempt <= maxRetries; attempt++) {
+      final metaReq = await createRequest(metaUri);
+      metaRes = await metaReq.close();
+
+      if (metaRes.statusCode == 200) {
+        final metaBody = await utf8.decodeStream(metaRes);
+        try {
+          final parsed = jsonDecode(metaBody) as Map<String, dynamic>;
+          final actualCommit = parsed['commit_sha'] as String?;
+
+          if (expectedCommit == null ||
+              expectedCommit.isEmpty ||
+              (actualCommit != null &&
+                  actualCommit.startsWith(expectedCommit.substring(0, 7)))) {
+            metadata = parsed;
+            break;
+          } else if (attempt < maxRetries) {
+            stdout.writeln(
+              '  • Attempt $attempt/$maxRetries: Serving commit ${actualCommit?.substring(0, 7) ?? 'unknown'} (waiting for edge CDN propagation of ${expectedCommit.substring(0, 7)})...',
+            );
+          } else {
+            metadata = parsed;
+          }
+        } catch (_) {
+          if (attempt >= maxRetries) rethrow;
+        }
+      } else {
+        await metaRes.drain<void>();
+        if (attempt < maxRetries) {
+          stdout.writeln(
+            '  • Attempt $attempt/$maxRetries: Received HTTP ${metaRes.statusCode} (waiting for deployment)...',
+          );
+        }
+      }
+
+      if (attempt < maxRetries) {
+        await Future<void>.delayed(retryDelay);
+      }
+    }
+
+    if (metaRes == null || metaRes.statusCode != 200 || metadata == null) {
       stderr.writeln(
-        '  ✗ Expected HTTP 200 for BUILD_METADATA.json, received: ${metaRes.statusCode}',
+        '  ✗ Expected HTTP 200 for BUILD_METADATA.json, received: ${metaRes?.statusCode}',
       );
       hasFailure = true;
     } else {
-      final metaBody = await utf8.decodeStream(metaRes);
-      try {
-        final Map<String, dynamic> metadata =
-            jsonDecode(metaBody) as Map<String, dynamic>;
-        final String? actualCommit = metadata['commit_sha'] as String?;
-        final String? integrity = metadata['integrity_status'] as String?;
+      final actualCommit = metadata['commit_sha'] as String?;
+      final integrity = metadata['integrity_status'] as String?;
 
-        stdout.writeln('  ✓ HTTP 200 OK');
-        stdout.writeln('  • Detected version: ${metadata['version']}');
-        stdout.writeln(
-          '  • Target platform:  ${metadata['target_platform'] ?? metadata['target']}',
-        );
-        stdout.writeln('  • Commit SHA:       $actualCommit');
+      stdout.writeln('  ✓ HTTP 200 OK');
+      stdout.writeln('  • Detected version: ${metadata['version']}');
+      stdout.writeln(
+        '  • Target platform:  ${metadata['target_platform'] ?? metadata['target']}',
+      );
+      stdout.writeln('  • Commit SHA:       $actualCommit');
 
-        if (expectedCommit != null && expectedCommit.isNotEmpty) {
-          if (actualCommit != null &&
-              actualCommit.startsWith(expectedCommit.substring(0, 7))) {
-            stdout.writeln('  ✓ Commit SHA matches expected GITHUB_SHA');
-          } else {
-            stderr.writeln(
-              '  ✗ Commit SHA mismatch! Expected $expectedCommit, found $actualCommit',
-            );
-            hasFailure = true;
-          }
-        }
-
-        if (integrity == 'VERIFIED_PRODUCTION') {
-          stdout.writeln('  ✓ Integrity status verified: $integrity');
+      if (expectedCommit != null && expectedCommit.isNotEmpty) {
+        if (actualCommit != null &&
+            actualCommit.startsWith(expectedCommit.substring(0, 7))) {
+          stdout.writeln('  ✓ Commit SHA matches expected GITHUB_SHA');
         } else {
-          stderr.writeln('  ✗ Invalid integrity status: $integrity');
+          stderr.writeln(
+            '  ✗ Commit SHA mismatch! Expected $expectedCommit, found $actualCommit',
+          );
           hasFailure = true;
         }
-      } catch (e) {
-        stderr.writeln('  ✗ Failed to parse BUILD_METADATA.json response: $e');
+      }
+
+      if (integrity == 'VERIFIED_PRODUCTION') {
+        stdout.writeln('  ✓ Integrity status verified: $integrity');
+      } else {
+        stderr.writeln('  ✗ Invalid integrity status: $integrity');
         hasFailure = true;
       }
 
