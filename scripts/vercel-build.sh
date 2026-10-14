@@ -54,7 +54,7 @@ flutter pub get --enforce-lockfile || flutter pub get
 # 5. Compile Flutter Web release bundle
 echo "• Compiling Flutter Web release bundle..."
 flutter build web --release --no-pub \
-  --dart-define=ENVIRONMENT="${TRACKLET_ENVIRONMENT:-production}" \
+  --dart-define=ENVIRONMENT="${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-production}}" \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
   --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
@@ -68,7 +68,7 @@ cat <<EOF > build/web/BUILD_METADATA.json
   "project": "tracklet",
   "target": "web",
   "version": "$APP_VERSION",
-  "environment": "${TRACKLET_ENVIRONMENT:-production}",
+  "environment": "${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-production}}",
   "commit_sha": "${VERCEL_GIT_COMMIT_SHA:-local}",
   "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
   "integrity_status": "VERIFIED_PRODUCTION"
