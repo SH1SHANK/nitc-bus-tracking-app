@@ -53,6 +53,11 @@ jobs:
       - name: Verify architecture boundaries
         run: dart run tool/verify_architecture.dart
 
+      - name: Verify Android Manifest & Google Play policy compliance
+        run: |
+          python3 test/tool/test_verify_android_manifest.py
+          python3 tool/verify_android_manifest.py
+
       - name: Run unit and widget tests
         run: flutter test
 

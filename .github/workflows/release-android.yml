@@ -112,6 +112,11 @@ jobs:
       - name: Analyze Dart code
         run: flutter analyze
 
+      - name: Verify Android Manifest & Google Play policy compliance
+        run: |
+          python3 test/tool/test_verify_android_manifest.py
+          python3 tool/verify_android_manifest.py
+
       - name: Run unit and widget tests
         run: flutter test
 
@@ -238,6 +243,9 @@ jobs:
           cp build/app/outputs/bundle/release/app-release.aab dist/android/tracklet-v${SEMVER}.aab
           rm -rf build/app/outputs/bundle/release/
           echo "Play Store App Bundle staged in dist/android/."
+
+      - name: Verify merged release manifest permissions & policy compliance
+        run: python3 tool/verify_android_manifest.py --check-all
 
       - name: Guaranteed destruction of ephemeral signing material
         if: always()
