@@ -2,7 +2,7 @@
 """
 Automated Changelog & Version Tag Resolver for Tracklet (NITC Bus Tracking App)
 Generates structured, categorized release notes from Git commit history and
-appends an Artifact Verification & Installation Guide with SHA-256 checksums.
+appends an Artifact Verification & Download Guide with SHA-256 checksums and file sizes.
 """
 
 import argparse
@@ -41,7 +41,6 @@ def get_pubspec_version(pubspec_path="pubspec.yaml"):
 def validate_tag_against_pubspec(tag, pubspec_info):
     """Validates that a given tag corresponds to the version defined in pubspec.yaml."""
     normalized_tag = tag.lstrip("v")
-    # Accept either 0.1.0 or 0.1.0+1
     if normalized_tag not in (pubspec_info["semver"], pubspec_info["canonical"]):
         return False
     return True
@@ -55,7 +54,6 @@ def run_git(args):
 
 def find_previous_tag(current_tag=None):
     """Finds the most recent release tag prior to current_tag, or returns root commit."""
-    # List tags sorted by commit date descending
     all_tags = run_git(["tag", "--sort=-creatordate"]).splitlines()
     all_tags = [t.strip() for t in all_tags if t.strip()]
 
@@ -63,7 +61,6 @@ def find_previous_tag(current_tag=None):
     if filtered:
         return filtered[0]
 
-    # If no prior tag, locate root commit
     root_commit = run_git(["rev-list", "--max-parents=0", "HEAD"]).splitlines()
     if root_commit:
         return root_commit[0]
@@ -106,12 +103,12 @@ def categorize_commits(commits):
             "title": "🐛 Bug Fixes",
             "commits": []
         },
-        "security_infra": {
-            "title": "🔒 Security & Infrastructure",
+        "security_ci": {
+            "title": "🔒 Security & CI/CD Hardening",
             "commits": []
         },
-        "docs_refactor": {
-            "title": "📚 Documentation & Refactoring",
+        "maintenance": {
+            "title": "🧰 Maintenance & Refactoring",
             "commits": []
         }
     }
@@ -127,20 +124,19 @@ def categorize_commits(commits):
         if fix_pattern.match(subj):
             categories["fixes"]["commits"].append(c)
         elif sec_infra_pattern.match(subj):
-            categories["security_infra"]["commits"].append(c)
+            categories["security_ci"]["commits"].append(c)
         elif feat_pattern.match(subj):
             categories["features"]["commits"].append(c)
         elif docs_refactor_pattern.match(subj):
-            categories["docs_refactor"]["commits"].append(c)
+            categories["maintenance"]["commits"].append(c)
         else:
-            # Fallback heuristic based on keywords
             lower = subj.lower()
             if any(k in lower for k in ["fix", "bug", "crash", "issue", "resolve"]):
                 categories["fixes"]["commits"].append(c)
             elif any(k in lower for k in ["sec", "token", "auth", "ci", "action", "workflow", "deploy", "keystore"]):
-                categories["security_infra"]["commits"].append(c)
+                categories["security_ci"]["commits"].append(c)
             elif any(k in lower for k in ["doc", "readme", "comment", "refactor", "clean"]):
-                categories["docs_refactor"]["commits"].append(c)
+                categories["maintenance"]["commits"].append(c)
             else:
                 categories["features"]["commits"].append(c)
 
@@ -154,9 +150,18 @@ def compute_sha256(filepath):
             h.update(chunk)
     return h.hexdigest()
 
-def get_artifact_checksums(artifacts_dir=None, checksums_file=None):
-    """Retrieves or calculates checksums for release artifacts."""
-    checksums = {}
+def format_file_size(size_bytes):
+    """Formats bytes into human-readable MB/KB."""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    else:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+
+def get_artifact_details(artifacts_dir=None, checksums_file=None):
+    """Retrieves checksums and file sizes for release artifacts."""
+    artifacts = {}
 
     if checksums_file and os.path.isfile(checksums_file):
         with open(checksums_file, "r", encoding="utf-8") as f:
@@ -165,17 +170,26 @@ def get_artifact_checksums(artifacts_dir=None, checksums_file=None):
                 if line and not line.startswith("#"):
                     parts = line.split(maxsplit=1)
                     if len(parts) == 2:
-                        checksums[os.path.basename(parts[1])] = parts[0]
+                        fname = os.path.basename(parts[1])
+                        artifacts[fname] = {
+                            "hash": parts[0],
+                            "size": "N/A"
+                        }
 
     if artifacts_dir and os.path.isdir(artifacts_dir):
         for fname in os.listdir(artifacts_dir):
             fpath = os.path.join(artifacts_dir, fname)
-            if os.path.isfile(fpath) and fname not in checksums:
-                checksums[fname] = compute_sha256(fpath)
+            if os.path.isfile(fpath):
+                fsize = format_file_size(os.path.getsize(fpath))
+                fhash = compute_sha256(fpath)
+                artifacts[fname] = {
+                    "hash": fhash,
+                    "size": fsize
+                }
 
-    return checksums
+    return artifacts
 
-def generate_markdown(version_info, release_tag, prev_tag, categories, checksums, repo_url=REPO_DEFAULT_URL):
+def generate_markdown(version_info, release_tag, prev_tag, categories, artifacts, repo_url=REPO_DEFAULT_URL):
     """Generates the full Markdown release notes document."""
     semver = version_info["semver"]
     build_num = version_info["build_number"]
@@ -199,7 +213,7 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, checksums
         lines.append("*No commit changes detected since the previous reference.*")
         lines.append("")
     else:
-        for key in ["features", "fixes", "security_infra", "docs_refactor"]:
+        for key in ["features", "fixes", "security_ci", "maintenance"]:
             cat = categories[key]
             if cat["commits"]:
                 lines.append(f"### {cat['title']}")
@@ -211,12 +225,12 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, checksums
 
     lines.append("---")
     lines.append("")
-    lines.append("## 📦 Artifact Verification & Installation Guide")
+    lines.append("## 📦 Artifact Verification & Download Guide")
     lines.append("")
     lines.append("Choose the appropriate package for your device. For modern Android smartphones, the **`arm64-v8a`** APK is recommended for optimal performance and reduced download size.")
     lines.append("")
-    lines.append("| Downloadable Artifact | Architecture / Target | Minimum OS | Recommended For | SHA-256 Checksum |")
-    lines.append("| :--- | :--- | :--- | :--- | :--- |")
+    lines.append("| Attached Artifact | Architecture / Target | Minimum OS | Recommended Use Case | File Size | SHA-256 Checksum |")
+    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- |")
 
     catalog = [
         (
@@ -270,10 +284,16 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, checksums
     ]
 
     for fname, arch, min_os, purpose in catalog:
-        csum = checksums.get(fname, "`Pending CI build`")
-        if csum != "`Pending CI build`":
-            csum = f"`{csum[:16]}...`"
-        lines.append(f"| **`{fname}`** | {arch} | {min_os} | {purpose} | {csum} |")
+        item = artifacts.get(fname, {"hash": "Pending CI build", "size": "N/A"})
+        fhash = item["hash"]
+        fsize = item["size"]
+        if fhash != "Pending CI build":
+            fhash_str = f"`{fhash[:16]}...`"
+        else:
+            fhash_str = "`Pending build`"
+
+        size_str = f"`{fsize}`" if fsize != "N/A" else "—"
+        lines.append(f"| **`{fname}`** | {arch} | {min_os} | {purpose} | {size_str} | {fhash_str} |")
 
     lines.append("")
     lines.append("### Verification Instructions")
@@ -310,7 +330,6 @@ def main():
 
     pubspec_info = get_pubspec_version(args.pubspec)
 
-    # Determine target release tag
     release_tag = args.tag.strip() if args.tag else pubspec_info["tag"]
     if not release_tag.startswith("v"):
         release_tag = f"v{release_tag}"
@@ -321,25 +340,18 @@ def main():
             sys.exit(1)
 
     if args.resolve_tag:
-        # Format for GitHub Actions environment injection
         print(f"RELEASE_TAG={release_tag}")
         print(f"VERSION={pubspec_info['semver']}")
         print(f"BUILD_NUMBER={pubspec_info['build_number']}")
         print(f"CANONICAL_VERSION={pubspec_info['canonical']}")
         return
 
-    # Find previous tag
     prev_tag = args.prev_tag.strip() if args.prev_tag else find_previous_tag(release_tag)
-
-    # Parse commits
     commits = get_commits_between(prev_tag, "HEAD")
     categories = categorize_commits(commits)
+    artifacts = get_artifact_details(args.artifacts_dir, args.checksums_file)
 
-    # Gather checksums
-    checksums = get_artifact_checksums(args.artifacts_dir, args.checksums_file)
-
-    # Build Markdown notes
-    markdown_content = generate_markdown(pubspec_info, release_tag, prev_tag, categories, checksums, args.repo_url)
+    markdown_content = generate_markdown(pubspec_info, release_tag, prev_tag, categories, artifacts, args.repo_url)
 
     if args.json:
         data = {
@@ -348,7 +360,7 @@ def main():
             "version": pubspec_info,
             "commits_count": len(commits),
             "categories": categories,
-            "checksums": checksums,
+            "artifacts": artifacts,
             "markdown": markdown_content
         }
         print(json.dumps(data, indent=2))

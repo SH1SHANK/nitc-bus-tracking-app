@@ -56,14 +56,39 @@ jobs:
       - name: Run unit and widget tests
         run: flutter test
 
-  build:
-    name: Web and Android debug builds
+  build-web:
+    name: Web release build
     needs: [format, quality]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Flutter and install locked dependencies
+        uses: ./.github/actions/flutter-setup
+
+      - name: Build Web release
+        run: flutter build web --release
+
+  build-android:
+    name: Android debug build
+    needs: [format, quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Free unused runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android/sdk/system-images
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo apt-get clean
+          df -h
 
       - name: Set up Java
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
@@ -74,9 +99,6 @@ jobs:
 
       - name: Set up Flutter and install locked dependencies
         uses: ./.github/actions/flutter-setup
-
-      - name: Build Web release
-        run: flutter build web --release
 
       - name: Build Android debug APK
         run: flutter build apk --debug

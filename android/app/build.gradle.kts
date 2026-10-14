@@ -10,7 +10,8 @@ if (keystorePropertiesFile.exists()) {
 
 // Evaluate CI environment and strict signing enforcement
 val isCi = System.getenv("CI") == "true"
-val isStrictSigning = isCi || project.hasProperty("strictSigning")
+val allowUnsigned = System.getenv("ALLOW_UNSIGNED") == "true" || project.hasProperty("allowUnsigned")
+val isStrictSigning = (isCi && !allowUnsigned) || project.hasProperty("strictSigning")
 val envStorePath = System.getenv("ANDROID_KEYSTORE_PATH")
 val envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
 val hasPropertiesSigning = keystorePropertiesFile.exists() && keystoreProperties.containsKey("storeFile")

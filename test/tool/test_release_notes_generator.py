@@ -16,7 +16,7 @@ from tool.generate_release_notes import (
     validate_tag_against_pubspec,
     categorize_commits,
     generate_markdown,
-    get_artifact_checksums
+    get_artifact_details
 )
 
 class TestReleaseNotesGenerator(unittest.TestCase):
@@ -62,8 +62,8 @@ class TestReleaseNotesGenerator(unittest.TestCase):
         categories = categorize_commits(sample_commits)
         self.assertEqual(len(categories["features"]["commits"]), 1)
         self.assertEqual(len(categories["fixes"]["commits"]), 1)
-        self.assertEqual(len(categories["security_infra"]["commits"]), 2)  # sec and chore
-        self.assertEqual(len(categories["docs_refactor"]["commits"]), 2)  # docs and refactor
+        self.assertEqual(len(categories["security_ci"]["commits"]), 2)  # sec and chore
+        self.assertEqual(len(categories["maintenance"]["commits"]), 2)  # docs and refactor
 
     def test_markdown_and_checksum_rendering(self):
         version_info = {
@@ -74,16 +74,20 @@ class TestReleaseNotesGenerator(unittest.TestCase):
         categories = {
             "features": {"title": "🚀 Features & UX Improvements", "commits": []},
             "fixes": {"title": "🐛 Bug Fixes", "commits": []},
-            "security_infra": {"title": "🔒 Security & Infrastructure", "commits": []},
-            "docs_refactor": {"title": "📚 Documentation & Refactoring", "commits": []}
+            "security_ci": {"title": "🔒 Security & CI/CD Hardening", "commits": []},
+            "maintenance": {"title": "🧰 Maintenance & Refactoring", "commits": []}
         }
-        checksums = {
-            "tracklet-v0.1.0-arm64-v8a.apk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        artifacts = {
+            "tracklet-v0.1.0-arm64-v8a.apk": {
+                "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "size": "50.8 MB"
+            }
         }
 
-        md = generate_markdown(version_info, "v0.1.0", "v0.0.9", categories, checksums)
+        md = generate_markdown(version_info, "v0.1.0", "v0.0.9", categories, artifacts)
         self.assertIn("# Tracklet v0.1.0", md)
         self.assertIn("`e3b0c44298fc1c14...`", md)
+        self.assertIn("`50.8 MB`", md)
         self.assertIn("arm64-v8a", md)
         self.assertIn("Universal (All ABIs)", md)
         self.assertIn("sha256sum -c checksums.sha256", md)

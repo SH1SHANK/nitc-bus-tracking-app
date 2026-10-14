@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: ''
+      allow_unsigned:
+        description: 'Allow unsigned verification build (dry-run without release signing keys)'
+        required: false
+        type: boolean
+        default: false
       prerelease:
         description: 'Publish as a pre-release'
         required: false
@@ -46,22 +51,48 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Free unused runner disk space
+        run: |
+          echo "=== Disk space before reclamation ==="
+          df -h
+          sudo rm -rf /usr/local/lib/android/sdk/system-images
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo apt-get clean
+          echo "=== Disk space after reclamation ==="
+          df -h
+
       - name: Validate release signing secrets & environment
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ALLOW_UNSIGNED: ${{ inputs.allow_unsigned || false }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "::error::Missing ANDROID_KEYSTORE_BASE64 secret in GitHub repository." >&2; exit 1)
-          test -n "$ANDROID_KEY_ALIAS" || (echo "::error::Missing ANDROID_KEY_ALIAS secret in GitHub repository." >&2; exit 1)
-          test -n "$ANDROID_KEY_PASSWORD" || (echo "::error::Missing ANDROID_KEY_PASSWORD secret in GitHub repository." >&2; exit 1)
-          test -n "$ANDROID_STORE_PASSWORD" || (echo "::error::Missing ANDROID_STORE_PASSWORD secret in GitHub repository." >&2; exit 1)
           test -n "$SUPABASE_URL" || (echo "::error::Missing SUPABASE_URL variable in repository." >&2; exit 1)
           test -n "$SUPABASE_ANON_KEY" || (echo "::error::Missing SUPABASE_ANON_KEY secret in repository." >&2; exit 1)
-          echo "All release secrets and configuration variables validated successfully."
+
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            if [ "$ALLOW_UNSIGNED" = "true" ]; then
+              echo "::warning::ANDROID_KEYSTORE_BASE64 not configured. Proceeding in unsigned verification dry-run mode."
+              echo "ALLOW_UNSIGNED=true" >> $GITHUB_ENV
+            else
+              echo "::error::Missing ANDROID_KEYSTORE_BASE64 secret in repository settings." >&2
+              echo "Configure release signing secrets (ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ANDROID_STORE_PASSWORD)" >&2
+              echo "or trigger workflow_dispatch with allow_unsigned=true for dry-run verification." >&2
+              exit 1
+            fi
+          else
+            test -n "$ANDROID_KEY_ALIAS" || (echo "::error::Missing ANDROID_KEY_ALIAS secret in GitHub repository." >&2; exit 1)
+            test -n "$ANDROID_KEY_PASSWORD" || (echo "::error::Missing ANDROID_KEY_PASSWORD secret in GitHub repository." >&2; exit 1)
+            test -n "$ANDROID_STORE_PASSWORD" || (echo "::error::Missing ANDROID_STORE_PASSWORD secret in GitHub repository." >&2; exit 1)
+            echo "Release signing secrets validated successfully."
+          fi
 
       - name: Set up Java 17
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
@@ -101,7 +132,6 @@ jobs:
           cat /tmp/tag_info.env
           while IFS='=' read -r key value; do
             echo "$key=$value" >> $GITHUB_ENV
-            # GitHub output key in lowercase for job outputs
             echo "${key,,}=$value" >> $GITHUB_OUTPUT
           done < /tmp/tag_info.env
 
@@ -112,45 +142,38 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         run: |
-          KEYSTORE_PATH="$RUNNER_TEMP/release-keystore.jks"
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
-          chmod 600 "$KEYSTORE_PATH"
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            KEYSTORE_PATH="$RUNNER_TEMP/release-keystore.jks"
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+            chmod 600 "$KEYSTORE_PATH"
 
-          cat <<EOF > android/key.properties
-          storePassword=$ANDROID_STORE_PASSWORD
-          keyPassword=$ANDROID_KEY_PASSWORD
-          keyAlias=$ANDROID_KEY_ALIAS
-          storeFile=$KEYSTORE_PATH
-          EOF
-          chmod 600 android/key.properties
-          echo "Ephemeral keystore and key.properties provisioned securely."
+            cat <<EOF > android/key.properties
+            storePassword=$ANDROID_STORE_PASSWORD
+            keyPassword=$ANDROID_KEY_PASSWORD
+            keyAlias=$ANDROID_KEY_ALIAS
+            storeFile=$KEYSTORE_PATH
+            EOF
+            chmod 600 android/key.properties
+            echo "Ephemeral keystore and key.properties provisioned securely."
+          else
+            echo "Signing keys skipped in dry-run mode."
+          fi
 
-      - name: Build signed Universal APK
+      - name: Prepare staging directory and symbols output
+        run: |
+          mkdir -p dist/android build/app/outputs/symbols
+
+      - name: Build signed ABI-Split APKs (Disk-Safe Staging)
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
           MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
           MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+          ALLOW_UNSIGNED: ${{ env.ALLOW_UNSIGNED }}
         run: |
-          mkdir -p build/app/outputs/symbols
-          flutter build apk --release \
-            --obfuscate --split-debug-info=build/app/outputs/symbols \
-            --dart-define=ENVIRONMENT=production \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
-            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
-            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
-
-      - name: Build signed ABI-Split APKs
-        env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
-          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
-          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
-        run: |
+          SEMVER="${{ steps.version.outputs.version }}"
+          echo "Building ABI-split APKs for version $SEMVER..."
           flutter build apk --release --split-per-abi \
             --obfuscate --split-debug-info=build/app/outputs/symbols \
             --dart-define=ENVIRONMENT=production \
@@ -160,14 +183,49 @@ jobs:
             --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
             --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
 
-      - name: Build signed Play Store App Bundle (.aab)
+          # Immediately move finished ABI APKs to dist/android/ and delete source to free runner disk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android/tracklet-v${SEMVER}-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android/tracklet-v${SEMVER}-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android/tracklet-v${SEMVER}-x86_64.apk
+          rm -f build/app/outputs/flutter-apk/*.apk
+          echo "ABI-split APKs staged in dist/android/. Reclaimed intermediate APK disk space."
+
+      - name: Build signed Universal APK (Disk-Safe Staging)
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
           MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
           MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+          ALLOW_UNSIGNED: ${{ env.ALLOW_UNSIGNED }}
         run: |
+          SEMVER="${{ steps.version.outputs.version }}"
+          echo "Building Universal APK for version $SEMVER..."
+          flutter build apk --release \
+            --obfuscate --split-debug-info=build/app/outputs/symbols \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
+            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
+            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+          # Immediately move Universal APK to dist/android/ and clean intermediate outputs
+          cp build/app/outputs/flutter-apk/app-release.apk dist/android/tracklet-v${SEMVER}-universal.apk
+          rm -f build/app/outputs/flutter-apk/*.apk
+          echo "Universal APK staged in dist/android/. Reclaimed intermediate APK disk space."
+
+      - name: Build signed Play Store App Bundle (Disk-Safe Staging)
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
+          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+          ALLOW_UNSIGNED: ${{ env.ALLOW_UNSIGNED }}
+        run: |
+          SEMVER="${{ steps.version.outputs.version }}"
+          echo "Building App Bundle for version $SEMVER..."
           flutter build appbundle --release \
             --obfuscate --split-debug-info=build/app/outputs/symbols \
             --dart-define=ENVIRONMENT=production \
@@ -176,6 +234,11 @@ jobs:
             --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
             --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
             --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+          # Move App Bundle to dist/android/ and clean build folder
+          cp build/app/outputs/bundle/release/app-release.aab dist/android/tracklet-v${SEMVER}.aab
+          rm -rf build/app/outputs/bundle/release/
+          echo "Play Store App Bundle staged in dist/android/."
 
       - name: Guaranteed destruction of ephemeral signing material
         if: always()
@@ -186,33 +249,21 @@ jobs:
           if [ -f "android/key.properties" ]; then
             shred -u -z -n 3 "android/key.properties" 2>/dev/null || rm -f "android/key.properties"
           fi
-          echo "Signing keys shredded and removed from runner disk."
+          echo "Ephemeral signing material shredded and purged from disk."
 
-      - name: Organize, rename, and verify release artifacts
+      - name: Verify APK signatures with apksigner
         run: |
-          mkdir -p dist/android
-          SEMVER="${{ steps.version.outputs.version }}"
-
-          # Collect APKs
-          cp build/app/outputs/flutter-apk/app-release.apk dist/android/tracklet-v${SEMVER}-universal.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android/tracklet-v${SEMVER}-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android/tracklet-v${SEMVER}-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android/tracklet-v${SEMVER}-x86_64.apk
-
-          # Collect AAB
-          cp build/app/outputs/bundle/release/app-release.aab dist/android/tracklet-v${SEMVER}.aab
-
-          # Archive debug symbols
-          tar -czf dist/android/tracklet-v${SEMVER}-debug-symbols.tar.gz -C build/app/outputs/symbols .
-
-          # Verify APK signatures with apksigner
-          echo "Verifying APK signatures with apksigner..."
+          echo "Verifying APK certificates and signatures..."
           for apk in dist/android/*.apk; do
-            echo "Checking certificate validity for $apk..."
+            echo "Checking $apk..."
             apksigner verify --verbose --print-certs "$apk" | grep -E "Signer #1|Verified using" || true
           done
 
-          # Generate BUILD_METADATA.json
+      - name: Archive debug symbols and generate metadata
+        run: |
+          SEMVER="${{ steps.version.outputs.version }}"
+          tar -czf dist/android/tracklet-v${SEMVER}-debug-symbols.tar.gz -C build/app/outputs/symbols .
+
           cat <<EOF > dist/android/BUILD_METADATA.json
           {
             "project": "tracklet",
@@ -284,7 +335,7 @@ jobs:
 
       - name: Publish GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ needs.build-and-verify-android.outputs.release_tag }}
           IS_PRERELEASE: ${{ inputs.prerelease || false }}
           IS_DRAFT: ${{ inputs.draft || false }}
