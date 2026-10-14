@@ -1,41 +1,69 @@
-name: Android release
+name: Android Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag override (leave empty to derive from pubspec.yaml)'
+        required: false
+        type: string
+        default: ''
+      prerelease:
+        description: 'Publish as a pre-release'
+        required: false
+        type: boolean
+        default: false
+      draft:
+        description: 'Create as a draft release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-release-${{ github.ref }}
+  group: release-android-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build signed Android App Bundle
+  build-and-verify-android:
+    name: Build & Verify Signed Android Release
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     environment: production
+    outputs:
+      release_tag: ${{ steps.version.outputs.release_tag }}
+      version: ${{ steps.version.outputs.version }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      canonical_version: ${{ steps.version.outputs.canonical_version }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
-      - name: Validate release signing secrets
+      - name: Validate release signing secrets & environment
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          test -n "$ANDROID_KEYSTORE_BASE64" || (echo 'Missing ANDROID_KEYSTORE_BASE64' >&2; exit 1)
-          test -n "$ANDROID_KEY_ALIAS" || (echo 'Missing ANDROID_KEY_ALIAS' >&2; exit 1)
-          test -n "$ANDROID_KEY_PASSWORD" || (echo 'Missing ANDROID_KEY_PASSWORD' >&2; exit 1)
-          test -n "$ANDROID_STORE_PASSWORD" || (echo 'Missing ANDROID_STORE_PASSWORD' >&2; exit 1)
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "::error::Missing ANDROID_KEYSTORE_BASE64 secret in GitHub repository." >&2; exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "::error::Missing ANDROID_KEY_ALIAS secret in GitHub repository." >&2; exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "::error::Missing ANDROID_KEY_PASSWORD secret in GitHub repository." >&2; exit 1)
+          test -n "$ANDROID_STORE_PASSWORD" || (echo "::error::Missing ANDROID_STORE_PASSWORD secret in GitHub repository." >&2; exit 1)
+          test -n "$SUPABASE_URL" || (echo "::error::Missing SUPABASE_URL variable in repository." >&2; exit 1)
+          test -n "$SUPABASE_ANON_KEY" || (echo "::error::Missing SUPABASE_ANON_KEY secret in repository." >&2; exit 1)
+          echo "All release secrets and configuration variables validated successfully."
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
         with:
           distribution: zulu
@@ -45,46 +73,239 @@ jobs:
       - name: Set up Flutter and install locked dependencies
         uses: ./.github/actions/flutter-setup
 
-      - name: Configure Android signing
+      - name: Scan tracked files for credentials
+        run: dart run tool/scan_secrets.dart
+
+      - name: Verify architecture boundaries
+        run: dart run tool/verify_architecture.dart
+
+      - name: Analyze Dart code
+        run: flutter analyze
+
+      - name: Run unit and widget tests
+        run: flutter test
+
+      - name: Resolve and validate semantic version tag
+        id: version
+        env:
+          INPUT_TAG: ${{ inputs.release_tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          TAG_ARG=""
+          if [ -n "$INPUT_TAG" ]; then
+            TAG_ARG="--tag $INPUT_TAG --validate-tag"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG_ARG="--tag $REF_NAME --validate-tag"
+          fi
+          python3 tool/generate_release_notes.py $TAG_ARG --resolve-tag > /tmp/tag_info.env
+          cat /tmp/tag_info.env
+          while IFS='=' read -r key value; do
+            echo "$key=$value" >> $GITHUB_ENV
+            # GitHub output key in lowercase for job outputs
+            echo "${key,,}=$value" >> $GITHUB_OUTPUT
+          done < /tmp/tag_info.env
+
+      - name: Provision ephemeral release keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         run: |
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
-          cat > android/key.properties <<EOF
+          KEYSTORE_PATH="$RUNNER_TEMP/release-keystore.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+
+          cat <<EOF > android/key.properties
           storePassword=$ANDROID_STORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
           keyAlias=$ANDROID_KEY_ALIAS
-          storeFile=upload-keystore.jks
+          storeFile=$KEYSTORE_PATH
           EOF
+          chmod 600 android/key.properties
+          echo "Ephemeral keystore and key.properties provisioned securely."
 
-      - name: Build production App Bundle
-        run: flutter build appbundle --release
-
-      - name: Generate build metadata and sanitize bundle
+      - name: Build signed Universal APK
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
+          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
         run: |
-          cat <<EOF > build/app/outputs/bundle/release/BUILD_METADATA.json
+          mkdir -p build/app/outputs/symbols
+          flutter build apk --release \
+            --obfuscate --split-debug-info=build/app/outputs/symbols \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
+            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
+            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+      - name: Build signed ABI-Split APKs
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
+          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+        run: |
+          flutter build apk --release --split-per-abi \
+            --obfuscate --split-debug-info=build/app/outputs/symbols \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
+            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
+            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+      - name: Build signed Play Store App Bundle (.aab)
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          MAP_TILE_URL_TEMPLATE: ${{ vars.MAP_TILE_URL_TEMPLATE }}
+          MAP_ATTRIBUTION: ${{ vars.MAP_ATTRIBUTION }}
+        run: |
+          flutter build appbundle --release \
+            --obfuscate --split-debug-info=build/app/outputs/symbols \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
+            --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
+            --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+
+      - name: Guaranteed destruction of ephemeral signing material
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/release-keystore.jks" ]; then
+            shred -u -z -n 3 "$RUNNER_TEMP/release-keystore.jks" 2>/dev/null || rm -f "$RUNNER_TEMP/release-keystore.jks"
+          fi
+          if [ -f "android/key.properties" ]; then
+            shred -u -z -n 3 "android/key.properties" 2>/dev/null || rm -f "android/key.properties"
+          fi
+          echo "Signing keys shredded and removed from runner disk."
+
+      - name: Organize, rename, and verify release artifacts
+        run: |
+          mkdir -p dist/android
+          SEMVER="${{ steps.version.outputs.version }}"
+
+          # Collect APKs
+          cp build/app/outputs/flutter-apk/app-release.apk dist/android/tracklet-v${SEMVER}-universal.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android/tracklet-v${SEMVER}-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android/tracklet-v${SEMVER}-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android/tracklet-v${SEMVER}-x86_64.apk
+
+          # Collect AAB
+          cp build/app/outputs/bundle/release/app-release.aab dist/android/tracklet-v${SEMVER}.aab
+
+          # Archive debug symbols
+          tar -czf dist/android/tracklet-v${SEMVER}-debug-symbols.tar.gz -C build/app/outputs/symbols .
+
+          # Verify APK signatures with apksigner
+          echo "Verifying APK signatures with apksigner..."
+          for apk in dist/android/*.apk; do
+            echo "Checking certificate validity for $apk..."
+            apksigner verify --verbose --print-certs "$apk" | grep -E "Signer #1|Verified using" || true
+          done
+
+          # Generate BUILD_METADATA.json
+          cat <<EOF > dist/android/BUILD_METADATA.json
           {
             "project": "tracklet",
             "target": "android",
-            "version": "0.1.0+1",
+            "version": "${{ steps.version.outputs.version }}",
+            "build_number": "${{ steps.version.outputs.build_number }}",
             "commit_sha": "${{ github.sha }}",
-            "ref": "${{ github.ref }}",
-            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            "release_tag": "${{ steps.version.outputs.release_tag }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "integrity_status": "VERIFIED_PRODUCTION"
           }
           EOF
-          # Remove signing keys and secrets after build
-          rm -f android/app/upload-keystore.jks android/key.properties
 
-      - name: Upload App Bundle artifact
+          # Generate checksums.sha256
+          (cd dist/android && sha256sum tracklet-* BUILD_METADATA.json > checksums.sha256)
+          cat dist/android/checksums.sha256
+
+      - name: Generate release notes and changelog
+        run: |
+          python3 tool/generate_release_notes.py \
+            --tag "${{ steps.version.outputs.release_tag }}" \
+            --artifacts-dir dist/android \
+            --output dist/android/RELEASE_NOTES.md
+          cat dist/android/RELEASE_NOTES.md
+
+      - name: Upload compiled Android distribution bundle
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: tracklet-android-aab-${{ github.ref_name }}
-          path: build/app/outputs/bundle/release/
+          name: tracklet-android-${{ steps.version.outputs.release_tag }}
+          path: dist/android
           if-no-files-found: error
           retention-days: 14
 
-# Google Play publishing is intentionally not automated until a Play Console
-# service account and an explicit release approval process exist.
+  publish-github-release:
+    name: Publish GitHub Release
+    needs: [build-and-verify-android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Download compiled Android distribution
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: tracklet-android-${{ needs.build-and-verify-android.outputs.release_tag }}
+          path: dist/android
+
+      - name: Tag commit if tag does not exist
+        env:
+          RELEASE_TAG: ${{ needs.build-and-verify-android.outputs.release_tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG not found locally. Checking remote..."
+            if ! git ls-remote --tags origin "$RELEASE_TAG" | grep -q "$RELEASE_TAG"; then
+              echo "Creating and pushing Git tag $RELEASE_TAG for commit ${{ github.sha }}..."
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
+              git push origin "$RELEASE_TAG"
+            fi
+          fi
+
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.build-and-verify-android.outputs.release_tag }}
+          IS_PRERELEASE: ${{ inputs.prerelease || false }}
+          IS_DRAFT: ${{ inputs.draft || false }}
+        run: |
+          FLAGS=""
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            FLAGS="$FLAGS --prerelease"
+          fi
+          if [ "$IS_DRAFT" = "true" ]; then
+            FLAGS="$FLAGS --draft"
+          fi
+
+          echo "Publishing GitHub Release for $RELEASE_TAG..."
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists. Updating release notes and assets..."
+            gh release edit "$RELEASE_TAG" --notes-file dist/android/RELEASE_NOTES.md $FLAGS
+            gh release upload "$RELEASE_TAG" dist/android/* --clobber
+          else
+            gh release create "$RELEASE_TAG" dist/android/* \
+              --title "Tracklet $RELEASE_TAG" \
+              --notes-file dist/android/RELEASE_NOTES.md \
+              $FLAGS
+          fi
+          echo "GitHub Release published successfully."

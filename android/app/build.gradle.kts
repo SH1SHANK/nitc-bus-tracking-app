@@ -1,3 +1,4 @@
+import java.io.File
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -6,6 +7,15 @@ val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
+// Evaluate CI environment and strict signing enforcement
+val isCi = System.getenv("CI") == "true"
+val isStrictSigning = isCi || project.hasProperty("strictSigning")
+val envStorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+val envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+val hasPropertiesSigning = keystorePropertiesFile.exists() && keystoreProperties.containsKey("storeFile")
+val hasEnvSigning = !envStorePath.isNullOrBlank() && !envKeyAlias.isNullOrBlank()
+val hasReleaseSigning = hasPropertiesSigning || hasEnvSigning
 
 plugins {
     id("com.android.application")
@@ -39,24 +49,54 @@ android {
     }
 
     signingConfigs {
-        if (keystorePropertiesFile.exists()) {
+        if (hasReleaseSigning) {
             create("release") {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+                val sFile = if (hasPropertiesSigning) {
+                    keystoreProperties["storeFile"] as String
+                } else {
+                    envStorePath!!
+                }
+                val rawFile = File(sFile)
+                val resolvedFile = if (rawFile.isAbsolute) {
+                    rawFile
+                } else {
+                    val rootCandidate = File(rootProject.projectDir, sFile)
+                    if (rootCandidate.exists()) rootCandidate else File(projectDir, sFile)
+                }
+                storeFile = resolvedFile
+                storePassword = if (hasPropertiesSigning) {
+                    keystoreProperties["storePassword"] as String
+                } else {
+                    System.getenv("ANDROID_STORE_PASSWORD") ?: System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
+                }
+                keyAlias = if (hasPropertiesSigning) {
+                    keystoreProperties["keyAlias"] as String
+                } else {
+                    envKeyAlias!!
+                }
+                keyPassword = if (hasPropertiesSigning) {
+                    keystoreProperties["keyPassword"] as String
+                } else {
+                    System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+                }
             }
         }
     }
 
     buildTypes {
         release {
-            // Local release builds remain debug-signed until key.properties is
-            // supplied. CI requires production signing secrets before release.
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            } else if (isStrictSigning) {
+                throw GradleException(
+                    "Production release build failed: Missing release signing configuration.\n" +
+                    "CI builds strictly require signing credentials via android/key.properties or environment variables\n" +
+                    "(ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PATH, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, ANDROID_STORE_PASSWORD).\n" +
+                    "Debug signing fallback is strictly prohibited in CI."
+                )
             } else {
-                signingConfigs.getByName("debug")
+                logger.warn("WARNING: Building release variant with debug signing for local testing. For production builds, configure android/key.properties.")
+                signingConfig = signingConfigs.getByName("debug")
             }
         }
     }
