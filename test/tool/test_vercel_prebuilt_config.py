@@ -97,7 +97,7 @@ class TestVercelPrebuiltConfig(unittest.TestCase):
         self.assertIn("immutable", canvaskit_cache)
 
         # App Shell / Service Worker: no-cache
-        shell_src = "^/(index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)$"
+        shell_src = "^/(|index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)$"
         shell_cache = headers_by_src.get(shell_src, {}).get("cache-control", "")
         self.assertIn("no-cache", shell_cache)
         self.assertIn("no-store", shell_cache)

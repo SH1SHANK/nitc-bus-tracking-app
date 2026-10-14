@@ -47,6 +47,7 @@ def generate_config():
     }
 
     routes = [
+        # 1. Asset & CanvasKit Cache-Control (Immutable 1-year cache)
         {
             "src": "^/assets/(.*)$",
             "headers": {
@@ -61,14 +62,23 @@ def generate_config():
             },
             "continue": True,
         },
+        # 2. App Shell (root & index.html) and Service Worker Cache-Control + Defensive Headers
         {
-            "src": "^/(index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)$",
+            "src": "^/(|index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)$",
             "headers": entrypoint_headers,
             "continue": True,
         },
+        # 3. Global Defensive Security Headers applied across all responses
+        {
+            "src": "^/.*$",
+            "headers": security_headers,
+            "continue": True,
+        },
+        # 4. Filesystem handler: if matched static file exists in static/, serve immediately
         {
             "handle": "filesystem"
         },
+        # 5. SPA Rewrite Fallback: route any non-filesystem URI (e.g. /auth/callback) to /index.html with defensive headers
         {
             "src": "^/.*$",
             "headers": security_headers,
