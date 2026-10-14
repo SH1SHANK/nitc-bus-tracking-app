@@ -54,7 +54,7 @@ class TestVercelPrebuiltConfig(unittest.TestCase):
         security_headers = {}
         for route in routes:
             if route.get("src") == "^/.*$" and "headers" in route:
-                security_headers = route["headers"]
+                security_headers = {k.lower(): v for k, v in route["headers"].items()}
                 break
 
         required_headers = [
@@ -85,7 +85,10 @@ class TestVercelPrebuiltConfig(unittest.TestCase):
     def test_cache_control_headers(self):
         """Verify cache-control rules for assets and app shell."""
         routes = self.config["routes"]
-        headers_by_src = {r.get("src"): r.get("headers", {}) for r in routes if "headers" in r}
+        headers_by_src = {
+            r.get("src"): {k.lower(): v for k, v in r.get("headers", {}).items()}
+            for r in routes if "headers" in r
+        }
 
         # Assets & CanvasKit: immutable
         assets_cache = headers_by_src.get("^/assets/(.*)$", {}).get("cache-control", "")

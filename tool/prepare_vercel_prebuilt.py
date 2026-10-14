@@ -11,9 +11,8 @@ import sys
 import json
 import shutil
 
-SRC_DIR = os.path.abspath("build/web")
-OUTPUT_DIR = os.path.abspath(".vercel/output")
-STATIC_DIR = os.path.join(OUTPUT_DIR, "static")
+DEFAULT_SRC_DIR = os.path.abspath("build/web")
+DEFAULT_OUTPUT_DIR = os.path.abspath(".vercel/output")
 
 def generate_config():
     """Generates strictly valid Build Output API v3 config.json."""
@@ -33,82 +32,79 @@ def generate_config():
         "base-uri 'self';"
     )
 
+    security_headers = {
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "geolocation=(self), camera=(), microphone=(), payment=(), usb=()",
+        "Content-Security-Policy": csp_directives,
+    }
+
+    entrypoint_headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        **security_headers,
+    }
+
     routes = [
-        # 1. Asset & CanvasKit Cache-Control (Immutable 1-year cache)
         {
             "src": "^/assets/(.*)$",
             "headers": {
-                "cache-control": "public, max-age=31536000, immutable"
+                "Cache-Control": "public, max-age=31536000, immutable"
             },
-            "continue": True
+            "continue": True,
         },
         {
             "src": "^/canvaskit/(.*)$",
             "headers": {
-                "cache-control": "public, max-age=31536000, immutable"
+                "Cache-Control": "public, max-age=31536000, immutable"
             },
-            "continue": True
+            "continue": True,
         },
-        # 2. App Shell & Service Worker Cache-Control (Strict revalidation)
         {
             "src": "^/(index\\.html|flutter_service_worker\\.js|flutter_bootstrap\\.js|version\\.json|BUILD_METADATA\\.json)$",
-            "headers": {
-                "cache-control": "no-cache, no-store, must-revalidate"
-            },
-            "continue": True
+            "headers": entrypoint_headers,
+            "continue": True,
         },
-        # 3. Global HTTP Defensive Security Headers applied across all responses
-        {
-            "src": "^/.*$",
-            "headers": {
-                "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
-                "x-content-type-options": "nosniff",
-                "x-frame-options": "DENY",
-                "referrer-policy": "strict-origin-when-cross-origin",
-                "permissions-policy": "geolocation=(self), camera=(), microphone=(), payment=(), usb=()",
-                "content-security-policy": csp_directives
-            },
-            "continue": True
-        },
-        # 4. Filesystem handler: if matched static file exists in static/, serve immediately
         {
             "handle": "filesystem"
         },
-        # 5. SPA Rewrite Fallback: route any non-filesystem URI (e.g. /auth/callback, /map, /login) to /index.html
         {
             "src": "^/.*$",
-            "dest": "/index.html"
-        }
+            "headers": security_headers,
+            "dest": "/index.html",
+        },
     ]
 
     return {
         "version": 3,
-        "routes": routes
+        "routes": routes,
     }
 
-def main():
-    print("=== Preparing Prebuilt Vercel Build Output API v3 Structure ===")
-    if not os.path.isdir(SRC_DIR):
-        print(f"Error: Source build directory not found: {SRC_DIR}")
-        print("Run 'flutter build web --release' before preparing prebuilt output.")
-        sys.exit(1)
+def prepare_prebuilt(src_dir=None, output_dir=None):
+    """Prepares the prebuilt bundle and writes .vercel/output/config.json."""
+    src_dir = os.path.abspath(src_dir or DEFAULT_SRC_DIR)
+    output_dir = os.path.abspath(output_dir or DEFAULT_OUTPUT_DIR)
+    static_dir = os.path.join(output_dir, "static")
 
-    if not os.path.exists(os.path.join(SRC_DIR, "index.html")):
-        print(f"Error: {SRC_DIR}/index.html missing. Invalid Flutter Web build.")
-        sys.exit(1)
+    if not os.path.isdir(src_dir):
+        raise FileNotFoundError(f"Source build directory not found: {src_dir}")
 
-    # 1. Clean and initialize .vercel/output
-    if os.path.exists(OUTPUT_DIR):
-        shutil.rmtree(OUTPUT_DIR)
-    os.makedirs(STATIC_DIR, exist_ok=True)
+    if not os.path.exists(os.path.join(src_dir, "index.html")):
+        raise FileNotFoundError(f"{src_dir}/index.html missing. Invalid Flutter Web build.")
 
-    # 2. Copy static web build artifacts to .vercel/output/static
-    shutil.copytree(SRC_DIR, STATIC_DIR, dirs_exist_ok=True)
+    # 1. Clean and initialize output_dir
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(static_dir, exist_ok=True)
+
+    # 2. Copy static web build artifacts to static_dir
+    shutil.copytree(src_dir, static_dir, dirs_exist_ok=True)
 
     # 3. Purge forbidden artifacts & debug source maps from output
     forbidden_patterns = [".env", "service_role", "keystore", ".dart.js.map"]
     removed_count = 0
-    for root, dirs, files in os.walk(STATIC_DIR):
+    for root, dirs, files in os.walk(static_dir):
         for fname in files:
             for pat in forbidden_patterns:
                 if pat in fname.lower():
@@ -117,14 +113,25 @@ def main():
                     removed_count += 1
                     print(f"Purged forbidden artifact from prebuilt bundle: {fname}")
 
-    # 4. Generate .vercel/output/config.json with strict Build Output API v3 schema
+    # 4. Generate output_dir/config.json with strict Build Output API v3 schema
     config = generate_config()
-    config_path = os.path.join(OUTPUT_DIR, "config.json")
+    config_path = os.path.join(output_dir, "config.json")
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
 
-    print(f"✓ Vercel prebuilt bundle configured at {OUTPUT_DIR}")
-    print(f"  - Static asset count: {len(os.listdir(STATIC_DIR))}")
+    return config_path, static_dir, config
+
+def main():
+    print("=== Preparing Prebuilt Vercel Build Output API v3 Structure ===")
+    try:
+        config_path, static_dir, config = prepare_prebuilt()
+    except FileNotFoundError as err:
+        print(f"Error: {err}")
+        print("Run 'flutter build web --release' before preparing prebuilt output.")
+        sys.exit(1)
+
+    print(f"✓ Vercel prebuilt bundle configured at {os.path.dirname(config_path)}")
+    print(f"  - Static asset count: {len(os.listdir(static_dir))}")
     print(f"  - Config generated at: {config_path}")
     print(f"  - Routes defined: {len(config['routes'])}")
     print("✓ Build Output API v3 structure is ready for: vercel deploy --prebuilt")
