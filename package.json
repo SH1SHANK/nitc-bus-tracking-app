@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "bash scripts/vercel-build.sh",
-    "vercel-build": "bash scripts/vercel-build.sh"
+    "build": "echo 'Direct Vercel container builds are disabled. Tracklet uses GitHub Actions prebuilt deployment.' && exit 1"
   }
 }
