@@ -6,12 +6,15 @@ import 'dart:io';
 void main(List<String> args) async {
   String? url;
   String? expectedCommit;
+  String? bypassToken = Platform.environment['VERCEL_PROTECTION_BYPASS'];
 
   for (final arg in args) {
     if (arg.startsWith('--url=')) {
       url = arg.substring('--url='.length).trim();
     } else if (arg.startsWith('--expected-commit=')) {
       expectedCommit = arg.substring('--expected-commit='.length).trim();
+    } else if (arg.startsWith('--bypass-token=')) {
+      bypassToken = arg.substring('--bypass-token='.length).trim();
     } else if (!arg.startsWith('--') && url == null) {
       url = arg.trim();
     }
@@ -20,7 +23,7 @@ void main(List<String> args) async {
   if (url == null || url.isEmpty) {
     stderr.writeln('Error: Missing required --url argument.');
     stderr.writeln(
-      'Usage: dart run tool/verify_vercel_deployment.dart --url=https://<DEPLOYMENT_URL> [--expected-commit=<SHA>]',
+      'Usage: dart run tool/verify_vercel_deployment.dart --url=https://<DEPLOYMENT_URL> [--expected-commit=<SHA>] [--bypass-token=<SECRET>]',
     );
     exit(1);
   }
@@ -43,6 +46,9 @@ void main(List<String> args) async {
   if (expectedCommit != null) {
     stdout.writeln('Expected Commit SHA: $expectedCommit');
   }
+  if (bypassToken != null && bypassToken.isNotEmpty) {
+    stdout.writeln('Protection Bypass:  Active (x-vercel-protection-bypass)');
+  }
   stdout.writeln(
     '================================================================\n',
   );
@@ -52,6 +58,15 @@ void main(List<String> args) async {
         ..connectionTimeout = const Duration(seconds: 15)
         ..badCertificateCallback = (cert, host, port) => false;
 
+  Future<HttpClientRequest> createRequest(Uri uri) async {
+    final req = await client.getUrl(uri);
+    if (bypassToken != null && bypassToken.isNotEmpty) {
+      req.headers.add('x-vercel-protection-bypass', bypassToken);
+      req.headers.add('x-vercel-set-bypass-cookie', 'true');
+    }
+    return req;
+  }
+
   var hasFailure = false;
 
   try {
@@ -60,7 +75,7 @@ void main(List<String> args) async {
     // -------------------------------------------------------------
     stdout.writeln('[1/4] Verifying $url/BUILD_METADATA.json ...');
     final metaUri = Uri.parse('$url/BUILD_METADATA.json');
-    final metaReq = await client.getUrl(metaUri);
+    final metaReq = await createRequest(metaUri);
     final metaRes = await metaReq.close();
 
     if (metaRes.statusCode != 200) {
@@ -122,7 +137,7 @@ void main(List<String> args) async {
     // -------------------------------------------------------------
     stdout.writeln('\n[2/4] Verifying $url/ and HTTP Security Headers ...');
     final rootUri = Uri.parse('$url/');
-    final rootReq = await client.getUrl(rootUri);
+    final rootReq = await createRequest(rootUri);
     final rootRes = await rootReq.close();
     await rootRes.drain<void>();
 
@@ -225,7 +240,7 @@ void main(List<String> args) async {
     // -------------------------------------------------------------
     stdout.writeln('\n[3/4] Verifying SPA rewrite on $url/auth/callback ...');
     final authUri = Uri.parse('$url/auth/callback');
-    final authReq = await client.getUrl(authUri);
+    final authReq = await createRequest(authUri);
     final authRes = await authReq.close();
     final authBody = await utf8.decodeStream(authRes);
 
@@ -251,7 +266,7 @@ void main(List<String> args) async {
     // -------------------------------------------------------------
     stdout.writeln('\n[4/4] Verifying $url/flutter_service_worker.js ...');
     final swUri = Uri.parse('$url/flutter_service_worker.js');
-    final swReq = await client.getUrl(swUri);
+    final swReq = await createRequest(swUri);
     final swRes = await swReq.close();
     await swRes.drain<void>();
 

@@ -166,6 +166,17 @@ jobs:
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
           echo "Deployment completed: $DEPLOYMENT_URL"
 
+          # Determine the target URL for smoke verification:
+          # In production, the public canonical domain is accessible publicly and reflects the live deployment.
+          # For preview environments, target the specific preview deployment URL.
+          if [ "$TARGET_ENV" = "production" ]; then
+            SMOKE_URL="${{ vars.VERCEL_PRODUCTION_URL || 'https://nitc-bus-tracking.vercel.app' }}"
+          else
+            SMOKE_URL="$DEPLOYMENT_URL"
+          fi
+          echo "SMOKE_URL=$SMOKE_URL" >> $GITHUB_ENV
+          echo "Smoke verification URL: $SMOKE_URL"
+
       - name: Scrub .vercel/ local state
         if: always()
         run: rm -rf .vercel
@@ -178,8 +189,9 @@ jobs:
 
       - name: Run post-deployment smoke assertions
         env:
-          DEPLOY_URL: ${{ env.DEPLOYMENT_URL }}
+          DEPLOY_URL: ${{ env.SMOKE_URL }}
           GITHUB_SHA: ${{ github.sha }}
+          VERCEL_PROTECTION_BYPASS: ${{ secrets.VERCEL_PROTECTION_BYPASS }}
         run: |
           dart run tool/verify_vercel_deployment.dart --url="$DEPLOY_URL" --expected-commit="$GITHUB_SHA"
 
