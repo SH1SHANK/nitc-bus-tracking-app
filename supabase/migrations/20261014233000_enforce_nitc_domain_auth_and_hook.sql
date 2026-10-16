@@ -27,12 +27,12 @@ BEGIN
     RETURN false;
   END IF;
 
-  -- Complete domain part must match 'nitc.ac.in' exactly (no subdomains or prefix/suffix spoofing)
-  IF v_parts[2] <> 'nitc.ac.in' THEN
-    RETURN false;
+  -- Domain part must match 'nitc.ac.in' or any department subdomain '*.nitc.ac.in'
+  IF v_parts[2] = 'nitc.ac.in' OR v_parts[2] LIKE '%.nitc.ac.in' THEN
+    RETURN true;
   END IF;
 
-  RETURN true;
+  RETURN false;
 END;
 $$;
 
@@ -347,15 +347,10 @@ AS $$
 DECLARE
   v_email text;
   v_provider text;
+  v_is_anonymous boolean;
   v_email_verified boolean;
   v_email_confirmed_at text;
 BEGIN
-  -- Extract email from incoming event payload (user object or top-level)
-  v_email := COALESCE(
-    event->'user'->>'email',
-    event->>'email'
-  );
-
   -- Extract provider
   v_provider := COALESCE(
     event->'user'->'app_metadata'->>'provider',
@@ -363,6 +358,47 @@ BEGIN
     event->'user'->>'provider',
     ''
   );
+
+  -- Extract is_anonymous
+  v_is_anonymous := COALESCE(
+    (event->'user'->>'is_anonymous')::boolean,
+    (event->>'is_anonymous')::boolean,
+    v_provider = 'anonymous',
+    false
+  );
+
+  -- 1. Allow Anonymous Guest sign-ins
+  IF v_is_anonymous IS TRUE OR v_provider = 'anonymous' THEN
+    RETURN '{}'::jsonb;
+  END IF;
+
+  -- Extract email from incoming event payload (user object, identities, or metadata)
+  v_email := COALESCE(
+    event->'user'->>'email',
+    event->>'email',
+    event->'user'->'user_metadata'->>'email',
+    event->'user'->'identities'->0->'identity_data'->>'email'
+  );
+
+  -- If no email is provided for a non-anonymous account, reject
+  IF v_email IS NULL OR trim(v_email) = '' THEN
+    RETURN jsonb_build_object(
+      'error', jsonb_build_object(
+        'http_code', 403,
+        'message', 'Please sign in using your @nitc.ac.in institute email address.'
+      )
+    );
+  END IF;
+
+  -- 2. Validate complete domain strictly: must be @nitc.ac.in or department subdomain
+  IF NOT public.is_nitc_email(v_email) THEN
+    RETURN jsonb_build_object(
+      'error', jsonb_build_object(
+        'http_code', 403,
+        'message', 'Please sign in using your @nitc.ac.in institute email address.'
+      )
+    );
+  END IF;
 
   -- Extract email verification indicators
   v_email_confirmed_at := COALESCE(
@@ -377,17 +413,7 @@ BEGIN
     false
   );
 
-  -- 1. Validate complete domain strictly: must be @nitc.ac.in
-  IF NOT public.is_nitc_email(v_email) THEN
-    RETURN jsonb_build_object(
-      'error', jsonb_build_object(
-        'http_code', 403,
-        'message', 'Please sign in using your @nitc.ac.in institute email address.'
-      )
-    );
-  END IF;
-
-  -- 2. For Google OAuth registrations, verify that Google verified the email
+  -- 3. For Google OAuth registrations, verify that Google verified the email
   IF v_provider = 'google' THEN
     IF NOT (v_email_verified IS TRUE OR v_email_confirmed_at IS NOT NULL) THEN
       RETURN jsonb_build_object(
