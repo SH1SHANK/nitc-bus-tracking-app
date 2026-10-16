@@ -9,6 +9,7 @@ import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -23,6 +24,7 @@ class BusDetailSheet extends StatefulWidget {
     this.eta = const BusEtaResult.unavailable(
       BusEtaStatus.unresolvedStopProgress,
     ),
+    this.isFollowing = false,
     required this.onClose,
     this.onFollowBus,
     this.onFitRoute,
@@ -34,6 +36,7 @@ class BusDetailSheet extends StatefulWidget {
   final List<RouteStopOccurrence> stopOccurrences;
   final RouteStopOccurrence? nextStop;
   final BusEtaResult eta;
+  final bool isFollowing;
   final VoidCallback onClose;
   final VoidCallback? onFollowBus;
   final VoidCallback? onFitRoute;
@@ -72,23 +75,58 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
         maxHeight: MediaQuery.sizeOf(context).height * 0.56,
       ),
       child: TrackletCard(
-        padding: const EdgeInsets.all(TrackletSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TrackletSpacing.md,
+          vertical: TrackletSpacing.sm + 2,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: TrackletColors.primary.withValues(alpha: 0.12),
+                      borderRadius: TrackletRadii.roundedMd,
+                      border: Border.all(
+                        color: TrackletColors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.directions_bus_rounded,
+                      color: TrackletColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: TrackletSpacing.sm),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(bus.name, style: TrackletTypography.titleLarge),
+                        Text(
+                          bus.name,
+                          style: TrackletTypography.titleMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         if (bus.numberPlate.trim().isNotEmpty)
-                          Text(
-                            bus.numberPlate,
-                            style: TrackletTypography.bodySmall,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 1),
+                            child: Text(
+                              bus.numberPlate,
+                              style: TrackletTypography.caption.copyWith(
+                                color: TrackletColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -107,39 +145,94 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                     onPressed: widget.onClose,
                     icon: const Icon(Icons.close_rounded),
                     constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
+                      minWidth: TrackletSpacing.minTouchTarget,
+                      minHeight: TrackletSpacing.minTouchTarget,
                     ),
+                    padding: EdgeInsets.zero,
                   ),
                 ],
               ),
-              const SizedBox(height: TrackletSpacing.xs),
+              const SizedBox(height: 6),
               Text(
                 widget.route?.name ?? 'Route unavailable',
-                style: TrackletTypography.bodyMedium.copyWith(
+                style: TrackletTypography.bodySmall.copyWith(
                   color: TrackletColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               if (widget.route?.description?.trim().isNotEmpty == true)
-                Text(
-                  widget.route!.description!.trim(),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TrackletTypography.bodySmall.copyWith(
-                    color: TrackletColors.textSecondary,
-                  ),
-                ),
-              const SizedBox(height: TrackletSpacing.sm),
-              Row(
-                children: [
-                  const Expanded(child: Text('Next stop')),
-                  Text(
-                    widget.nextStop?.stop?.name ?? 'Unavailable',
-                    style: TrackletTypography.labelLarge.copyWith(
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    widget.route!.description!.trim(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TrackletTypography.caption.copyWith(
                       color: TrackletColors.textSecondary,
                     ),
                   ),
-                ],
+                ),
+              const SizedBox(height: TrackletSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: const BoxDecoration(
+                  color: TrackletColors.background,
+                  borderRadius: TrackletRadii.roundedSm,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.place_rounded,
+                      size: 15,
+                      color: TrackletColors.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Next stop',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: TrackletColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        widget.nextStop?.stop?.name ?? 'Unavailable',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TrackletTypography.labelMedium.copyWith(
+                          color: TrackletColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (widget.eta.isValid)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TrackletColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          widget.eta.displayValue,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: TrackletColors.primary,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               Align(
                 alignment: Alignment.centerLeft,
@@ -149,8 +242,18 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         _expanded = !_expanded;
                         widget.onExpandedChanged?.call(_expanded);
                       }),
-                  icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+                  icon: Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                  ),
                   label: Text(_expanded ? 'Less detail' : 'More detail'),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                  ),
                 ),
               ),
               AnimatedSize(
@@ -161,11 +264,12 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Divider(height: TrackletSpacing.md),
+                            const Divider(height: 12),
                             Row(
                               children: [
                                 Expanded(
                                   child: _DetailValue(
+                                    icon: Icons.speed_rounded,
                                     label: 'Speed',
                                     value:
                                         bus.position.hasSpeed
@@ -175,14 +279,18 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                             : '--',
                                   ),
                                 ),
+                                const SizedBox(width: TrackletSpacing.xs),
                                 Expanded(
                                   child: _DetailValue(
+                                    icon: Icons.timer_outlined,
                                     label: 'ETA',
                                     value: widget.eta.displayValue,
                                   ),
                                 ),
+                                const SizedBox(width: TrackletSpacing.xs),
                                 Expanded(
                                   child: _DetailValue(
+                                    icon: Icons.schedule_rounded,
                                     label: 'Updated',
                                     value: TransitFormatter.formatLastUpdated(
                                       bus.lastUpdated,
@@ -192,21 +300,84 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                               ],
                             ),
                             if (widget.stopOccurrences.isNotEmpty) ...[
-                              const SizedBox(height: TrackletSpacing.md),
+                              const SizedBox(height: TrackletSpacing.sm),
                               const Text(
                                 'Upcoming stops',
                                 style: TrackletTypography.labelLarge,
                               ),
-                              const SizedBox(height: TrackletSpacing.xs),
+                              const SizedBox(height: 4),
                               for (final occurrence in widget.stopOccurrences)
                                 if (occurrence.stop != null)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 3,
+                                      vertical: 2,
                                     ),
-                                    child: Text(
-                                      '${occurrence.sequence + 1}. ${occurrence.stop!.name}',
-                                      style: TrackletTypography.bodySmall,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                occurrence.stopId ==
+                                                        widget.nextStop?.stopId
+                                                    ? TrackletColors.primary
+                                                    : TrackletColors
+                                                        .textSecondary
+                                                        .withValues(alpha: 0.4),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            '${occurrence.sequence + 1}. ${occurrence.stop!.name}',
+                                            style: TrackletTypography.bodySmall
+                                                .copyWith(
+                                                  fontWeight:
+                                                      occurrence.stopId ==
+                                                              widget
+                                                                  .nextStop
+                                                                  ?.stopId
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w400,
+                                                  color:
+                                                      occurrence.stopId ==
+                                                              widget
+                                                                  .nextStop
+                                                                  ?.stopId
+                                                          ? TrackletColors
+                                                              .textPrimary
+                                                          : TrackletColors
+                                                              .textSecondary,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (occurrence.stopId ==
+                                            widget.nextStop?.stopId)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 1,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: TrackletColors.primary
+                                                  .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'Next',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: TrackletColors.primary,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                             ] else if (widget
@@ -214,7 +385,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                     ?.stopOccurrences
                                     .isNotEmpty ==
                                 true) ...[
-                              const SizedBox(height: TrackletSpacing.md),
+                              const SizedBox(height: TrackletSpacing.sm),
                               const Text(
                                 'Stop progress unavailable',
                                 style: TrackletTypography.bodySmall,
@@ -227,13 +398,25 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                 if (widget.onFollowBus != null)
                                   TextButton.icon(
                                     onPressed: widget.onFollowBus,
-                                    icon: const Icon(Icons.my_location_rounded),
+                                    icon: const Icon(
+                                      Icons.my_location_rounded,
+                                      size: 16,
+                                    ),
                                     label: const Text('Follow bus'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          widget.isFollowing
+                                              ? TrackletColors.primary
+                                              : null,
+                                    ),
                                   ),
                                 if (widget.onFitRoute != null)
                                   TextButton.icon(
                                     onPressed: widget.onFitRoute,
-                                    icon: const Icon(Icons.route_rounded),
+                                    icon: const Icon(
+                                      Icons.route_rounded,
+                                      size: 16,
+                                    ),
                                     label: const Text('Fit route'),
                                   ),
                               ],
@@ -251,17 +434,53 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
 }
 
 class _DetailValue extends StatelessWidget {
-  const _DetailValue({required this.label, required this.value});
+  const _DetailValue({required this.label, required this.value, this.icon});
 
   final String label;
   final String value;
+  final IconData? icon;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: TrackletTypography.bodySmall),
-      Text(value, style: TrackletTypography.labelLarge),
-    ],
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+    decoration: BoxDecoration(
+      color: TrackletColors.background2,
+      borderRadius: TrackletRadii.roundedSm,
+      border: Border.all(color: TrackletColors.border),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 12, color: TrackletColors.textSecondary),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                style: TrackletTypography.caption.copyWith(
+                  color: TrackletColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TrackletTypography.labelMedium.copyWith(
+            fontWeight: FontWeight.w700,
+            color: TrackletColors.textPrimary,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
   );
 }

@@ -11,11 +11,13 @@ class MapControls extends StatelessWidget {
     required this.onRecenterCampus,
     this.onRecenterBus,
     this.onFitRoute,
+    this.onRecenterUser,
   });
 
   final VoidCallback onRecenterCampus;
   final VoidCallback? onRecenterBus;
   final VoidCallback? onFitRoute;
+  final VoidCallback? onRecenterUser;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,19 @@ class MapControls extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onRecenterUser != null) ...[
+              _ControlButton(
+                icon: Icons.my_location_rounded,
+                tooltip: 'Recenter on your location',
+                onPressed: onRecenterUser!,
+              ),
+              const Divider(
+                height: 1,
+                indent: 8,
+                endIndent: 8,
+                color: TrackletColors.border,
+              ),
+            ],
             if (onRecenterBus != null) ...[
               _ControlButton(
                 icon: Icons.directions_bus_filled_rounded,

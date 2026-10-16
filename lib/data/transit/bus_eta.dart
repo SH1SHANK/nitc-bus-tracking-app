@@ -4,6 +4,7 @@ import '../../core/geo/geo_point.dart';
 import 'bus_stop_progress.dart';
 import 'bus.dart';
 import 'bus_telemetry.dart';
+import 'route_stop_occurrence.dart';
 
 enum BusEtaStatus {
   valid,
@@ -26,6 +27,8 @@ class BusEtaResult {
     this.distanceMeters,
     this.busProgressMeters,
     this.smoothedSpeedMetersPerSecond,
+    this.stopsAway,
+    this.targetStopName,
   });
 
   const BusEtaResult.unavailable(BusEtaStatus reason) : this._(reason);
@@ -35,12 +38,16 @@ class BusEtaResult {
     required double distanceMeters,
     required double busProgressMeters,
     required double smoothedSpeedMetersPerSecond,
+    int? stopsAway,
+    String? targetStopName,
   }) : this._(
          BusEtaStatus.valid,
          minutes: minutes,
          distanceMeters: distanceMeters,
          busProgressMeters: busProgressMeters,
          smoothedSpeedMetersPerSecond: smoothedSpeedMetersPerSecond,
+         stopsAway: stopsAway,
+         targetStopName: targetStopName,
        );
 
   final BusEtaStatus status;
@@ -48,8 +55,32 @@ class BusEtaResult {
   final double? distanceMeters;
   final double? busProgressMeters;
   final double? smoothedSpeedMetersPerSecond;
+  final int? stopsAway;
+  final String? targetStopName;
+
   bool get isValid => status == BusEtaStatus.valid;
   String get displayValue => isValid ? '$minutes min' : 'Unavailable';
+
+  BusEtaResult copyWith({
+    BusEtaStatus? status,
+    int? minutes,
+    double? distanceMeters,
+    double? busProgressMeters,
+    double? smoothedSpeedMetersPerSecond,
+    int? stopsAway,
+    String? targetStopName,
+  }) {
+    return BusEtaResult._(
+      status ?? this.status,
+      minutes: minutes ?? this.minutes,
+      distanceMeters: distanceMeters ?? this.distanceMeters,
+      busProgressMeters: busProgressMeters ?? this.busProgressMeters,
+      smoothedSpeedMetersPerSecond:
+          smoothedSpeedMetersPerSecond ?? this.smoothedSpeedMetersPerSecond,
+      stopsAway: stopsAway ?? this.stopsAway,
+      targetStopName: targetStopName ?? this.targetStopName,
+    );
+  }
 }
 
 class RouteProjection {
@@ -234,7 +265,7 @@ abstract final class BusEtaCalculator {
     if (routeLength <= 0.01) {
       return const BusEtaResult.unavailable(BusEtaStatus.invalidGeometry);
     }
-    final busCandidates =
+    var busCandidates =
         RouteProgressProjector.candidates(route, bus.position.point)
             .where(
               (projection) =>
@@ -250,13 +281,44 @@ abstract final class BusEtaCalculator {
       progress.nextStop!.stop!.location,
     );
     final knownStopDistance = progress.nextStop!.distanceFromStart;
-    final isLoop =
-        progress.isLoopRoute || route.first.distanceToMeters(route.last) <= 10;
+    final isClosedPath = route.first.distanceToMeters(route.last) <= 10;
+    final isOutAndBack =
+        progress.isOutAndBack || (!progress.isLoopRoute && isClosedPath);
+    final isLoop = (progress.isLoopRoute || isClosedPath) && !isOutAndBack;
     final isLoopSeamStop =
         isLoop &&
         knownStopDistance != null &&
         knownStopDistance <= 50 &&
         progress.nextStop!.stop!.location.distanceToMeters(route.first) <= 50;
+
+    final isReturnLeg =
+        progress.direction.toLowerCase() == 'reverse' ||
+        progress.direction.toLowerCase() == 'backward';
+
+    if (isOutAndBack) {
+      final half = routeLength / 2;
+      final filteredBus =
+          isReturnLeg
+              ? busCandidates.where((c) => c.alongMeters >= half - 100).toList()
+              : busCandidates
+                  .where((c) => c.alongMeters <= half + 100)
+                  .toList();
+      if (filteredBus.isNotEmpty) {
+        busCandidates = filteredBus;
+      }
+      final filteredStop =
+          isReturnLeg
+              ? stopCandidates
+                  .where((c) => c.alongMeters >= half - 100)
+                  .toList()
+              : stopCandidates
+                  .where((c) => c.alongMeters <= half + 100)
+                  .toList();
+      if (filteredStop.isNotEmpty) {
+        stopCandidates = filteredStop;
+      }
+    }
+
     if (knownStopDistance != null && knownStopDistance >= 0) {
       stopCandidates =
           stopCandidates
@@ -283,9 +345,7 @@ abstract final class BusEtaCalculator {
         BusEtaStatus.stopProjectionUnavailable,
       );
     }
-    final reverse =
-        progress.direction.toLowerCase() == 'reverse' ||
-        progress.direction.toLowerCase() == 'backward';
+    final reverse = !isOutAndBack && isReturnLeg;
     final pairs =
         <
           ({
@@ -363,6 +423,123 @@ abstract final class BusEtaCalculator {
       distanceMeters: pairs.first.distance,
       busProgressMeters: pairs.first.bus.alongMeters,
       smoothedSpeedMetersPerSecond: speed,
+      stopsAway: 1,
+      targetStopName: progress.nextStop?.stop?.name,
+    );
+  }
+
+  /// Calculates ETA for any target stop along the bus's active route journey.
+  /// If [targetStopId] is the immediate next stop, returns direct map-matched ETA.
+  /// If [targetStopId] is further along [upcomingStops], incorporates the inter-stop
+  /// journey duration and stops-away count.
+  static BusEtaResult calculateForStop({
+    required Bus bus,
+    required List<GeoPoint> route,
+    required BusStopProgress? progress,
+    required String targetStopId,
+    required List<RouteStopOccurrence> stopOccurrences,
+    DateTime Function()? clock,
+    double? previousProgressMeters,
+    double? previousSpeedMetersPerSecond,
+  }) {
+    if (progress == null || progress.nextStop == null) {
+      return const BusEtaResult.unavailable(
+        BusEtaStatus.unresolvedStopProgress,
+      );
+    }
+
+    // 1. Calculate base ETA to the bus's immediate next stop
+    final baseEta = calculate(
+      bus: bus,
+      route: route,
+      progress: progress,
+      clock: clock ?? DateTime.now,
+      previousProgressMeters: previousProgressMeters,
+      previousSpeedMetersPerSecond: previousSpeedMetersPerSecond,
+    );
+
+    // If base ETA is unavailable, we cannot project further stops
+    if (!baseEta.isValid) {
+      return baseEta;
+    }
+
+    final nextStop = progress.nextStop!;
+
+    // Case A: Target stop IS the immediate next stop
+    if (nextStop.stopId == targetStopId) {
+      return baseEta.copyWith(
+        stopsAway: 1,
+        targetStopName: nextStop.stop?.name,
+      );
+    }
+
+    // Case B: Target stop is in the upcoming stops sequence
+    final upcomingIndex = progress.upcomingStops.indexWhere(
+      (occurrence) => occurrence.stopId == targetStopId,
+    );
+
+    if (upcomingIndex < 0) {
+      // The bus has either already passed this stop or is on the opposing leg
+      return const BusEtaResult.unavailable(
+        BusEtaStatus.unresolvedStopProgress,
+      );
+    }
+
+    final targetOccurrence = progress.upcomingStops[upcomingIndex];
+    final stopsAway =
+        upcomingIndex +
+        1; // 1-based count since upcomingStops starts at nextStop
+
+    // Calculate additional distance and duration between nextStop and targetStop
+    double additionalDistance = 0.0;
+    int additionalSeconds = 0;
+
+    // Use distanceFromStart or pairwise distance
+    if (nextStop.distanceFromStart != null &&
+        targetOccurrence.distanceFromStart != null &&
+        targetOccurrence.distanceFromStart! >= nextStop.distanceFromStart!) {
+      additionalDistance =
+          targetOccurrence.distanceFromStart! - nextStop.distanceFromStart!;
+    } else {
+      // Approximate from haversine distance along intermediate stops
+      var prevLoc = nextStop.stop?.location;
+      for (var i = 0; i <= upcomingIndex; i++) {
+        final loc = progress.upcomingStops[i].stop?.location;
+        if (prevLoc != null && loc != null) {
+          additionalDistance += prevLoc.distanceToMeters(loc);
+        }
+        prevLoc = loc;
+      }
+    }
+
+    // Estimated duration from timetable metadata or average campus transit speed (18 km/h = 5 m/s)
+    if (nextStop.estimatedDurationSec != null &&
+        targetOccurrence.estimatedDurationSec != null &&
+        targetOccurrence.estimatedDurationSec! >=
+            nextStop.estimatedDurationSec!) {
+      additionalSeconds =
+          targetOccurrence.estimatedDurationSec! -
+          nextStop.estimatedDurationSec!;
+    } else {
+      final speed = math.max(4.0, baseEta.smoothedSpeedMetersPerSecond ?? 5.0);
+      additionalSeconds = (additionalDistance / speed).round();
+      // Add dwell time per intermediate stop (~30 seconds each)
+      additionalSeconds += upcomingIndex * 30;
+    }
+
+    final additionalMinutes = (additionalSeconds / 60).round();
+    final totalMinutes = (baseEta.minutes! + additionalMinutes).clamp(
+      minMinutes,
+      maxMinutes,
+    );
+
+    return BusEtaResult.valid(
+      minutes: totalMinutes,
+      distanceMeters: (baseEta.distanceMeters ?? 0) + additionalDistance,
+      busProgressMeters: baseEta.busProgressMeters ?? 0,
+      smoothedSpeedMetersPerSecond: baseEta.smoothedSpeedMetersPerSecond ?? 5.0,
+      stopsAway: stopsAway,
+      targetStopName: targetOccurrence.stop?.name,
     );
   }
 }

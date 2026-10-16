@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../core/geo/geo_point.dart';
 import 'route_geometry.dart';
 import 'route_stop_occurrence.dart';
@@ -9,7 +11,7 @@ class BusRoute {
     required this.id,
     required this.name,
     required this.code,
-    this.colorHex = '#0B6BCB',
+    this.colorHex = '#64748B',
     this.description,
     this.direction = 'forward',
     this.geometry = const RouteGeometry.missing(),
@@ -38,6 +40,15 @@ class BusRoute {
   bool get isGeometryAvailable => geometry.isAvailable;
   bool get isGeometryMissing => geometry.isMissing;
   bool get isGeometryInvalid => geometry.isInvalid;
+
+  Color get color {
+    final cleanHex = colorHex.replaceAll('#', '');
+    final value = int.tryParse(cleanHex, radix: 16);
+    if (value == null) return const Color(0xFF64748B);
+    if (cleanHex.length == 6) return Color(0xFF000000 | value);
+    if (cleanHex.length == 8) return Color(value);
+    return const Color(0xFF64748B);
+  }
 
   BusRoute copyWith({
     String? id,
@@ -107,13 +118,16 @@ class BusRoute {
 
     final rawStops = json['stop_ids'] as List<dynamic>? ?? [];
     final summary = json['stops_summary'] as String?;
+    final normalizedOccurrences = RouteStopOccurrence.normalizeOutAndBack(
+      stopOccurrences,
+    );
     final parsedStops =
-        rawStops.isNotEmpty
+        normalizedOccurrences.isNotEmpty
+            ? normalizedOccurrences.map((o) => o.stopId).toList()
+            : rawStops.isNotEmpty
             ? rawStops.map((stopId) => stopId.toString()).toList()
             : summary == null
-            ? (stopOccurrences.isNotEmpty
-                ? stopOccurrences.map((o) => o.stopId).toList()
-                : <String>[])
+            ? <String>[]
             : _stopIdsFromSummary(summary, stops);
     final name =
         (json['name'] ?? json['route_name'] ?? 'Campus route') as String;
@@ -121,17 +135,23 @@ class BusRoute {
         (json['route_code'] ?? json['code']) as String? ??
         _routeCodeFromName(name);
 
+    final rawColor = (json['route_color'] ?? json['color_hex']) as String?;
+    final colorHex =
+        (rawColor != null && rawColor.trim().isNotEmpty)
+            ? rawColor.trim()
+            : '#64748B';
+
     return BusRoute(
       id: (json['id'] ?? json['bus_id']) as String,
       name: name,
       code: code,
-      colorHex: json['color_hex'] as String? ?? _colorForRouteCode(code),
+      colorHex: colorHex,
       description: json['description'] as String? ?? summary,
       direction: direction,
       geometry: parsedGeometry,
       path: parsedGeometry.isAvailable ? parsedGeometry.path : const [],
       stopIds: parsedStops,
-      stopOccurrences: stopOccurrences,
+      stopOccurrences: normalizedOccurrences,
       pathSource: pathSource,
       pathVerified: pathVerified,
       isActive: json['is_active'] as bool? ?? true,
@@ -141,16 +161,6 @@ class BusRoute {
   static String _routeCodeFromName(String name) {
     final match = RegExp(r'\(([^)]+)\)').firstMatch(name);
     return match?.group(1) ?? 'ROUTE';
-  }
-
-  static String _colorForRouteCode(String code) {
-    return switch (code.toUpperCase()) {
-      'R1' => '#0B6BCB',
-      'R2' => '#00875A',
-      'R3' => '#E67700',
-      'R4' => '#C92A2A',
-      _ => '#0B6BCB',
-    };
   }
 
   static List<String> _stopIdsFromSummary(String summary, List<Stop> stops) {

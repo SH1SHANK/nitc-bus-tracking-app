@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/preferences/user_preferences.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
+import '../../../data/transit/bus_stop_progress.dart';
 import '../../../data/transit/scheduled_departure.dart';
 import '../../../data/transit/stop.dart';
 import '../../../data/transit/transit_repository.dart';
@@ -58,16 +60,117 @@ class HomeTransitState {
   }
 }
 
+class LiveTransitPollingState {
+  const LiveTransitPollingState({
+    this.buses = const [],
+    this.lastSuccessfulUpdate,
+    this.isRefreshing = false,
+    this.error,
+  });
+
+  final List<Bus> buses;
+  final DateTime? lastSuccessfulUpdate;
+  final bool isRefreshing;
+  final Object? error;
+
+  LiveTransitPollingState copyWith({
+    List<Bus>? buses,
+    DateTime? lastSuccessfulUpdate,
+    bool? isRefreshing,
+    Object? error,
+  }) {
+    return LiveTransitPollingState(
+      buses: buses ?? this.buses,
+      lastSuccessfulUpdate: lastSuccessfulUpdate ?? this.lastSuccessfulUpdate,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
+      error: error,
+    );
+  }
+}
+
+class LiveTransitPollingNotifier extends Notifier<LiveTransitPollingState> {
+  Timer? _timer;
+  bool _isRefreshing = false;
+  bool _isPaused = false;
+  bool _isDisposed = false;
+  int _refreshGeneration = 0;
+
+  @override
+  LiveTransitPollingState build() {
+    _isDisposed = false;
+    ref.onDispose(() {
+      _isDisposed = true;
+      _timer?.cancel();
+    });
+    _startPolling();
+    return const LiveTransitPollingState();
+  }
+
+  void _startPolling() {
+    _timer?.cancel();
+    Future.microtask(() => refresh());
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (!_isPaused) {
+        refresh();
+      }
+    });
+  }
+
+  void pause() {
+    _isPaused = true;
+  }
+
+  void resume() {
+    if (_isPaused) {
+      _isPaused = false;
+      refresh();
+    }
+  }
+
+  Future<void> refresh({bool force = false}) async {
+    if (_isRefreshing && !force) return;
+    final gen = ++_refreshGeneration;
+    _isRefreshing = true;
+    if (!_isDisposed) {
+      state = state.copyWith(isRefreshing: true);
+    }
+
+    try {
+      final repository = ref.read(transitRepositoryProvider);
+      final activeBuses = await repository.getActiveBuses();
+      if (_isDisposed || gen != _refreshGeneration) return;
+      state = LiveTransitPollingState(
+        buses: activeBuses,
+        lastSuccessfulUpdate: DateTime.now(),
+        isRefreshing: false,
+        error: null,
+      );
+    } catch (e) {
+      if (_isDisposed || gen != _refreshGeneration) return;
+      state = state.copyWith(isRefreshing: false, error: e);
+    } finally {
+      if (gen == _refreshGeneration) {
+        _isRefreshing = false;
+      }
+    }
+  }
+}
+
+final liveTransitPollingProvider = NotifierProvider.autoDispose<
+  LiveTransitPollingNotifier,
+  LiveTransitPollingState
+>(LiveTransitPollingNotifier.new);
+
 final activeBusesStreamProvider = StreamProvider.autoDispose<List<Bus>>((ref) {
   final repo = ref.watch(transitRepositoryProvider);
   return repo.watchActiveBuses();
 });
 
-/// Periodic tick stream (every 30 seconds) used for updating live departure ETAs
-/// without causing a top-level screen rebuild.
+/// Periodic tick stream (every 5 seconds) used for dynamic telemetry age updates
+/// ("Updated X ago") and rapid staleness evaluation (>90s) without full screen rebuild.
 final homeClockProvider = StreamProvider.autoDispose<DateTime>((ref) async* {
   yield DateTime.now();
-  yield* Stream.periodic(const Duration(seconds: 30), (_) => DateTime.now());
+  yield* Stream.periodic(const Duration(seconds: 5), (_) => DateTime.now());
 });
 
 final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
@@ -75,6 +178,7 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
 ) async {
   final profileRepo = ref.watch(profileRepositoryProvider);
   final transitRepo = ref.watch(transitRepositoryProvider);
+  final preferences = ref.watch(userPreferencesProvider);
 
   final (profile, stops, activeBuses, scheduledDepartures) =
       await (
@@ -85,7 +189,18 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
       ).wait;
   final routes = await transitRepo.getRoutes(knownStops: stops);
 
+  final preferredStop =
+      stops
+          .where(
+            (stop) =>
+                stop.id == preferences.preferredStopId ||
+                stop.sourceStopId == preferences.preferredStopId ||
+                stop.name == preferences.preferredStopName,
+          )
+          .firstOrNull;
+
   final selectedStop =
+      preferredStop ??
       stops
           .where(
             (stop) =>
@@ -104,4 +219,34 @@ final homeStateProvider = FutureProvider.autoDispose<HomeTransitState>((
 
     isLoading: false,
   );
+});
+
+/// Batch provider that resolves stop progress for active buses without build-time loops.
+final activeBusesProgressProvider = FutureProvider.autoDispose<
+  Map<String, BusStopProgress?>
+>((ref) async {
+  final repo = ref.watch(transitRepositoryProvider);
+  final pollingBuses = ref.watch(liveTransitPollingProvider).buses;
+  final homeState = await ref.watch(homeStateProvider.future);
+  final activeBuses = pollingBuses.isNotEmpty ? pollingBuses : homeState.buses;
+  final routesById = {for (final route in homeState.routes) route.id: route};
+
+  final progressMap = <String, BusStopProgress?>{};
+  for (final bus in activeBuses) {
+    final tripId = bus.tripId;
+    final route = routesById[bus.routeId];
+    if (tripId != null && route != null) {
+      try {
+        final events = await repo.getBusStopEvents(tripId);
+        progressMap[bus.id] = resolveBusStopProgress(
+          routeStops: route.stopOccurrences,
+          events: events,
+          direction: route.direction,
+        );
+      } catch (_) {
+        progressMap[bus.id] = null;
+      }
+    }
+  }
+  return progressMap;
 });

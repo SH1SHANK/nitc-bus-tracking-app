@@ -66,6 +66,44 @@ class RouteStopOccurrence {
     );
   }
 
+  /// Normalizes an out-and-back route stop sequence if intermediate return stops
+  /// were omitted in the source data.
+  ///
+  /// For example, if raw is [MBH, ATM, Dept, Arch, EastCampus, MBH], expands to:
+  /// [MBH, ATM, Dept, Arch, EastCampus, Arch, Dept, ATM, MBH].
+  /// If intermediate stops already contain duplicates, returns [raw] unchanged.
+  static List<RouteStopOccurrence> normalizeOutAndBack(
+    List<RouteStopOccurrence> raw,
+  ) {
+    if (raw.length < 6) return raw;
+    if (raw.first.stopId != raw.last.stopId) return raw;
+
+    final intermediate = raw.sublist(1, raw.length - 1);
+    final intermediateIds = intermediate.map((o) => o.stopId).toList();
+    final uniqueIds = intermediateIds.toSet();
+
+    // Already has return visits or loop stops
+    if (uniqueIds.length < intermediateIds.length) {
+      return raw;
+    }
+
+    final returnLegStops =
+        intermediate.sublist(0, intermediate.length - 1).reversed.toList();
+    if (returnLegStops.isEmpty) return raw;
+
+    final result = <RouteStopOccurrence>[];
+    var seq = 0;
+    for (var i = 0; i < raw.length - 1; i++) {
+      result.add(raw[i].copyWith(sequence: seq++));
+    }
+    for (final occurrence in returnLegStops) {
+      result.add(occurrence.copyWith(sequence: seq++));
+    }
+    result.add(raw.last.copyWith(sequence: seq++));
+
+    return result;
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

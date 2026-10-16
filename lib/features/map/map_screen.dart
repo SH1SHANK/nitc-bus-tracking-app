@@ -13,11 +13,13 @@ import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/maps/map_adapter.dart';
 import '../../services/maps/map_config.dart';
+import '../../data/preferences/user_preferences.dart';
 import '../../data/transit/bus.dart';
 import '../../data/transit/bus_eta.dart';
 import '../../data/transit/bus_route.dart';
 import '../../data/transit/route_stop_occurrence.dart';
 import '../../data/transit/stop.dart';
+import '../../services/location/location_service.dart';
 import '../home/providers/home_provider.dart';
 import 'bus_stop_progress.dart';
 import 'providers/map_state_provider.dart';
@@ -450,6 +452,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final selectedRoute = mapState.selectedRoute;
     final routeAccentColor =
         selectedRoute == null ? null : _routeColor(selectedRoute);
+    final locationState = ref.watch(locationStateProvider);
+    final userLocation = locationState.currentLocation;
+    final preferredStopId = ref.watch(userPreferencesProvider).preferredStopId;
 
     ref.watch(homeClockProvider);
     final liveBusesAsync = ref.watch(activeBusesStreamProvider);
@@ -607,6 +612,39 @@ class _MapScreenState extends ConsumerState<MapScreen>
             onTap: () => _selectBus(bus),
           ),
         ),
+      if (userLocation != null)
+        MapMarkerData(
+          id: 'user-location-marker',
+          point: userLocation,
+          title: 'You',
+          width: 32,
+          height: 32,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: TrackletColors.primary.withValues(alpha: 0.18),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: TrackletColors.primary,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.my_location_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
     ];
 
     final polylines = <MapPolylineData>[];
@@ -655,14 +693,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
             : routeStopCoordinates;
     final isBusDetailsVisible = selectedBus != null;
     final isStopDetailsVisible = mapState.selectedStop != null;
+    const sheetBottom = 20.0;
+    final maxControlsHeight = MediaQuery.sizeOf(context).height - 180.0;
     final controlsBottom =
         isBusDetailsVisible && _isBusDetailsExpanded
-            ? MediaQuery.sizeOf(context).height * 0.60
-            : isBusDetailsVisible || isStopDetailsVisible
-            ? 188.0
+            ? (MediaQuery.sizeOf(context).height * 0.56 + sheetBottom + 8.0)
+                .clamp(0.0, maxControlsHeight)
+            : isBusDetailsVisible
+            ? (sheetBottom + 190.0).clamp(0.0, maxControlsHeight)
+            : isStopDetailsVisible
+            ? (sheetBottom + 210.0).clamp(0.0, maxControlsHeight)
             : _isRouteDetailsExpanded
-            ? MediaQuery.sizeOf(context).height * 0.54 + TrackletSpacing.md
-            : (selectedRoute != null ? 92.0 : 28.0);
+            ? (MediaQuery.sizeOf(context).height * 0.54 + sheetBottom + 8.0)
+                .clamp(0.0, maxControlsHeight)
+            : (selectedRoute != null ? sheetBottom + 84.0 : sheetBottom + 8.0);
 
     return Scaffold(
       backgroundColor: TrackletColors.background,
@@ -869,6 +913,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         setState(() => _followingBusId = null);
                         _fitSelectedRouteStops(routeFitCoordinates);
                       },
+              onRecenterUser:
+                  userLocation == null
+                      ? null
+                      : () {
+                        setState(() => _followingBusId = null);
+                        final disableAnimations =
+                            MediaQuery.maybeDisableAnimationsOf(context) ??
+                            false;
+                        _mapController.animatedMoveTo(
+                          this,
+                          userLocation,
+                          zoom: MapConfig.defaultZoom,
+                          disableAnimations: disableAnimations,
+                        );
+                      },
             ),
           ),
           if (selectedBus != null && _followingBusId == null)
@@ -892,7 +951,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           Positioned(
             left: TrackletSpacing.screenMargin,
             right: TrackletSpacing.screenMargin,
-            bottom: TrackletSpacing.sm,
+            bottom: sheetBottom,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
               switchInCurve: Curves.easeOutCubic,
@@ -919,6 +978,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             stopProgress?.upcomingStops ?? const [],
                         nextStop: stopProgress?.nextStop,
                         eta: selectedBusEta,
+                        isFollowing: _followingBusId == selectedBus.id,
                         onFollowBus: () {
                           setState(() => _followingBusId = selectedBus.id);
                           _mapController.animatedMoveTo(
@@ -960,13 +1020,44 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           'stop-details-${mapState.selectedStop!.id}',
                         ),
                         stop: mapState.selectedStop!,
+                        userLocation: userLocation,
+                        isDefaultStop:
+                            mapState.selectedStop!.id == preferredStopId,
                         routes: mapState.routes,
+                        buses: liveBuses,
                         onClose:
                             () =>
                                 ref
                                     .read(mapStateNotifierProvider.notifier)
                                     .clearSelection(),
                         onSelectRoute: _selectRoute,
+                        onSelectBus: (bus) {
+                          setState(() {
+                            _selectedBus = bus;
+                            _followingBusId = bus.id;
+                          });
+                          _mapController.animatedMoveTo(
+                            this,
+                            bus.position.point,
+                            zoom: MapConfig.defaultZoom,
+                          );
+                        },
+                        onSetAsDefaultStop: () async {
+                          final stop = mapState.selectedStop!;
+                          await ref
+                              .read(userPreferencesProvider.notifier)
+                              .setPreferredStop(stop.id, stop.name);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Set ${stop.name} as your boarding stop',
+                              ),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
                       )
                       : (selectedRoute != null
                           ? RouteStopsSheet(

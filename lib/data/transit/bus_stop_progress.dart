@@ -9,6 +9,7 @@ class BusStopProgress {
     required this.upcomingStops,
     required this.direction,
     this.isLoopRoute = false,
+    this.isOutAndBack = false,
     this.lastEventType,
     this.lastEventAt,
   });
@@ -19,8 +20,33 @@ class BusStopProgress {
   final List<RouteStopOccurrence> upcomingStops;
   final String direction;
   final bool isLoopRoute;
+  final bool isOutAndBack;
   final String? lastEventType;
   final DateTime? lastEventAt;
+
+  BusStopProgress copyWith({
+    Set<String>? visitedStopIds,
+    String? currentStopId,
+    RouteStopOccurrence? nextStop,
+    List<RouteStopOccurrence>? upcomingStops,
+    String? direction,
+    bool? isLoopRoute,
+    bool? isOutAndBack,
+    String? lastEventType,
+    DateTime? lastEventAt,
+  }) {
+    return BusStopProgress(
+      visitedStopIds: visitedStopIds ?? this.visitedStopIds,
+      currentStopId: currentStopId ?? this.currentStopId,
+      nextStop: nextStop ?? this.nextStop,
+      upcomingStops: upcomingStops ?? this.upcomingStops,
+      direction: direction ?? this.direction,
+      isLoopRoute: isLoopRoute ?? this.isLoopRoute,
+      isOutAndBack: isOutAndBack ?? this.isOutAndBack,
+      lastEventType: lastEventType ?? this.lastEventType,
+      lastEventAt: lastEventAt ?? this.lastEventAt,
+    );
+  }
 }
 
 BusStopProgress? resolveBusStopProgress({
@@ -28,13 +54,21 @@ BusStopProgress? resolveBusStopProgress({
   required List<BusStopEvent> events,
   required String direction,
 }) {
-  final stops = [...routeStops]
+  final normalized = RouteStopOccurrence.normalizeOutAndBack(routeStops);
+  final stops = [...normalized]
     ..sort((a, b) => a.sequence.compareTo(b.sequence));
   if (stops.isEmpty || events.isEmpty) return null;
-  final isLoop = stops.length > 1 && stops.first.stopId == stops.last.stopId;
-  final cycleLength = isLoop ? stops.length - 1 : stops.length;
+
   final orderedEvents = [...events]
     ..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+
+  final turnaround = _findTurnaroundIndex(stops);
+  if (turnaround != null) {
+    return _resolveOutAndBack(stops, turnaround, orderedEvents, direction);
+  }
+
+  final isLoop = stops.length > 1 && stops.first.stopId == stops.last.stopId;
+  final cycleLength = isLoop ? stops.length - 1 : stops.length;
 
   final forward = _resolveDirection(
     stops,
@@ -67,6 +101,117 @@ BusStopProgress? resolveBusStopProgress({
   return configuredReverse ? reverse.progress : forward.progress;
 }
 
+int? _findTurnaroundIndex(List<RouteStopOccurrence> stops) {
+  if (stops.length < 5 || stops.first.stopId != stops.last.stopId) return null;
+  for (var i = 1; i < stops.length - 1; i++) {
+    if (stops[i - 1].stopId == stops[i + 1].stopId) {
+      var isSymmetric = true;
+      for (var k = 1; i - k >= 0 && i + k < stops.length; k++) {
+        if (stops[i - k].stopId != stops[i + k].stopId) {
+          isSymmetric = false;
+          break;
+        }
+      }
+      if (isSymmetric) return i;
+    }
+  }
+  return null;
+}
+
+BusStopProgress? _resolveOutAndBack(
+  List<RouteStopOccurrence> stops,
+  int turnaroundIndex,
+  List<BusStopEvent> orderedEvents,
+  String configuredDirection,
+) {
+  var cursor = -1;
+  var lastType = '';
+  DateTime? lastEventAt;
+
+  final reversePreferred =
+      configuredDirection.toLowerCase() == 'reverse' ||
+      configuredDirection.toLowerCase() == 'backward';
+
+  for (final event in orderedEvents) {
+    if (event.type != 'arrived' && event.type != 'departed') continue;
+    lastEventAt = event.occurredAt;
+
+    if (cursor >= 0 &&
+        stops[cursor].stopId == event.stopId &&
+        lastType == 'arrived' &&
+        event.type == 'departed') {
+      lastType = event.type;
+      continue;
+    }
+
+    if (cursor >= 0 &&
+        stops[cursor].stopId == event.stopId &&
+        lastType == event.type) {
+      continue;
+    }
+
+    if (cursor < 0) {
+      final matches = <int>[];
+      for (var i = 0; i < stops.length; i++) {
+        if (stops[i].stopId == event.stopId) matches.add(i);
+      }
+      if (matches.isEmpty) return null;
+      if (matches.length == 1) {
+        cursor = matches.first;
+      } else {
+        if (reversePreferred) {
+          cursor = matches.last;
+        } else if (configuredDirection.toLowerCase() == 'forward') {
+          cursor = matches.first;
+        } else {
+          return null;
+        }
+      }
+      lastType = event.type;
+      continue;
+    }
+
+    var matched = false;
+    for (var i = cursor + 1; i < stops.length; i++) {
+      if (stops[i].stopId == event.stopId) {
+        cursor = i;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      return null;
+    }
+    lastType = event.type;
+  }
+
+  if (cursor < 0) return null;
+
+  final hasNext = cursor + 1 < stops.length;
+  final next = hasNext ? stops[cursor + 1] : null;
+  final upcoming =
+      hasNext ? stops.sublist(cursor + 1) : const <RouteStopOccurrence>[];
+
+  final visited = <String>{};
+  for (var i = 0; i <= cursor; i++) {
+    visited.add(stops[i].stopId);
+  }
+
+  final dir = cursor <= turnaroundIndex ? 'forward' : 'reverse';
+
+  return BusStopProgress(
+    visitedStopIds: visited,
+    currentStopId: lastType == 'arrived' ? stops[cursor].stopId : null,
+    nextStop: next,
+    upcomingStops: upcoming,
+    direction: dir,
+    isLoopRoute: false,
+    isOutAndBack: true,
+    lastEventType: lastType,
+    lastEventAt: lastEventAt,
+  );
+}
+
 ({BusStopProgress progress, int skippedStops})? _resolveDirection(
   List<RouteStopOccurrence> stops,
   int cycleLength,
@@ -86,6 +231,11 @@ BusStopProgress? resolveBusStopProgress({
         lastType == 'arrived' &&
         event.type == 'departed') {
       lastType = event.type;
+      continue;
+    }
+    if (cursor >= 0 &&
+        stops[cursor].stopId == event.stopId &&
+        lastType == event.type) {
       continue;
     }
     var matched = false;

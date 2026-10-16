@@ -54,7 +54,7 @@ class SupabaseTransitRepository implements TransitRepository {
       final routeRows = await client
           .from('routes')
           .select(
-            'id,name,route_code,description,direction,path,path_source,path_verified,is_active',
+            'id,name,route_code,description,direction,path,path_source,path_verified,route_color,is_active',
           )
           .eq('is_active', true)
           .order('route_code', ascending: true);
@@ -137,11 +137,13 @@ class SupabaseTransitRepository implements TransitRepository {
           .eq('route_id', routeId)
           .order('sequence', ascending: true);
 
-      return response.map((rawRow) {
-        final row = Map<String, dynamic>.from(rawRow);
-        final stopId = row['stop_id']?.toString() ?? '';
-        return RouteStopOccurrence.fromJson(row, stop: stopMap[stopId]);
-      }).toList();
+      final rawOccurrences =
+          response.map((rawRow) {
+            final row = Map<String, dynamic>.from(rawRow);
+            final stopId = row['stop_id']?.toString() ?? '';
+            return RouteStopOccurrence.fromJson(row, stop: stopMap[stopId]);
+          }).toList();
+      return RouteStopOccurrence.normalizeOutAndBack(rawOccurrences);
     } catch (error, stackTrace) {
       AppLogger.error(
         'Failed to fetch route stops from Supabase',
@@ -179,15 +181,9 @@ class SupabaseTransitRepository implements TransitRepository {
 
   Future<List<Bus>> _fetchActiveBuses(SupabaseClient client) async {
     try {
-      List<dynamic> response;
-      try {
-        response = await client.rpc<List<dynamic>>(
-          'get_active_bus_positions_v2',
-        );
-      } catch (_) {
-        // Older deployments keep the original RPC shape without epoch/seq.
-        response = await client.rpc<List<dynamic>>('get_active_bus_positions');
-      }
+      final response = await client.rpc<List<dynamic>>(
+        'get_active_bus_positions_v2',
+      );
       final buses =
           response
               .map((row) => Bus.fromJson(row as Map<String, dynamic>))
@@ -255,15 +251,13 @@ class SupabaseTransitRepository implements TransitRepository {
         channel =
             client
                 .channel('active-bus-positions')
-                .onPostgresChanges(
-                  event: PostgresChangeEvent.all,
-                  schema: 'public',
-                  table: 'bus_current_state',
+                .onBroadcast(
+                  event: 'bus_state_updated',
                   callback: (_) => unawaited(refresh()),
                 )
                 .subscribe();
-        // Narrow rider RPCs do not grant table SELECT, so retain bounded refresh
-        // even when Realtime row authorization correctly rejects raw state.
+        // Fallback polling retains bounded refresh resilience (every 15s)
+        // alongside instant Realtime Broadcast wake-ups.
         pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
           unawaited(refresh());
         });
