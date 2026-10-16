@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
+import '../../auth/providers/auth_provider.dart';
 
 final profileStateProvider = AsyncNotifierProvider<ProfileNotifier, Profile>(
   () {
@@ -12,6 +13,7 @@ final profileStateProvider = AsyncNotifierProvider<ProfileNotifier, Profile>(
 class ProfileNotifier extends AsyncNotifier<Profile> {
   @override
   Future<Profile> build() async {
+    ref.watch(authNotifierProvider);
     final repo = ref.watch(profileRepositoryProvider);
     return repo.getProfile();
   }
@@ -29,15 +31,5 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
   Future<void> updateProfile(Profile profile) async {
     final repo = ref.read(profileRepositoryProvider);
     await repo.saveProfile(profile);
-    state = AsyncData(profile);
-  }
-
-  Future<void> toggleNotifications(bool enabled) async {
-    final repo = ref.read(profileRepositoryProvider);
-    await repo.updateNotificationPreference(enabled);
-    final current = state.value;
-    if (current != null) {
-      state = AsyncData(current.copyWith(notificationsEnabled: enabled));
-    }
   }
 }

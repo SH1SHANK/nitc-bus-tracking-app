@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../data/preferences/user_preferences.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
-import '../../../data/supabase/supabase_client_provider.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 
 /// Modal dialog strictly conforming to Attendrix DeleleAccountWidget layout and deletion confirmation rules.
@@ -53,28 +53,25 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
     if (!_isConfirmationValid) return;
 
     setState(() => _isDeleting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
 
     try {
-      // Reset local profile and user preferences
+      // 1. Invoke authoritative delete_user_account RPC
+      await ref.read(authNotifierProvider.notifier).deleteAccount();
+
+      // 2. Reset local profile and user preferences
       await ref.read(userPreferencesProvider.notifier).resetPreferences();
       await ref
           .read(profileRepositoryProvider)
           .saveProfile(
             const Profile(
               id: 'guest',
-              name: 'Guest Student',
-              email: 'guest@nitc.ac.in',
+              name: 'Guest Rider',
+              email: '',
+              role: 'Guest',
+              hasCompletedOnboarding: false,
             ),
           );
       ref.invalidate(profileStateProvider);
-
-      try {
-        final supabase = ref.read(supabaseClientProvider);
-        if (supabase != null) {
-          await supabase.auth.signOut();
-        }
-      } catch (_) {}
 
       if (mounted) {
         Navigator.pop(context);
@@ -84,27 +81,41 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
               'Your account has been permanently deleted.',
               style: TrackletFonts.outfit(
                 fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontSize: 13.0,
                 color: TrackletColors.info,
               ),
               textAlign: TextAlign.center,
             ),
-            backgroundColor: TrackletColors.error,
+            backgroundColor: TrackletColors.absentRed,
             duration: const Duration(milliseconds: 3500),
           ),
         );
         context.go('/login');
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _isDeleting = false);
-        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to delete account: $e',
+              style: TrackletFonts.outfit(
+                fontWeight: FontWeight.w500,
+                fontSize: 12.5,
+                color: TrackletColors.info,
+              ),
+            ),
+            backgroundColor: TrackletColors.error,
+          ),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
     return Dialog(
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(
@@ -114,11 +125,12 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
       alignment: Alignment.center,
       child: Container(
         width: double.infinity,
-        constraints: const BoxConstraints(maxWidth: 400.0),
-        decoration: const BoxDecoration(
-          color: TrackletColors.secondaryBackground,
+        constraints: const BoxConstraints(maxWidth: 420.0),
+        decoration: BoxDecoration(
+          color: TrackletColors.adaptiveSurface(context),
           borderRadius: TrackletRadii.roundedLg,
-          boxShadow: [
+          border: Border.all(color: TrackletColors.adaptiveBorder(context)),
+          boxShadow: const [
             BoxShadow(
               blurRadius: 24.0,
               color: TrackletColors.scrim,
@@ -126,204 +138,263 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(TrackletSpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Red Alert Icon Circle
-              Container(
-                width: TrackletSpacing.minTouchTarget,
-                height: TrackletSpacing.minTouchTarget,
-                decoration: const BoxDecoration(
-                  color: TrackletColors.dangerSurface,
-                  borderRadius: TrackletRadii.roundedXl,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(TrackletSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Red Alert Icon Circle
+                Container(
+                  width: 40.0,
+                  height: 40.0,
+                  decoration: BoxDecoration(
+                    color: TrackletColors.absentRed.withValues(
+                      alpha: isDark ? 0.2 : 0.1,
+                    ),
+                    borderRadius: BorderRadius.circular(TrackletRadii.xl),
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: TrackletColors.absentRed,
+                    size: 24.0,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.warning_amber_rounded,
-                  color: TrackletColors.absentRed,
-                  size: 28.0,
+                const SizedBox(height: TrackletSpacing.xs),
+                Text(
+                  'Delete your account?',
+                  textAlign: TextAlign.center,
+                  style: TrackletFonts.outfit(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700,
+                    color: TrackletColors.absentRed,
+                  ),
                 ),
-              ),
-              const SizedBox(height: TrackletSpacing.sm),
-              Text(
-                'Delete your account?',
-                textAlign: TextAlign.center,
-                style: TrackletFonts.outfit(
-                  fontSize: 19.0,
-                  fontWeight: FontWeight.w700,
-                  color: TrackletColors.absentRed,
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.md),
+                const SizedBox(height: TrackletSpacing.sm),
 
-              // Bullet points
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'This action will permanently delete:',
-                      style: TrackletFonts.outfit(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500,
-                        color: TrackletColors.textPrimary,
+                // Prominent Warning Box
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.md,
+                    vertical: TrackletSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TrackletColors.absentRed.withValues(
+                      alpha: isDark ? 0.15 : 0.08,
+                    ),
+                    borderRadius: BorderRadius.circular(TrackletRadii.md),
+                    border: Border.all(
+                      color: TrackletColors.absentRed.withValues(
+                        alpha: isDark ? 0.35 : 0.25,
                       ),
                     ),
-                    const SizedBox(height: TrackletSpacing.compact),
-                    _buildBullet('Your email, student roll number & username'),
-                    const SizedBox(height: TrackletSpacing.xs),
-                    _buildBullet(
-                      'All saved transit preferences & favorite routes',
-                    ),
-                    const SizedBox(height: TrackletSpacing.xs),
-                    _buildBullet('All commute notification registrations'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.lg),
-
-              // Monospace instruction & input
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: TextSpan(
-                    style: TrackletFonts.outfit(
-                      fontSize: 13.0,
-                      color: TrackletColors.secondaryText,
-                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const TextSpan(text: 'Type '),
-                      TextSpan(
-                        text:
-                            widget.username.isNotEmpty
-                                ? widget.username
-                                : 'DELETE',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: TrackletColors.textPrimary,
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: TrackletColors.absentRed,
+                        size: 18.0,
+                      ),
+                      const SizedBox(width: TrackletSpacing.compactMd),
+                      Expanded(
+                        child: Text(
+                          'Warning: This action is permanent. All your saved stops, alert rules, profile details, and login credentials will be erased immediately.',
+                          style: TrackletFonts.outfit(
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w500,
+                            color: TrackletColors.absentRed,
+                            height: 1.35,
+                          ),
                         ),
                       ),
-                      const TextSpan(text: ' to confirm account deletion.'),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: TrackletSpacing.sm),
-              TextFormField(
-                controller: _confirmationController,
-                autofocus: true,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Type ${widget.username} or DELETE',
-                  hintStyle: TrackletFonts.outfit(
-                    fontSize: 13.0,
-                    color: TrackletColors.secondaryText,
-                  ),
-                  filled: true,
-                  fillColor: TrackletColors.dangerInputSurface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: TrackletSpacing.compactLg,
-                    vertical: TrackletSpacing.md,
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: TrackletColors.secondaryText,
-                      width: 1.5,
-                    ),
-                    borderRadius: TrackletRadii.roundedSm,
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: TrackletColors.absentRed,
-                      width: TrackletSpacing.xxs,
-                    ),
-                    borderRadius: TrackletRadii.roundedSm,
-                  ),
-                ),
-                style: TrackletFonts.outfit(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w600,
-                  color: TrackletColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.lg),
+                const SizedBox(height: TrackletSpacing.sm),
 
-              // Delete Account Button (Danger)
-              SizedBox(
-                width: double.infinity,
-                height: TrackletSpacing.minTouchTarget,
-                child: ElevatedButton(
-                  onPressed:
-                      _isConfirmationValid && !_isDeleting
-                          ? _handleDelete
-                          : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TrackletColors.absentRed,
-                    disabledBackgroundColor: TrackletColors.alternate,
-                    foregroundColor: TrackletColors.textInverse,
-                    disabledForegroundColor: TrackletColors.secondaryText,
-                    elevation: 0,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: TrackletRadii.roundedSm,
-                    ),
+                // Bullet points
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'This action will permanently delete:',
+                        style: TrackletFonts.outfit(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: TrackletColors.adaptiveTextPrimary(context),
+                        ),
+                      ),
+                      const SizedBox(height: TrackletSpacing.xs),
+                      _buildBullet(
+                        'Your email, student roll number & username',
+                        isDark,
+                      ),
+                      const SizedBox(height: TrackletSpacing.xxs),
+                      _buildBullet(
+                        'All saved transit preferences & favorite routes',
+                        isDark,
+                      ),
+                      const SizedBox(height: TrackletSpacing.xxs),
+                      _buildBullet(
+                        'All saved device settings and preferences',
+                        isDark,
+                      ),
+                    ],
                   ),
-                  child:
-                      _isDeleting
-                          ? const SizedBox(
-                            width: TrackletSpacing.smallIcon,
-                            height: TrackletSpacing.smallIcon,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              color: TrackletColors.textInverse,
-                            ),
-                          )
-                          : Text(
-                            'Delete Account',
-                            style: TrackletFonts.outfit(
-                              fontSize: 15.0,
-                              fontWeight: FontWeight.w700,
-                            ),
+                ),
+                const SizedBox(height: TrackletSpacing.sm),
+
+                // Monospace instruction & input
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: RichText(
+                    text: TextSpan(
+                      style: TrackletFonts.outfit(
+                        fontSize: 13.0,
+                        color: TrackletColors.adaptiveTextSecondary(context),
+                      ),
+                      children: [
+                        const TextSpan(text: 'Type '),
+                        TextSpan(
+                          text:
+                              widget.username.isNotEmpty
+                                  ? widget.username
+                                  : 'DELETE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
+                        ),
+                        const TextSpan(text: ' to confirm account deletion.'),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: TrackletSpacing.sm),
-
-              // Cancel Button
-              SizedBox(
-                width: double.infinity,
-                height: TrackletSpacing.minTouchTarget,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: TextButton.styleFrom(
-                    backgroundColor: TrackletColors.primaryBackground,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: TrackletRadii.roundedSm,
-                      side: BorderSide(
-                        color: TrackletColors.alternate,
+                const SizedBox(height: TrackletSpacing.sm),
+                TextFormField(
+                  controller: _confirmationController,
+                  autofocus: true,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Type ${widget.username} or DELETE',
+                    hintStyle: TrackletFonts.outfit(
+                      fontSize: 13.0,
+                      color: TrackletColors.adaptiveTextSecondary(context),
+                    ),
+                    filled: true,
+                    fillColor:
+                        isDark
+                            ? TrackletColors.darkSurfaceElevated
+                            : TrackletColors.dangerInputSurface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.compactLg,
+                      vertical: TrackletSpacing.md,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? TrackletColors.darkBorder
+                                : TrackletColors.secondaryText,
                         width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(TrackletRadii.sm),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: TrackletColors.absentRed,
+                        width: TrackletSpacing.xxs,
+                      ),
+                      borderRadius: BorderRadius.circular(TrackletRadii.sm),
+                    ),
+                  ),
+                  style: TrackletFonts.outfit(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w600,
+                    color: TrackletColors.adaptiveTextPrimary(context),
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.lg),
+
+                // Delete Account Button (Danger)
+                SizedBox(
+                  width: double.infinity,
+                  height: TrackletSpacing.minTouchTarget,
+                  child: ElevatedButton(
+                    onPressed:
+                        _isConfirmationValid && !_isDeleting
+                            ? _handleDelete
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TrackletColors.absentRed,
+                      disabledBackgroundColor: TrackletColors.alternate,
+                      foregroundColor: TrackletColors.textInverse,
+                      disabledForegroundColor: TrackletColors.secondaryText,
+                      elevation: 0,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: TrackletRadii.roundedSm,
+                      ),
+                    ),
+                    child:
+                        _isDeleting
+                            ? const SizedBox(
+                              width: TrackletSpacing.smallIcon,
+                              height: TrackletSpacing.smallIcon,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                color: TrackletColors.textInverse,
+                              ),
+                            )
+                            : Text(
+                              'Delete Account',
+                              style: TrackletFonts.outfit(
+                                fontSize: 15.0,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.sm),
+
+                // Cancel Button
+                SizedBox(
+                  width: double.infinity,
+                  height: TrackletSpacing.minTouchTarget,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      backgroundColor: TrackletColors.primaryBackground,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: TrackletRadii.roundedSm,
+                        side: BorderSide(
+                          color: TrackletColors.alternate,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: TrackletFonts.outfit(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.w600,
+                        color: TrackletColors.secondaryText,
                       ),
                     ),
                   ),
-                  child: Text(
-                    'Cancel',
-                    style: TrackletFonts.outfit(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w600,
-                      color: TrackletColors.secondaryText,
-                    ),
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBullet(String text) {
+  Widget _buildBullet(String text, [bool isDark = false]) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -334,8 +405,11 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
           ),
           width: TrackletSpacing.xs,
           height: TrackletSpacing.xs,
-          decoration: const BoxDecoration(
-            color: TrackletColors.primaryText,
+          decoration: BoxDecoration(
+            color:
+                isDark
+                    ? TrackletColors.darkTextSecondary
+                    : TrackletColors.primaryText,
             shape: BoxShape.circle,
           ),
         ),
@@ -345,7 +419,10 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             style: TrackletFonts.outfit(
               fontSize: 13.0,
               fontWeight: FontWeight.w400,
-              color: TrackletColors.textPrimary,
+              color:
+                  isDark
+                      ? TrackletColors.darkTextPrimary
+                      : TrackletColors.textPrimary,
             ),
           ),
         ),

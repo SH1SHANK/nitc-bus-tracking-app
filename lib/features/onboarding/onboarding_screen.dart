@@ -8,7 +8,6 @@ import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/tracklet_fonts.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
-import '../../services/notifications/notification_service.dart';
 import 'providers/onboarding_provider.dart';
 import 'widgets/onboarding_academic_profile_page.dart';
 import 'widgets/onboarding_progress_bar.dart';
@@ -118,6 +117,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final notifier = ref.read(onboardingProvider.notifier);
 
     final showBackButton = state.currentStep < kTotalSteps - 1;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope<Object?>(
       canPop: state.currentStep == 0,
@@ -129,23 +129,36 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: TrackletColors.background,
+        backgroundColor:
+            isDark ? TrackletColors.darkBackground : TrackletColors.background,
         body: DecoratedBox(
           decoration:
               state.currentStep == 1
-                  ? const BoxDecoration(
+                  ? BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFFFAFBFF),
-                        Color(0xFFEAE8F9),
-                        Color(0xFFB5B1E7),
-                      ],
-                      stops: [0, 0.43, 1],
+                      colors:
+                          isDark
+                              ? const [
+                                Color(0xFF161922),
+                                Color(0xFF1B1A33),
+                                Color(0xFF221F45),
+                              ]
+                              : const [
+                                Color(0xFFFAFBFF),
+                                Color(0xFFEAE8F9),
+                                Color(0xFFB5B1E7),
+                              ],
+                      stops: const [0, 0.43, 1],
                     ),
                   )
-                  : const BoxDecoration(color: TrackletColors.background),
+                  : BoxDecoration(
+                    color:
+                        isDark
+                            ? TrackletColors.darkBackground
+                            : TrackletColors.background,
+                  ),
           child: SafeArea(
             child: Column(
               children: [
@@ -239,20 +252,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         initialUsername: state.username,
                         isAvailable: state.isUsernameAvailable,
                         isCheckingUsername: state.isCheckingUsername,
+                        validationError: state.usernameValidationError,
                         onUsernameChanged: (u) => notifier.updateUsername(u),
                         onMagicWandPressed:
                             () => notifier.generateRandomUsername(),
                         onContinue: _next,
                       ),
 
-                      // 2. Combined Permissions (Location & Notifications)
+                      // 2. Campus Location Permission
                       OnboardingStepPermissions(
                         locationGranted: state.locationPermissionGranted,
-                        notificationsGranted:
-                            state.notificationPermissionGranted,
-                        onEnablePermissions: ({
+                        onEnableLocation: ({
                           required bool enableLocation,
-                          required bool enableNotifications,
                         }) async {
                           if (enableLocation) {
                             final perm =
@@ -266,24 +277,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             notifier.setLocationPermission(false);
                           }
 
-                          if (enableNotifications) {
-                            try {
-                              await ref
-                                  .read(notificationServiceProvider)
-                                  .optIn();
-                              notifier.setNotificationPermission(true);
-                            } catch (_) {
-                              notifier.setNotificationPermission(false);
-                            }
-                          } else {
-                            notifier.setNotificationPermission(false);
-                          }
-
                           _next();
                         },
                         onSkip: () {
                           notifier.setLocationPermission(false);
-                          notifier.setNotificationPermission(false);
                           _next();
                         },
                       ),

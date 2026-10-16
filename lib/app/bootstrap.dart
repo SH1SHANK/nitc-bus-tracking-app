@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/logging/app_logger.dart';
 import '../data/supabase/supabase_client_provider.dart';
-import '../services/notifications/notification_service.dart';
 import '../services/storage/storage_service.dart';
 import 'app.dart';
 
@@ -30,15 +29,10 @@ Future<void> bootstrap() async {
   // Initialize Supabase if credentials are provided
   await initializeSupabase();
 
-  // Initialize OneSignal
-  final notificationService = OneSignalNotificationService();
-  await notificationService.initialize();
-
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-        notificationServiceProvider.overrideWithValue(notificationService),
       ],
       child: const TrackletApp(),
     ),

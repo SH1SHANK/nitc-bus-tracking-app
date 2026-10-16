@@ -4,6 +4,7 @@ import '../../../design_system/tokens/tracklet_fonts.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
+import '../../../design_system/tokens/typography.dart';
 
 /// Interactive row item matching Attendrix list item typography, spacing, and switch / chevron alignment.
 class SettingsRowItem extends StatelessWidget {
@@ -116,21 +117,24 @@ class SettingsRowItem extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TrackletFonts.outfit(
+                        style: TrackletTypography.bodyMedium.copyWith(
                           fontSize: 15.0,
-                          fontWeight: FontWeight.w500,
-                          color: titleColor ?? TrackletColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              titleColor ??
+                              TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: TrackletSpacing.xxs),
                         Text(
                           subtitle!,
-                          style: const TextStyle(
-                            fontFamily: 'Satoshi',
+                          style: TrackletTypography.bodySmall.copyWith(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w400,
-                            color: TrackletColors.textSecondary,
+                            color: TrackletColors.adaptiveTextSecondary(
+                              context,
+                            ),
                             height: 1.25,
                           ),
                         ),

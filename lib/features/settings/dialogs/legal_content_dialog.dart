@@ -194,12 +194,12 @@ Last Updated: October 2026
 
 ## 1. Information We Collect
 - **Student Profile**: Name, institutional email (@nitc.ac.in), branch, batch year, current semester, and hostel designation.
-- **Transit Preferences**: Favorite bus stops, preferred routes, time format (12h/24h), and notification lead times.
+- **Transit Preferences**: Favorite bus stops, preferred routes, and time format (12h/24h).
 - **Device Location**: Contextual device GPS is utilized solely for estimating walking distance to campus bus stops when location permission is explicitly granted.
 
 ## 2. How We Use Your Data
 - To provide live bus arrival estimates and route schedules.
-- To dispatch timely push notifications for upcoming bus arrivals and campus transit disruptions.
+- To display live bus positions and route progress on campus.
 - To personalize the commute dashboard based on your preferred stops and semester timetable.
 
 ## 3. Data Storage & Security
@@ -221,7 +221,6 @@ Tracklet is built with gratitude to the open-source software community:
 - **flutter_map & latlong2**: Map rendering toolkit for Leaflet/OSM layers.
 - **flutter_map_mbtiles**: Offline MBTiles raster map provider.
 - **geolocator**: Cross-platform geolocation plugin.
-- **onesignal_flutter**: Push notification delivery platform.
 - **Outfit / Satoshi**: Open-source typography typefaces bundled with Tracklet.
 - **moon_design**: Cohesive UI component kit.
 - **shared_preferences**: Persistent key-value storage wrapper.

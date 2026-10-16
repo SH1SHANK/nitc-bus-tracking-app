@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/auth/auth_repository.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
+import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
+import '../../auth/providers/auth_provider.dart';
 
-/// Modal dialog matching Attendrix ChangePasswordWidget styling and fields.
+/// Modal dialog for changing account password.
+///
+/// Intelligently branches:
+/// - If authenticated via Google OAuth, explains that credentials are managed by Google.
+/// - If authenticated via Email/Password, renders old/new/confirm password validation.
 class ChangePasswordDialog extends ConsumerStatefulWidget {
   const ChangePasswordDialog({super.key});
 
@@ -111,19 +116,27 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
   }
 
   static InputDecoration _passwordFieldDecoration({
+    required BuildContext context,
     required String hintText,
     required bool isVisible,
     required VoidCallback onToggleVisibility,
   }) {
+    final isDark = TrackletColors.isDark(context);
+
     return InputDecoration(
       hintText: hintText,
       hintStyle: TrackletFonts.outfit(
         fontSize: 14.0,
-        color: TrackletColors.secondaryText,
+        color: TrackletColors.adaptiveTextSecondary(context),
       ),
-      enabledBorder: const OutlineInputBorder(
+      filled: true,
+      fillColor:
+          isDark
+              ? TrackletColors.darkSurfaceElevated
+              : TrackletColors.primaryBackground,
+      enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(
-          color: TrackletColors.alternate,
+          color: isDark ? TrackletColors.darkBorder : TrackletColors.alternate,
           width: TrackletSpacing.xxs,
         ),
         borderRadius: TrackletRadii.roundedCard,
@@ -135,6 +148,20 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
         ),
         borderRadius: TrackletRadii.roundedCard,
       ),
+      errorBorder: const OutlineInputBorder(
+        borderSide: BorderSide(
+          color: TrackletColors.errorBorder,
+          width: TrackletSpacing.xxs,
+        ),
+        borderRadius: TrackletRadii.roundedCard,
+      ),
+      focusedErrorBorder: const OutlineInputBorder(
+        borderSide: BorderSide(
+          color: TrackletColors.errorBorder,
+          width: TrackletSpacing.xxs,
+        ),
+        borderRadius: TrackletRadii.roundedCard,
+      ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.compactLg,
         vertical: TrackletSpacing.md,
@@ -142,7 +169,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       suffixIcon: IconButton(
         icon: Icon(
           isVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-          color: TrackletColors.secondaryText,
+          color: TrackletColors.adaptiveTextSecondary(context),
           size: 20.0,
         ),
         onPressed: onToggleVisibility,
@@ -152,6 +179,156 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final authState = ref.watch(authNotifierProvider);
+    final isGoogleUser = authState.isGoogleUser;
+
+    if (isGoogleUser) {
+      return Dialog(
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: TrackletSpacing.section,
+        ),
+        backgroundColor: Colors.transparent,
+        alignment: Alignment.center,
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 400.0),
+          decoration: BoxDecoration(
+            color: TrackletColors.adaptiveSurface(context),
+            borderRadius: BorderRadius.circular(TrackletRadii.card),
+            border: Border.all(color: TrackletColors.adaptiveBorder(context)),
+            boxShadow: const [
+              BoxShadow(
+                blurRadius: 16.0,
+                color: TrackletColors.scrim,
+                offset: Offset(0.0, 4.0),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(TrackletSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Change Password',
+                        style: TrackletFonts.outfit(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.w700,
+                          color: TrackletColors.adaptiveTextPrimary(context),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: TrackletColors.textTertiary,
+                        size: 22.0,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TrackletSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark
+                            ? TrackletColors.primary.withValues(alpha: 0.12)
+                            : TrackletColors.permissionBlueBg,
+                    borderRadius: BorderRadius.circular(TrackletRadii.md),
+                    border: Border.all(
+                      color:
+                          isDark
+                              ? TrackletColors.primary.withValues(alpha: 0.3)
+                              : TrackletColors.permissionBlueIcon.withValues(
+                                alpha: 0.2,
+                              ),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.lock_person_outlined,
+                        size: 22,
+                        color:
+                            isDark
+                                ? TrackletColors.velvetSky
+                                : TrackletColors.permissionBlueIcon,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Managed by Google Workspace',
+                              style: TrackletFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: TrackletColors.adaptiveTextPrimary(
+                                  context,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'You signed in with your official NITC Google account. Your password is managed securely through your Google Account settings, so you do not need a separate Tracklet password.',
+                              style: TrackletFonts.outfit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w400,
+                                height: 1.4,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.lg),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TrackletColors.primary,
+                      foregroundColor: TrackletColors.pure,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: TrackletRadii.roundedMd,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                    ),
+                    child: Text(
+                      'Understood',
+                      style: TrackletFonts.outfit(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Dialog(
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(
@@ -162,10 +339,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 400.0),
-        decoration: const BoxDecoration(
-          color: TrackletColors.secondaryBackground,
+        decoration: BoxDecoration(
+          color: TrackletColors.adaptiveSurface(context),
           borderRadius: TrackletRadii.roundedCard,
-          boxShadow: [
+          border: Border.all(color: TrackletColors.adaptiveBorder(context)),
+          boxShadow: const [
             BoxShadow(
               blurRadius: 16.0,
               color: TrackletColors.scrim,
@@ -191,14 +369,14 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           style: TrackletFonts.outfit(
                             fontSize: 22.0,
                             fontWeight: FontWeight.w700,
-                            color: TrackletColors.textPrimary,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                       ),
                       IconButton(
                         icon: const Icon(
                           Icons.close_rounded,
-                          color: TrackletColors.absentRed,
+                          color: TrackletColors.textTertiary,
                           size: 24.0,
                         ),
                         splashRadius: 20.0,
@@ -216,7 +394,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     style: TrackletFonts.outfit(
                       fontSize: 13.0,
                       fontWeight: FontWeight.w500,
-                      color: TrackletColors.secondaryText,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
                   const SizedBox(height: TrackletSpacing.xs),
@@ -224,7 +402,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     controller: _oldPasswordController,
                     obscureText: !_oldPasswordVisibility,
                     textInputAction: TextInputAction.next,
+                    style: TrackletFonts.outfit(
+                      color: TrackletColors.adaptiveTextPrimary(context),
+                    ),
                     decoration: _passwordFieldDecoration(
+                      context: context,
                       hintText: 'Enter current password',
                       isVisible: _oldPasswordVisibility,
                       onToggleVisibility:
@@ -249,7 +431,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     style: TrackletFonts.outfit(
                       fontSize: 13.0,
                       fontWeight: FontWeight.w500,
-                      color: TrackletColors.secondaryText,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
                   const SizedBox(height: TrackletSpacing.xs),
@@ -257,7 +439,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     controller: _newPasswordController,
                     obscureText: !_newPasswordVisibility,
                     textInputAction: TextInputAction.next,
+                    style: TrackletFonts.outfit(
+                      color: TrackletColors.adaptiveTextPrimary(context),
+                    ),
                     decoration: _passwordFieldDecoration(
+                      context: context,
                       hintText: 'Enter new password',
                       isVisible: _newPasswordVisibility,
                       onToggleVisibility:
@@ -268,7 +454,10 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           ),
                     ),
                     validator: (val) {
-                      if (val == null || val.length < 6) {
+                      if (val == null || val.isEmpty) {
+                        return 'Please enter a new password';
+                      }
+                      if (val.length < 6) {
                         return 'Password must be at least 6 characters';
                       }
                       return null;
@@ -278,11 +467,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
 
                   // Confirm Password
                   Text(
-                    'Confirm New Password',
+                    'Confirm Password',
                     style: TrackletFonts.outfit(
                       fontSize: 13.0,
                       fontWeight: FontWeight.w500,
-                      color: TrackletColors.secondaryText,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
                   const SizedBox(height: TrackletSpacing.xs),
@@ -291,8 +480,12 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     obscureText: !_confirmPasswordVisibility,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _handleSave(),
+                    style: TrackletFonts.outfit(
+                      color: TrackletColors.adaptiveTextPrimary(context),
+                    ),
                     decoration: _passwordFieldDecoration(
-                      hintText: 'Confirm new password',
+                      context: context,
+                      hintText: 'Re-enter new password',
                       isVisible: _confirmPasswordVisibility,
                       onToggleVisibility:
                           () => setState(
@@ -302,25 +495,31 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           ),
                     ),
                     validator: (val) {
+                      if (val == null || val.isEmpty) {
+                        return 'Please confirm your new password';
+                      }
                       if (val != _newPasswordController.text) {
                         return 'Passwords do not match';
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: TrackletSpacing.section),
+                  const SizedBox(height: TrackletSpacing.xl),
 
-                  Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: 8.0,
-                    runSpacing: 8.0,
+                  // Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed:
+                            _isSaving ? null : () => Navigator.pop(context),
                         style: TextButton.styleFrom(
-                          backgroundColor: TrackletColors.alternate,
+                          backgroundColor:
+                              isDark
+                                  ? TrackletColors.darkSurfaceElevated
+                                  : TrackletColors.alternate,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: TrackletSpacing.lg,
+                            horizontal: TrackletSpacing.md,
                             vertical: TrackletSpacing.compactMd,
                           ),
                           shape: const RoundedRectangleBorder(
@@ -332,10 +531,11 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           style: TrackletFonts.outfit(
                             fontSize: 14.0,
                             fontWeight: FontWeight.w600,
-                            color: TrackletColors.textPrimary,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                       ),
+                      const SizedBox(width: TrackletSpacing.sm),
                       ElevatedButton(
                         onPressed: _isSaving ? null : _handleSave,
                         style: ElevatedButton.styleFrom(
@@ -343,7 +543,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           foregroundColor: TrackletColors.textInverse,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: TrackletSpacing.section,
+                            horizontal: TrackletSpacing.md,
                             vertical: TrackletSpacing.compactMd,
                           ),
                           shape: const RoundedRectangleBorder(

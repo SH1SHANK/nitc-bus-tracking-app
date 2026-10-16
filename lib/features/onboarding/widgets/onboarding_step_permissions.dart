@@ -5,28 +5,29 @@ import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
+import '../../../services/location/location_service.dart';
 import 'onboarding_entrance.dart';
 
-/// Combined permissions step in Onboarding: Location & Notifications.
-/// Styled according to Attendrix design principles with checkboxes,
-/// card containers, and Attendrix buttons.
+/// Location permission step in Onboarding.
+///
+/// Designed to request device location permissions transparently while guaranteeing
+/// on-device privacy. Features full dark mode adaptation, OS state awareness,
+/// and clear fallbacks for manual stop selection.
 class OnboardingStepPermissions extends StatefulWidget {
   const OnboardingStepPermissions({
     super.key,
     required this.locationGranted,
-    required this.notificationsGranted,
-    required this.onEnablePermissions,
+    required this.onEnableLocation,
     required this.onSkip,
+    this.permissionState,
+    this.onOpenSettings,
   });
 
   final bool locationGranted;
-  final bool notificationsGranted;
-  final Future<void> Function({
-    required bool enableLocation,
-    required bool enableNotifications,
-  })
-  onEnablePermissions;
+  final Future<void> Function({required bool enableLocation}) onEnableLocation;
   final VoidCallback onSkip;
+  final LocationPermissionState? permissionState;
+  final VoidCallback? onOpenSettings;
 
   @override
   State<OnboardingStepPermissions> createState() =>
@@ -35,23 +36,26 @@ class OnboardingStepPermissions extends StatefulWidget {
 
 class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
   late bool _locationSelected;
-  late bool _notificationsSelected;
   bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
     _locationSelected = widget.locationGranted;
-    _notificationsSelected = widget.notificationsGranted;
+  }
+
+  @override
+  void didUpdateWidget(covariant OnboardingStepPermissions oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.locationGranted != oldWidget.locationGranted) {
+      _locationSelected = widget.locationGranted;
+    }
   }
 
   Future<void> _handleGrant() async {
     setState(() => _isProcessing = true);
     try {
-      await widget.onEnablePermissions(
-        enableLocation: _locationSelected,
-        enableNotifications: _notificationsSelected,
-      );
+      await widget.onEnableLocation(enableLocation: _locationSelected);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -59,6 +63,12 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final isGranted = widget.locationGranted;
+    final permState = widget.permissionState;
+    final isDeniedForever = permState?.isDeniedForever ?? false;
+    final isServiceDisabled = permState?.isServiceDisabled ?? false;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.screenMargin,
@@ -71,21 +81,26 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           // Header Hero Banner
           Center(
             child: Container(
-              height: 150,
+              height: 140,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    TrackletColors.permissionHeaderGradientStart,
-                    TrackletColors.primary,
-                  ],
+                gradient: LinearGradient(
+                  colors:
+                      isDark
+                          ? const [Color(0xFF2C3258), TrackletColors.primary]
+                          : const [
+                            TrackletColors.permissionHeaderGradientStart,
+                            TrackletColors.primary,
+                          ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: TrackletColors.primary.withValues(alpha: 0.25),
+                    color: TrackletColors.primary.withValues(
+                      alpha: isDark ? 0.35 : 0.25,
+                    ),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -106,41 +121,23 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       ),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: TrackletColors.pure.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.notifications_active_rounded,
-                          color: TrackletColors.pure,
-                          size: 36,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: TrackletColors.pure.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.location_on_rounded,
-                          color: TrackletColors.pure,
-                          size: 36,
-                        ),
-                      ),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: TrackletColors.pure.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.location_on_rounded,
+                      color: TrackletColors.pure,
+                      size: 44,
+                    ),
                   ),
                 ],
               ),
             ),
           ).enterOnboarding(context),
-          const SizedBox(height: TrackletSpacing.xl),
+          const SizedBox(height: TrackletSpacing.lg),
 
           // Title & Subtitle
           Text(
@@ -148,57 +145,138 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
             style: TrackletTypography.displayLarge.copyWith(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: TrackletColors.altPrimaryText,
+              color:
+                  isDark
+                      ? TrackletColors.darkTextPrimary
+                      : TrackletColors.altPrimaryText,
             ),
           ).enterOnboarding(context, delay: 50.ms),
           const SizedBox(height: 6),
           Text(
-            'Choose whether to share location and receive transit alerts. You can continue without either option.',
+            'Tracklet uses your location exclusively on campus to identify nearby stops and calculate walking times.',
             style: TrackletTypography.bodyMedium.copyWith(
-              color: TrackletColors.secondaryText,
+              color:
+                  isDark
+                      ? TrackletColors.darkTextSecondary
+                      : TrackletColors.secondaryText,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.4,
             ),
           ).enterOnboarding(context, delay: 90.ms),
-          const SizedBox(height: TrackletSpacing.lg),
+          const SizedBox(height: TrackletSpacing.md),
 
-          // Location Permission Card
+          // Privacy Guarantee Callout Box
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color:
+                  isDark
+                      ? TrackletColors.primary.withValues(alpha: 0.12)
+                      : TrackletColors.permissionBlueBg,
+              borderRadius: BorderRadius.circular(TrackletRadii.md),
+              border: Border.all(
+                color:
+                    isDark
+                        ? TrackletColors.primary.withValues(alpha: 0.3)
+                        : TrackletColors.permissionBlueIcon.withValues(
+                          alpha: 0.2,
+                        ),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.shield_outlined,
+                  size: 20,
+                  color:
+                      isDark
+                          ? TrackletColors.velvetSky
+                          : TrackletColors.permissionBlueIcon,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '100% On-Device Privacy',
+                        style: TrackletTypography.labelMedium.copyWith(
+                          color:
+                              isDark
+                                  ? TrackletColors.darkTextPrimary
+                                  : TrackletColors.altPrimaryText,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Your coordinates are never sent to our servers or stored. Location data stays strictly on your device.',
+                        style: TrackletTypography.bodySmall.copyWith(
+                          color:
+                              isDark
+                                  ? TrackletColors.darkTextSecondary
+                                  : TrackletColors.secondaryText,
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ).enterOnboarding(context, delay: 110.ms),
+          const SizedBox(height: TrackletSpacing.md),
+
+          // Location Permission Interactive Card
           _buildPermissionCard(
+            context: context,
             icon: Icons.location_on_rounded,
-            iconBg: TrackletColors.permissionBlueBg,
-            iconColor: TrackletColors.permissionBlueIcon,
+            iconBg:
+                isDark
+                    ? TrackletColors.darkSurfaceElevated
+                    : TrackletColors.permissionBlueBg,
+            iconColor:
+                isDark
+                    ? TrackletColors.velvetSky
+                    : TrackletColors.permissionBlueIcon,
             title: 'Campus Live Location',
             subtitle:
-                'Locate nearest bus stops, calculate walking ETA, and track live buses around campus.',
+                'Locate nearest bus stops, calculate walking distance, and track live buses around campus.',
             isSelected: _locationSelected,
-            isGranted: widget.locationGranted,
+            isGranted: isGranted,
+            isDeniedForever: isDeniedForever,
+            isServiceDisabled: isServiceDisabled,
             onChanged:
-                widget.locationGranted
+                isGranted
                     ? null
                     : (val) => setState(() => _locationSelected = val ?? false),
-          ).enterOnboarding(context, delay: 130.ms),
-          const SizedBox(height: 12),
+          ).enterOnboarding(context, delay: 140.ms),
 
-          // Notifications Permission Card
-          _buildPermissionCard(
-            icon: Icons.notifications_active_rounded,
-            iconBg: TrackletColors.permissionPinkBg,
-            iconColor: TrackletColors.permissionPinkIcon,
-            title: 'Transit & Arrival Alerts',
-            subtitle:
-                'Get notified when your bus is approaching, departures are near, or schedules change.',
-            isSelected: _notificationsSelected,
-            isGranted: widget.notificationsGranted,
-            onChanged:
-                widget.notificationsGranted
-                    ? null
-                    : (val) =>
-                        setState(() => _notificationsSelected = val ?? false),
-          ).enterOnboarding(context, delay: 170.ms),
+          // Actionable settings button if blocked
+          if (isDeniedForever && widget.onOpenSettings != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: widget.onOpenSettings,
+                icon: const Icon(Icons.settings_outlined, size: 16),
+                label: const Text('Open App Settings'),
+                style: TextButton.styleFrom(
+                  foregroundColor: TrackletColors.primary,
+                  textStyle: TrackletTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: TrackletSpacing.xl),
 
-          // Primary Button: Grant Permissions
+          // Primary Button: Grant Permissions / Continue
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -224,7 +302,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                         ),
                       )
                       : Text(
-                        _locationSelected || _notificationsSelected
+                        isGranted
+                            ? 'Continue'
+                            : _locationSelected
                             ? 'Continue with selected'
                             : 'Continue without permissions',
                         style: TrackletTypography.titleMedium.copyWith(
@@ -234,15 +314,18 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                         ),
                       ),
             ),
-          ).enterOnboarding(context, delay: 210.ms),
+          ).enterOnboarding(context, delay: 170.ms),
           const SizedBox(height: 10),
 
-          // Secondary Ghost Button: Skip for now
+          // Secondary Ghost Button: Skip for now / Manual selection
           Center(
             child: TextButton(
               onPressed: _isProcessing ? null : widget.onSkip,
               style: TextButton.styleFrom(
-                foregroundColor: TrackletColors.secondaryText,
+                foregroundColor:
+                    isDark
+                        ? TrackletColors.darkTextSecondary
+                        : TrackletColors.secondaryText,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 8,
@@ -251,13 +334,16 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               child: Text(
                 'Skip for now',
                 style: TrackletTypography.bodyMedium.copyWith(
-                  color: TrackletColors.secondaryText,
+                  color:
+                      isDark
+                          ? TrackletColors.darkTextSecondary
+                          : TrackletColors.secondaryText,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
             ),
-          ).enterOnboarding(context, delay: 250.ms),
+          ).enterOnboarding(context, delay: 210.ms),
           const SizedBox(height: TrackletSpacing.lg),
         ],
       ),
@@ -265,6 +351,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
   }
 
   Widget _buildPermissionCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -272,19 +359,30 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
     required String subtitle,
     required bool isSelected,
     required bool isGranted,
+    required bool isDeniedForever,
+    required bool isServiceDisabled,
     required ValueChanged<bool?>? onChanged,
   }) {
+    final isDark = TrackletColors.isDark(context);
+
     return InkWell(
       onTap: isGranted ? null : () => onChanged?.call(!isSelected),
       borderRadius: BorderRadius.circular(TrackletRadii.lg),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: TrackletColors.primaryBackground,
+          color:
+              isDark
+                  ? TrackletColors.darkSurface
+                  : TrackletColors.primaryBackground,
           borderRadius: BorderRadius.circular(TrackletRadii.lg),
           border: Border.all(
             color:
-                isSelected ? TrackletColors.primary : TrackletColors.cardBorder,
+                isSelected
+                    ? TrackletColors.primary
+                    : isDark
+                    ? TrackletColors.darkBorder
+                    : TrackletColors.cardBorder,
             width: isSelected ? 1.8 : 1.0,
           ),
         ),
@@ -311,7 +409,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                         child: Text(
                           title,
                           style: TrackletTypography.titleSmall.copyWith(
-                            color: TrackletColors.altPrimaryText,
+                            color:
+                                isDark
+                                    ? TrackletColors.darkTextPrimary
+                                    : TrackletColors.altPrimaryText,
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
                           ),
@@ -336,6 +437,44 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             ),
                           ),
                         )
+                      else if (isDeniedForever)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TrackletColors.notificationYellowBg,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Blocked',
+                            style: TextStyle(
+                              color: TrackletColors.notificationAmber,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        )
+                      else if (isServiceDisabled)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: TrackletColors.notificationYellowBg,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'GPS Off',
+                            style: TextStyle(
+                              color: TrackletColors.notificationAmber,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        )
                       else
                         Theme(
                           data: ThemeData(
@@ -349,7 +488,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                                 ),
                               ),
                             ),
-                            unselectedWidgetColor: TrackletColors.secondaryText,
+                            unselectedWidgetColor:
+                                isDark
+                                    ? TrackletColors.darkTextSecondary
+                                    : TrackletColors.secondaryText,
                           ),
                           child: Checkbox(
                             value: isSelected,
@@ -364,7 +506,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   Text(
                     subtitle,
                     style: TrackletTypography.bodySmall.copyWith(
-                      color: TrackletColors.secondaryText,
+                      color:
+                          isDark
+                              ? TrackletColors.darkTextSecondary
+                              : TrackletColors.secondaryText,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
                       height: 1.35,

@@ -35,9 +35,6 @@
 -keep class com.baseflow.geolocator.** { *; }
 -dontwarn com.baseflow.geolocator.**
 
-# --- OneSignal Push Notifications ---
--keep class com.onesignal.** { *; }
--dontwarn com.onesignal.**
 
 # --- OkHttp, Okio & TLS Stacks ---
 -dontwarn okio.**

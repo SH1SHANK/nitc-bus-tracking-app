@@ -4,6 +4,7 @@ import '../../../design_system/tokens/tracklet_fonts.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
+import '../../../design_system/tokens/typography.dart';
 
 /// Modal dialog displaying campus transit FAQs for NIT Calicut students.
 class TransitFaqDialog extends StatelessWidget {
@@ -34,9 +35,9 @@ class TransitFaqDialog extends StatelessWidget {
           'Yes, weekend shuttle service operates with reduced frequency connecting Main Gate, Mega Hostel, LHC, and East Campus between 07:30 AM and 09:30 PM.',
     },
     {
-      'question': 'How do I set up arrival notifications for my stop?',
+      'question': 'How do I check live arrivals for my stop?',
       'answer':
-          'Go to Settings > Commute Preferences to set your Favorite Bus Stop, and adjust your Alert Lead Time in Settings > Notifications to get notified before the bus arrives.',
+          'Select your boarding stop from the dropdown on the Home screen to see real-time approaching buses, live route progression, and scheduled departures for that stop.',
     },
     {
       'question': 'Who should I contact for lost items left on campus buses?',
@@ -105,11 +106,9 @@ class TransitFaqDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: TrackletSpacing.md),
-              const Text(
+              Text(
                 'Frequently asked questions about NIT Calicut campus transit, schedules, and live tracking.',
-                style: TextStyle(
-                  fontFamily: 'Satoshi',
-                  fontSize: 13.0,
+                style: TrackletTypography.bodySmall.copyWith(
                   color: TrackletColors.textSecondary,
                 ),
               ),
@@ -169,8 +168,7 @@ class TransitFaqDialog extends StatelessWidget {
                             ),
                             child: Text(
                               item['answer']!,
-                              style: const TextStyle(
-                                fontFamily: 'Satoshi',
+                              style: TrackletTypography.bodySmall.copyWith(
                                 fontSize: 13.0,
                                 height: 1.45,
                                 color: TrackletColors.textSecondary,

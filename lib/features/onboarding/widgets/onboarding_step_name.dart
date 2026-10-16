@@ -75,7 +75,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
               children: [
                 const TextSpan(
                   text:
-                      'Tell us your name so we can personalize your bus passes, notifications, and campus timetable. ',
+                      'Tell us your name so we can personalize your bus passes, saved stops, and campus timetable. ',
                 ),
                 TextSpan(
                   text: 'Tap to Learn More.',

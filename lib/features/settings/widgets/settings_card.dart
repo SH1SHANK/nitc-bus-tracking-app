@@ -40,9 +40,9 @@ class SettingsCard extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: TrackletColors.surface,
+          color: TrackletColors.adaptiveSurface(context),
           borderRadius: TrackletRadii.roundedCard,
-          border: Border.all(color: TrackletColors.cardBorder),
+          border: Border.all(color: TrackletColors.adaptiveBorder(context)),
         ),
         child: Padding(padding: padding, child: content),
       ),

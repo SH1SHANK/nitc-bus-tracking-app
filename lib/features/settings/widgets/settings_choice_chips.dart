@@ -30,6 +30,7 @@ class SettingsChoiceChips<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     return Wrap(
       spacing: 8.0,
       runSpacing: 8.0,
@@ -54,13 +55,17 @@ class SettingsChoiceChips<T> extends StatelessWidget {
                   color:
                       isSelected
                           ? TrackletColors.primary
-                          : TrackletColors.background,
+                          : (isDark
+                              ? TrackletColors.darkSurfaceElevated
+                              : TrackletColors.background),
                   borderRadius: TrackletRadii.roundedLg,
                   border: Border.all(
                     color:
                         isSelected
                             ? TrackletColors.primary
-                            : TrackletColors.cardBorder,
+                            : (isDark
+                                ? TrackletColors.darkBorder
+                                : TrackletColors.cardBorder),
                     width: 1.5,
                   ),
                 ),
@@ -73,7 +78,9 @@ class SettingsChoiceChips<T> extends StatelessWidget {
                     color:
                         isSelected
                             ? TrackletColors.textInverse
-                            : TrackletColors.textSecondary,
+                            : (isDark
+                                ? TrackletColors.darkTextSecondary
+                                : TrackletColors.textSecondary),
                   ),
                 ),
               ),

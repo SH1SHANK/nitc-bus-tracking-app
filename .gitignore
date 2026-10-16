@@ -97,3 +97,6 @@ GEMINI.md
 Map Assets/
 .vercel
 .env*
+node_modules/
+supabase/functions/node_modules/
+supabase/functions/deno.lock

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,26 +10,22 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/preferences/user_preferences.dart';
 import '../../data/profile/profile.dart';
-import '../../data/transit/transit_repository.dart';
+import '../../design_system/components/voxel_avatar.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
+import '../../design_system/tokens/typography.dart';
 import '../../services/location/location_service.dart';
-import '../../services/notifications/notification_service.dart';
 import '../auth/providers/auth_provider.dart';
 import '../profile/providers/profile_provider.dart';
 import 'dialogs/change_display_name_dialog.dart';
 import 'dialogs/change_password_dialog.dart';
+import 'dialogs/change_username_dialog.dart';
 import 'dialogs/delete_account_dialog.dart';
-import 'dialogs/favorite_route_picker_dialog.dart';
-import 'dialogs/favorite_stop_picker_dialog.dart';
-import 'dialogs/legal_content_dialog.dart';
 import 'dialogs/transit_faq_dialog.dart';
-import 'screens/manage_notifications_screen.dart';
 import 'widgets/settings_card.dart';
 import 'widgets/settings_choice_chips.dart';
 import 'widgets/settings_row_item.dart';
-import 'widgets/settings_stepper.dart';
 
 /// Complete, production-ready Settings Screen for Tracklet.
 /// Adheres strictly to Attendrix design language, spacing, tokens, typography, and card hierarchy.
@@ -43,8 +38,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
-  bool _isSyncing = false;
-
   @override
   void initState() {
     super.initState();
@@ -74,7 +67,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       context: context,
       builder:
           (ctx) => AlertDialog(
-            backgroundColor: TrackletColors.textInverse,
+            backgroundColor: TrackletColors.adaptiveSurface(ctx),
             shape: const RoundedRectangleBorder(
               borderRadius: TrackletRadii.roundedLg,
             ),
@@ -98,6 +91,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   style: TrackletFonts.outfit(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
+                    color: TrackletColors.adaptiveTextPrimary(ctx),
                   ),
                 ),
               ],
@@ -110,7 +104,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               style: TrackletFonts.outfit(
                 fontSize: 14,
                 height: 1.5,
-                color: TrackletColors.textSecondary,
+                color: TrackletColors.adaptiveTextSecondary(ctx),
               ),
             ),
             actions: [
@@ -183,14 +177,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   Future<void> _showLogoutDialog() async {
+    final isGuest = ref.read(authNotifierProvider).isGuest;
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (ctx) => AlertDialog(
             shape: const RoundedRectangleBorder(
               borderRadius: TrackletRadii.roundedLg,
             ),
-            backgroundColor: TrackletColors.textInverse,
+            backgroundColor: TrackletColors.adaptiveSurface(ctx),
             title: Row(
               children: [
                 Container(
@@ -208,36 +203,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 ),
                 const SizedBox(width: TrackletSpacing.md),
                 Text(
-                  'Log Out',
+                  isGuest ? 'Exit Guest Session' : 'Log Out',
                   style: TrackletFonts.outfit(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: TrackletColors.textPrimary,
+                    color: TrackletColors.adaptiveTextPrimary(ctx),
                   ),
                 ),
               ],
             ),
-            content: const Text(
-              'Are you sure you want to log out of Tracklet on this device?',
-              style: TextStyle(
-                fontFamily: 'Satoshi',
-                fontSize: 14.0,
-                color: TrackletColors.textSecondary,
+            content: Text(
+              isGuest
+                  ? 'Are you sure you want to exit your guest session? You can return to guest mode or sign in with your student account anytime.'
+                  : 'Are you sure you want to log out of Tracklet on this device?',
+              style: TrackletTypography.bodyMedium.copyWith(
+                color: TrackletColors.adaptiveTextSecondary(ctx),
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => Navigator.of(ctx).pop(false),
                 child: Text(
                   'Cancel',
                   style: TrackletFonts.outfit(
-                    color: TrackletColors.textSecondary,
+                    color: TrackletColors.adaptiveTextSecondary(ctx),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => Navigator.of(ctx).pop(true),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TrackletColors.primary,
                   foregroundColor: TrackletColors.textInverse,
@@ -247,7 +242,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   elevation: 0,
                 ),
                 child: Text(
-                  'Log Out',
+                  isGuest ? 'Exit Guest Mode' : 'Log Out',
                   style: TrackletFonts.outfit(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -265,112 +260,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     }
   }
 
-  void _showExportPreferencesDialog(UserPreferences prefs) {
-    final jsonString = const JsonEncoder.withIndent(
-      '  ',
-    ).convert(prefs.toJson());
-    showDialog<void>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: const RoundedRectangleBorder(
-              borderRadius: TrackletRadii.roundedLg,
-            ),
-            backgroundColor: TrackletColors.textInverse,
-            title: Text(
-              'Exported Preferences',
-              style: TrackletFonts.outfit(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-                color: TrackletColors.textPrimary,
-              ),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: SingleChildScrollView(
-                child: Container(
-                  padding: const EdgeInsets.all(TrackletSpacing.md),
-                  decoration: const BoxDecoration(
-                    color: TrackletColors.background,
-                    borderRadius: TrackletRadii.roundedSm,
-                  ),
-                  child: SelectableText(
-                    jsonString,
-                    style: TrackletFonts.robotoMono(
-                      fontSize: 12.0,
-                      color: TrackletColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: jsonString));
-                  Navigator.of(context).pop();
-                  _showSuccessSnackBar('Preferences copied to clipboard');
-                },
-                child: Text(
-                  'Copy to Clipboard',
-                  style: TrackletFonts.outfit(
-                    color: TrackletColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TrackletColors.primary,
-                  foregroundColor: TrackletColors.textInverse,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: TrackletRadii.roundedSm,
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Close',
-                  style: TrackletFonts.outfit(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
     final profileAsync = ref.watch(profileStateProvider);
     final prefs = ref.watch(userPreferencesProvider);
     final prefsNotifier = ref.read(userPreferencesProvider.notifier);
     final locationState = ref.watch(locationStateProvider);
 
+    final bool isGuest =
+        authState.isGuest || profileAsync.value?.role == 'Guest';
+
     final profile =
         profileAsync.value ??
-        const Profile(
-          id: 'user-nitc-student',
-          name: 'Shashank Mergu',
-          email: 'shashank@nitc.ac.in',
-          rollNumber: 'B210000CS',
-          semester: 'Semester 6',
-          branch: 'Computer Science & Engineering',
-          batch: '2026',
-          hostel: 'MBH II',
-        );
+        (isGuest
+            ? const Profile(
+              id: 'guest',
+              name: 'Guest Rider',
+              email: '',
+              role: 'Guest',
+              hasCompletedOnboarding: true,
+            )
+            : const Profile(
+              id: 'user-nitc-student',
+              name: 'Shashank Mergu',
+              email: 'shashank@nitc.ac.in',
+              rollNumber: 'B210000CS',
+              semester: 'Semester 6',
+              branch: 'Computer Science & Engineering',
+              batch: '2026',
+              hostel: 'MBH II',
+            ));
 
     return Scaffold(
-      backgroundColor: TrackletColors.background,
+      backgroundColor: TrackletColors.adaptiveBackground(context),
       appBar: AppBar(
-        backgroundColor: TrackletColors.textInverse,
+        backgroundColor: TrackletColors.adaptiveBackground(context),
+        foregroundColor: TrackletColors.adaptiveTextPrimary(context),
         automaticallyImplyLeading: false,
         elevation: 0.0,
+        scrolledUnderElevation: 0.0,
         title: Text(
           'App Settings',
           style: TrackletFonts.outfit(
             fontSize: 22.0,
             fontWeight: FontWeight.bold,
-            color: TrackletColors.textPrimary,
+            color: TrackletColors.adaptiveTextPrimary(context),
           ),
         ),
         centerTitle: false,
@@ -385,9 +320,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ==========================================
-              // SECTION 1: STUDENT PROFILE & ACADEMIC CARD
+              // SECTION 1: STUDENT / GUEST PROFILE CARD
               // ==========================================
-              _buildSectionHeader('Student Profile'),
+              _buildSectionHeader(
+                isGuest ? 'Guest Profile' : 'Student Profile',
+              ),
               const SizedBox(height: TrackletSpacing.sm),
               SettingsCard(
                 padding: const EdgeInsets.all(TrackletSpacing.lg),
@@ -396,30 +333,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   children: [
                     Row(
                       children: [
-                        Container(
-                          width: TrackletSpacing.avatar,
-                          height: TrackletSpacing.avatar,
-                          decoration: const BoxDecoration(
-                            color: TrackletColors.primary,
-                            borderRadius: TrackletRadii.roundedFull,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            profile.name.isNotEmpty
-                                ? profile.name
-                                    .trim()
-                                    .split(' ')
-                                    .map((e) => e.isNotEmpty ? e[0] : '')
-                                    .take(2)
-                                    .join()
-                                    .toUpperCase()
-                                : 'ST',
-                            style: TrackletFonts.outfit(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
-                              color: TrackletColors.textInverse,
-                            ),
-                          ),
+                        VoxelAvatar(
+                          email: profile.email,
+                          name: profile.name,
+                          size: TrackletSpacing.avatar,
+                          isGuest: isGuest,
                         ),
                         const SizedBox(width: TrackletSpacing.compactLg),
                         Expanded(
@@ -430,103 +348,138 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      profile.name,
+                                      isGuest ? 'Guest Rider' : profile.name,
                                       style: TrackletFonts.outfit(
                                         fontSize: 18.0,
                                         fontWeight: FontWeight.bold,
-                                        color: TrackletColors.textPrimary,
+                                        color:
+                                            TrackletColors.adaptiveTextPrimary(
+                                              context,
+                                            ),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  InkWell(
-                                    onTap:
-                                        () => ChangeDisplayNameDialog.show(
-                                          context,
+                                  if (!isGuest)
+                                    InkWell(
+                                      onTap:
+                                          () => ChangeDisplayNameDialog.show(
+                                            context,
+                                          ),
+                                      borderRadius: TrackletRadii.roundedFull,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(
+                                          TrackletSpacing.compact,
                                         ),
-                                    borderRadius: TrackletRadii.roundedFull,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(
-                                        TrackletSpacing.compact,
-                                      ),
-                                      decoration: const BoxDecoration(
-                                        color: TrackletColors.background,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.edit_outlined,
-                                        size: 16.0,
-                                        color: TrackletColors.primary,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              TrackletColors.isDark(context)
+                                                  ? TrackletColors
+                                                      .darkSurfaceElevated
+                                                  : TrackletColors.background,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.edit_outlined,
+                                          size: 16.0,
+                                          color: TrackletColors.primary,
+                                        ),
                                       ),
                                     ),
-                                  ),
                                 ],
                               ),
                               const SizedBox(height: TrackletSpacing.xxs),
                               Text(
-                                profile.email,
-                                style: const TextStyle(
-                                  fontFamily: 'Satoshi',
-                                  fontSize: 13.0,
-                                  color: TrackletColors.textSecondary,
+                                isGuest
+                                    ? 'Guest Session (Device Only)'
+                                    : profile.email,
+                                style: TrackletTypography.bodySmall.copyWith(
+                                  color: TrackletColors.adaptiveTextSecondary(
+                                    context,
+                                  ),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (profile.rollNumber != null) ...[
-                                const SizedBox(height: TrackletSpacing.xs),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: TrackletSpacing.sm,
-                                    vertical: TrackletSpacing.xxs,
+                              const SizedBox(height: TrackletSpacing.xs),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: TrackletSpacing.sm,
+                                  vertical: TrackletSpacing.xxs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: TrackletColors.primary.withValues(
+                                    alpha: 0.1,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF6F61EF,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: TrackletRadii.roundedXs,
-                                  ),
-                                  child: Text(
-                                    profile.rollNumber!,
-                                    style: TrackletFonts.robotoMono(
-                                      fontSize: 11.0,
-                                      fontWeight: FontWeight.w600,
-                                      color: TrackletColors.primary,
-                                    ),
+                                  borderRadius: TrackletRadii.roundedXs,
+                                ),
+                                child: Text(
+                                  isGuest
+                                      ? 'Guest Account'
+                                      : (profile.rollNumber ??
+                                          'Student Account'),
+                                  style: TrackletFonts.robotoMono(
+                                    fontSize: 11.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: TrackletColors.primary,
                                   ),
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: TrackletSpacing.compactLg),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     const SizedBox(height: TrackletSpacing.md),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: [
-                        _buildAcademicPill(
-                          icon: Icons.school_rounded,
-                          label: profile.semester,
-                        ),
-                        _buildAcademicPill(
-                          icon: Icons.account_tree_rounded,
-                          label: profile.branch,
-                        ),
-                        _buildAcademicPill(
-                          icon: Icons.calendar_today_rounded,
-                          label: 'Batch ${profile.batch}',
-                        ),
-                        _buildAcademicPill(
-                          icon: Icons.apartment_rounded,
-                          label: profile.hostel,
-                        ),
-                      ],
-                    ),
+                    if (isGuest)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 18.0,
+                            color: TrackletColors.primary,
+                          ),
+                          const SizedBox(width: TrackletSpacing.compactMd),
+                          Expanded(
+                            child: Text(
+                              'You are browsing Tracklet in guest mode on this device. Live campus bus tracking, active routes, and timetables are fully available. Sign in with your verified @nitc.ac.in student account to sync your profile, bookmarks, and settings across devices.',
+                              style: TrackletTypography.bodySmall.copyWith(
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: [
+                          _buildAcademicPill(
+                            icon: Icons.school_rounded,
+                            label: profile.semester,
+                          ),
+                          _buildAcademicPill(
+                            icon: Icons.account_tree_rounded,
+                            label: profile.branch,
+                          ),
+                          _buildAcademicPill(
+                            icon: Icons.calendar_today_rounded,
+                            label: 'Batch ${profile.batch}',
+                          ),
+                          _buildAcademicPill(
+                            icon: Icons.apartment_rounded,
+                            label: profile.hostel,
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -540,321 +493,63 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingsCard(
                 child: Column(
                   children: [
-                    SettingsRowItem(
-                      title: 'Edit Display Name',
-                      subtitle: profile.name,
-                      leadingIcon: Icons.badge_outlined,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => ChangeDisplayNameDialog.show(context),
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Change Password',
-                      subtitle:
-                          'Update your student account security credentials',
-                      leadingIcon: Icons.lock_outline_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => ChangePasswordDialog.show(context),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 3: COMMUTE PREFERENCES
-              // ==========================================
-              _buildSectionHeader('Commute Preferences'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: 'Favorite Bus Stop',
-                      subtitle:
-                          prefs.preferredStopName.isNotEmpty
-                              ? prefs.preferredStopName
-                              : 'Select primary campus stop',
-                      leadingIcon: Icons.location_on_outlined,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TrackletSpacing.compactMd,
-                          vertical: TrackletSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF6F61EF,
-                          ).withValues(alpha: 0.08),
-                          borderRadius: TrackletRadii.roundedSm,
-                        ),
-                        child: Text(
-                          prefs.preferredStopName.isNotEmpty
-                              ? prefs.preferredStopName
-                              : 'Not Set',
-                          style: TrackletFonts.outfit(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w600,
-                            color: TrackletColors.primary,
-                          ),
-                        ),
+                    if (isGuest)
+                      SettingsRowItem(
+                        title: 'Sign In with NITC Account',
+                        subtitle:
+                            'Upgrade to a permanent verified student account',
+                        leadingIcon: Icons.login_rounded,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () {
+                          ref.read(authNotifierProvider.notifier).signOut();
+                          context.go('/login');
+                        },
+                      )
+                    else ...[
+                      SettingsRowItem(
+                        title: 'Edit Display Name',
+                        subtitle: profile.name,
+                        leadingIcon: Icons.badge_outlined,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => ChangeDisplayNameDialog.show(context),
                       ),
-                      onTap: () async {
-                        final selectedStop =
-                            await FavoriteStopPickerDialog.show(
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Change Username',
+                        subtitle:
+                            profile.username != null &&
+                                    profile.username!.isNotEmpty
+                                ? '@${profile.username}'
+                                : 'Set your unique campus username',
+                        leadingIcon: Icons.alternate_email_rounded,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap:
+                            () => ChangeUsernameDialog.show(
                               context,
-                              selectedStopId: prefs.preferredStopId,
-                            );
-                        if (selectedStop != null) {
-                          await prefsNotifier.setPreferredStop(
-                            selectedStop.id,
-                            selectedStop.name,
-                          );
-                          if (prefs.hapticFeedbackEnabled) {
-                            unawaited(HapticFeedback.selectionClick());
-                          }
-                          _showSuccessSnackBar(
-                            'Favorite stop set to ${selectedStop.name}',
-                          );
-                        }
-                      },
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Favorite Route',
-                      subtitle:
-                          prefs.preferredRouteName.isNotEmpty
-                              ? prefs.preferredRouteName
-                              : 'Select preferred campus route',
-                      leadingIcon: Icons.alt_route_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TrackletSpacing.compactMd,
-                          vertical: TrackletSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF39D2C0,
-                          ).withValues(alpha: 0.12),
-                          borderRadius: TrackletRadii.roundedSm,
-                        ),
-                        child: Text(
-                          prefs.preferredRouteName.isNotEmpty
-                              ? prefs.preferredRouteName
-                              : 'Not Set',
-                          style: TrackletFonts.outfit(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w600,
-                            color: TrackletColors.success,
-                          ),
-                        ),
+                              currentUsername: profile.username ?? '',
+                            ),
                       ),
-                      onTap: () async {
-                        final selectedRoute =
-                            await FavoriteRoutePickerDialog.show(
-                              context,
-                              selectedRouteId: prefs.preferredRouteId,
-                            );
-                        if (selectedRoute != null) {
-                          await prefsNotifier.setPreferredRoute(
-                            selectedRoute.id,
-                            selectedRoute.name,
-                          );
-                          if (prefs.hapticFeedbackEnabled) {
-                            unawaited(HapticFeedback.selectionClick());
-                          }
-                          _showSuccessSnackBar(
-                            'Favorite route set to ${selectedRoute.name}',
-                          );
-                        }
-                      },
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    Padding(
-                      padding: const EdgeInsets.all(TrackletSpacing.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Transit Time Format',
-                                    style: TrackletFonts.outfit(
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.w500,
-                                      color: TrackletColors.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: TrackletSpacing.xxs),
-                                  const Text(
-                                    'Display timetable & arrival predictions',
-                                    style: TextStyle(
-                                      fontFamily: 'Satoshi',
-                                      fontSize: 13.0,
-                                      color: TrackletColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: TrackletSpacing.sm,
-                                  vertical: TrackletSpacing.xs,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: TrackletColors.background,
-                                  borderRadius: TrackletRadii.roundedXs,
-                                ),
-                                child: Text(
-                                  prefs.timeFormat ==
-                                          TransitTimeFormat.twelveHour
-                                      ? '05:30 PM'
-                                      : '17:30',
-                                  style: TrackletFonts.robotoMono(
-                                    fontSize: 12.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: TrackletColors.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: TrackletSpacing.compactMd),
-                          SettingsChoiceChips<String>(
-                            options: const [
-                              '12-Hour (05:30 PM)',
-                              '24-Hour (17:30)',
-                            ],
-                            selectedOption:
-                                prefs.timeFormat == TransitTimeFormat.twelveHour
-                                    ? '12-Hour (05:30 PM)'
-                                    : '24-Hour (17:30)',
-                            onSelected: (String val) {
-                              final is12 = val.startsWith('12-Hour');
-                              prefsNotifier.setTimeFormat(
-                                is12
-                                    ? TransitTimeFormat.twelveHour
-                                    : TransitTimeFormat.twentyFourHour,
-                              );
-                              if (prefs.hapticFeedbackEnabled) {
-                                unawaited(HapticFeedback.selectionClick());
-                              }
-                            },
-                          ),
-                        ],
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Change Password',
+                        subtitle:
+                            'Update your student account security credentials',
+                        leadingIcon: Icons.lock_outline_rounded,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => ChangePasswordDialog.show(context),
                       ),
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: TrackletSpacing.lg,
-                        vertical: TrackletSpacing.md,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Arrival Alert Lead Time',
-                                style: TrackletFonts.outfit(
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.w500,
-                                  color: TrackletColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: TrackletSpacing.xxs),
-                              const Text(
-                                'Minutes before bus reaches your stop',
-                                style: TextStyle(
-                                  fontFamily: 'Satoshi',
-                                  fontSize: 13.0,
-                                  color: TrackletColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SettingsStepper(
-                            value: prefs.alertLeadTimeMinutes,
-                            min: 2,
-                            max: 20,
-                            step: 1,
-                            unit: 'min',
-                            onChanged: (int val) {
-                              prefsNotifier.setAlertLeadTime(val);
-                              if (prefs.hapticFeedbackEnabled) {
-                                unawaited(HapticFeedback.selectionClick());
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: TrackletSpacing.section),
 
               // ==========================================
-              // SECTION 4: NOTIFICATIONS
-              // ==========================================
-              _buildSectionHeader('Notifications'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: 'Push Notifications',
-                      subtitle: 'Receive live transit alerts on this device',
-                      leadingIcon: Icons.notifications_none_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      hasSwitch: true,
-                      switchValue: prefs.notificationsEnabled,
-                      onSwitchChanged: (bool val) async {
-                        await prefsNotifier.toggleNotifications(val);
-                        if (prefs.hapticFeedbackEnabled) {
-                          unawaited(HapticFeedback.selectionClick());
-                        }
-                        if (val) {
-                          await ref.read(notificationServiceProvider).optIn();
-                        } else {
-                          await ref.read(notificationServiceProvider).optOut();
-                        }
-                      },
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Manage Transit Notifications',
-                      subtitle: 'Arrival alerts, disruptions, and timetables',
-                      leadingIcon: Icons.tune_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () {
-                        Navigator.of(context).push<void>(
-                          MaterialPageRoute<void>(
-                            builder:
-                                (context) => const ManageNotificationsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 5: LOCATION & PERMISSIONS
+              // SECTION 3: LOCATION & PERMISSIONS
               // ==========================================
               _buildSectionHeader('Location & Permissions'),
               const SizedBox(height: TrackletSpacing.sm),
@@ -889,19 +584,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                               children: [
                                 Text(
                                   'Location Access',
-                                  style: TrackletFonts.outfit(
+                                  style: TrackletTypography.bodyMedium.copyWith(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.w600,
-                                    color: TrackletColors.textPrimary,
+                                    color: TrackletColors.adaptiveTextPrimary(
+                                      context,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: TrackletSpacing.xxs),
-                                const Text(
+                                Text(
                                   'For nearest bus stop detection',
-                                  style: TextStyle(
-                                    fontFamily: 'Satoshi',
-                                    fontSize: 13.0,
-                                    color: TrackletColors.textSecondary,
+                                  style: TrackletTypography.bodySmall.copyWith(
+                                    color: TrackletColors.adaptiveTextSecondary(
+                                      context,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -914,13 +611,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ],
                     ),
                     const SizedBox(height: TrackletSpacing.md),
-                    const Text(
+                    Text(
                       'Tracklet uses your approximate location exclusively while viewing the campus map to calculate walking distance to nearest stops and show your blue locator dot. Location data never leaves your device.',
-                      style: TextStyle(
-                        fontFamily: 'Satoshi',
+                      style: TrackletTypography.bodySmall.copyWith(
                         fontSize: 12.5,
                         height: 1.45,
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
                     const SizedBox(height: TrackletSpacing.md),
@@ -1018,9 +714,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               const SizedBox(height: TrackletSpacing.section),
 
               // ==========================================
-              // SECTION 6: APPEARANCE & MAP DISPLAY
+              // SECTION 4: APPEARANCE & DISPLAY
               // ==========================================
-              _buildSectionHeader('Appearance & Map Display'),
+              _buildSectionHeader('Appearance & Display'),
               const SizedBox(height: TrackletSpacing.sm),
               SettingsCard(
                 child: Column(
@@ -1032,19 +728,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         children: [
                           Text(
                             'Theme Preference',
-                            style: TrackletFonts.outfit(
+                            style: TrackletTypography.bodyMedium.copyWith(
                               fontSize: 15.0,
-                              fontWeight: FontWeight.w500,
-                              color: TrackletColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              color: TrackletColors.adaptiveTextPrimary(
+                                context,
+                              ),
                             ),
                           ),
                           const SizedBox(height: TrackletSpacing.xxs),
-                          const Text(
+                          Text(
                             'Choose interface appearance',
-                            style: TextStyle(
-                              fontFamily: 'Satoshi',
-                              fontSize: 13.0,
-                              color: TrackletColors.textSecondary,
+                            style: TrackletTypography.bodySmall.copyWith(
+                              color: TrackletColors.adaptiveTextSecondary(
+                                context,
+                              ),
                             ),
                           ),
                           const SizedBox(height: TrackletSpacing.compactMd),
@@ -1061,7 +759,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         ],
                       ),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Haptic Feedback',
                       subtitle:
@@ -1077,114 +775,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         }
                       },
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: '3D Campus Buildings',
-                      subtitle:
-                          'Render realistic extruded NITC campus structures',
-                      leadingIcon: Icons.domain_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      hasSwitch: true,
-                      switchValue: prefs.map3DBuildingsEnabled,
-                      onSwitchChanged: (bool val) {
-                        prefsNotifier.toggleMap3DBuildings(val);
-                        if (prefs.hapticFeedbackEnabled) {
-                          HapticFeedback.selectionClick();
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),
               const SizedBox(height: TrackletSpacing.section),
 
               // ==========================================
-              // SECTION 7: DATA MANAGEMENT & CACHE
-              // ==========================================
-              _buildSectionHeader('Data Management & Cache'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: 'Sync Transit Schedules',
-                      subtitle:
-                          _isSyncing
-                              ? 'Synchronizing campus routes & timetables...'
-                              : 'Fetch latest campus bus routes & timetables',
-                      leadingIcon: Icons.sync_rounded,
-                      leadingIconColor: TrackletColors.primary,
-                      trailing:
-                          _isSyncing
-                              ? const SizedBox(
-                                width: TrackletSpacing.lg,
-                                height: TrackletSpacing.lg,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.0,
-                                  color: TrackletColors.primary,
-                                ),
-                              )
-                              : null,
-                      onTap:
-                          _isSyncing
-                              ? null
-                              : () async {
-                                setState(() => _isSyncing = true);
-                                try {
-                                  await ref
-                                      .read(transitRepositoryProvider)
-                                      .getRoutes();
-                                  await ref
-                                      .read(transitRepositoryProvider)
-                                      .getStops();
-                                  if (mounted) {
-                                    _showSuccessSnackBar(
-                                      'Transit schedules synced successfully',
-                                    );
-                                  }
-                                } catch (_) {
-                                  if (mounted) {
-                                    _showInfoSnackBar(
-                                      'Could not sync schedules. Using cached data.',
-                                    );
-                                  }
-                                } finally {
-                                  if (mounted) {
-                                    setState(() => _isSyncing = false);
-                                  }
-                                }
-                              },
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Clear Cache',
-                      subtitle: 'Free local storage and reset map tile buffers',
-                      leadingIcon: Icons.cleaning_services_rounded,
-                      leadingIconColor: TrackletColors.textSecondary,
-                      onTap: () {
-                        PaintingBinding.instance.imageCache.clear();
-                        PaintingBinding.instance.imageCache.clearLiveImages();
-                        _showSuccessSnackBar(
-                          'Cached map tiles and temporary data cleared',
-                        );
-                      },
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Export Preferences',
-                      subtitle: 'View and export commute configuration JSON',
-                      leadingIcon: Icons.file_download_outlined,
-                      leadingIconColor: TrackletColors.textSecondary,
-                      showChevron: true,
-                      onTap: () => _showExportPreferencesDialog(prefs),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 8: SUPPORT & FEEDBACK
+              // SECTION 5: SUPPORT & FEEDBACK
               // ==========================================
               _buildSectionHeader('Support & Feedback'),
               const SizedBox(height: TrackletSpacing.sm),
@@ -1200,7 +797,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       showChevron: true,
                       onTap: () => TransitFaqDialog.show(context),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Report Bus / Route Issue',
                       subtitle:
@@ -1214,7 +811,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                             'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.rollNumber ?? "N/A"})',
                           ),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Contact Transport Committee',
                       subtitle: 'Email transport@nitc.ac.in',
@@ -1233,7 +830,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               const SizedBox(height: TrackletSpacing.section),
 
               // ==========================================
-              // SECTION 9: ABOUT TRACKLET & LEGAL
+              // SECTION 6: ABOUT TRACKLET & LEGAL
               // ==========================================
               _buildSectionHeader('About Tracklet & Legal'),
               const SizedBox(height: TrackletSpacing.sm),
@@ -1241,74 +838,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 child: Column(
                   children: [
                     SettingsRowItem(
-                      title: 'App Version',
-                      subtitle: 'v1.0.0 (Build 42)',
+                      title: 'About Tracklet',
+                      subtitle: 'Mission, team, build info, and architecture',
                       leadingIcon: Icons.info_outline_rounded,
                       leadingIconColor: TrackletColors.primary,
-                      trailing: TextButton(
-                        onPressed: () {
-                          _showSuccessSnackBar(
-                            'Tracklet is up to date (v1.0.0)',
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: TrackletSpacing.compactMd,
-                            vertical: TrackletSpacing.xs,
-                          ),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Check for updates',
-                          style: TrackletFonts.outfit(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w600,
-                            color: TrackletColors.primary,
-                          ),
-                        ),
-                      ),
+                      showChevron: true,
+                      onTap: () => context.push('/about'),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Terms of Service',
                       subtitle: 'Guidelines for campus transit tracking usage',
                       leadingIcon: Icons.description_outlined,
-                      leadingIconColor: TrackletColors.textSecondary,
+                      leadingIconColor: TrackletColors.primary,
                       showChevron: true,
-                      onTap:
-                          () => LegalContentDialog.showTermsOfService(context),
+                      onTap: () => context.push('/terms'),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Privacy Policy',
                       subtitle: 'How student data and location are handled',
                       leadingIcon: Icons.privacy_tip_outlined,
-                      leadingIconColor: TrackletColors.textSecondary,
+                      leadingIconColor: TrackletColors.primary,
                       showChevron: true,
-                      onTap:
-                          () => LegalContentDialog.showPrivacyPolicy(context),
+                      onTap: () => context.push('/privacy'),
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Open Source Licenses',
                       subtitle: 'Third-party packages and dependencies',
                       leadingIcon: Icons.code_rounded,
-                      leadingIconColor: TrackletColors.textSecondary,
+                      leadingIconColor: TrackletColors.primary,
                       showChevron: true,
-                      onTap:
-                          () => LegalContentDialog.showOpenSourceLibraries(
-                            context,
-                          ),
-                    ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'License',
-                      subtitle: 'MIT Open Source License',
-                      leadingIcon: Icons.workspace_premium_outlined,
-                      leadingIconColor: TrackletColors.textSecondary,
-                      showChevron: true,
-                      onTap: () => LegalContentDialog.showMitLicense(context),
+                      onTap: () => context.push('/licenses'),
                     ),
                   ],
                 ),
@@ -1316,7 +878,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               const SizedBox(height: TrackletSpacing.section),
 
               // ==========================================
-              // SECTION 10: ACCOUNT ACTIONS (DESTRUCTIVE)
+              // SECTION 7: ACCOUNT ACTIONS (DESTRUCTIVE)
               // ==========================================
               _buildSectionHeader('Account Actions'),
               const SizedBox(height: TrackletSpacing.sm),
@@ -1324,29 +886,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 child: Column(
                   children: [
                     SettingsRowItem(
-                      title: 'Log Out',
+                      title: isGuest ? 'Exit Guest Mode' : 'Log Out',
                       subtitle:
-                          'Sign out of your student account on this device',
+                          isGuest
+                              ? 'End your current guest session on this device'
+                              : 'Sign out of your student account on this device',
                       leadingIcon: Icons.logout_rounded,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: _showLogoutDialog,
                     ),
-                    const Divider(height: 1, color: TrackletColors.background),
-                    SettingsRowItem(
-                      title: 'Delete My Account',
-                      subtitle:
-                          'Permanently remove your profile and commute data',
-                      leadingIcon: Icons.delete_forever_rounded,
-                      leadingIconColor: TrackletColors.absentRed,
-                      titleColor: TrackletColors.absentRed,
-                      showChevron: true,
-                      onTap:
-                          () => DeleteAccountDialog.show(
-                            context,
-                            username: profile.username ?? '',
-                          ),
-                    ),
+                    if (!isGuest) ...[
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Delete My Account',
+                        subtitle:
+                            'Permanently remove your profile and commute data',
+                        leadingIcon: Icons.delete_forever_rounded,
+                        leadingIconColor: TrackletColors.absentRed,
+                        titleColor: TrackletColors.absentRed,
+                        showChevron: true,
+                        onTap:
+                            () => DeleteAccountDialog.show(
+                              context,
+                              username: profile.username ?? '',
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1358,6 +924,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
+  Widget _buildDivider(BuildContext context) {
+    return Divider(height: 1, color: TrackletColors.adaptiveBorder(context));
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -1366,10 +936,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       ),
       child: Text(
         title,
-        style: TrackletFonts.outfit(
+        style: TrackletTypography.labelLarge.copyWith(
           fontSize: 16.0,
           fontWeight: FontWeight.w600,
-          color: TrackletColors.textSecondary,
+          color: TrackletColors.adaptiveTextSecondary(context),
           letterSpacing: 0.2,
         ),
       ),
@@ -1377,13 +947,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   Widget _buildAcademicPill({required IconData icon, required String label}) {
+    final isDark = TrackletColors.isDark(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.compactMd,
         vertical: TrackletSpacing.compact,
       ),
-      decoration: const BoxDecoration(
-        color: TrackletColors.background,
+      decoration: BoxDecoration(
+        color:
+            isDark
+                ? TrackletColors.darkSurfaceElevated
+                : TrackletColors.background,
         borderRadius: TrackletRadii.roundedSm,
       ),
       child: Row(
@@ -1393,10 +967,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           const SizedBox(width: TrackletSpacing.compact),
           Text(
             label,
-            style: TrackletFonts.outfit(
-              fontSize: 12.0,
-              fontWeight: FontWeight.w500,
-              color: TrackletColors.textPrimary,
+            style: TrackletTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
         ],
@@ -1465,7 +1038,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       ),
       child: Text(
         label,
-        style: TrackletFonts.outfit(
+        style: TrackletTypography.labelSmall.copyWith(
           fontSize: 12.0,
           fontWeight: FontWeight.w600,
           color: fgColor,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../core/validation/username_validator.dart';
 import '../../../design_system/tokens/colors.dart';
-
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import 'onboarding_entrance.dart';
@@ -16,6 +16,7 @@ class OnboardingStepUsername extends StatefulWidget {
     required this.initialUsername,
     required this.isAvailable,
     this.isCheckingUsername = false,
+    this.validationError,
     required this.onUsernameChanged,
     required this.onMagicWandPressed,
     required this.onContinue,
@@ -24,6 +25,7 @@ class OnboardingStepUsername extends StatefulWidget {
   final String initialUsername;
   final bool? isAvailable;
   final bool isCheckingUsername;
+  final String? validationError;
   final ValueChanged<String> onUsernameChanged;
   final VoidCallback onMagicWandPressed;
   final VoidCallback onContinue;
@@ -65,28 +67,36 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
   }
 
   Widget _buildValidationFeedback({
+    required BuildContext context,
     required String text,
-    required bool isLengthValid,
+    required UsernameValidationResult localValidation,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String message;
     final Color color;
     final IconData icon;
     final Widget? trailing;
 
     if (text.isEmpty) {
-      message = '3–16 characters · letters, numbers, and underscores';
-      color = TrackletColors.textSecondary;
+      message = '3–20 characters · letters, numbers, and underscores';
+      color =
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.textSecondary;
       icon = Icons.info_outline_rounded;
       trailing = null;
-    } else if (!isLengthValid) {
-      message = 'Choose 3–16 characters for your username';
+    } else if (!localValidation.isValid) {
+      message = localValidation.errorMessage ?? 'Invalid username format';
       color = TrackletColors.errorBorder;
       icon = Icons.info_outline_rounded;
       trailing = null;
     } else if (widget.isCheckingUsername) {
-      message = 'Checking username availability';
-      color = TrackletColors.textSecondary;
-      icon = Icons.circle;
+      message = 'Checking username availability...';
+      color =
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.textSecondary;
+      icon = Icons.circle_outlined;
       trailing = const SizedBox(
         width: 14,
         height: 14,
@@ -95,9 +105,14 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           color: TrackletColors.primary,
         ),
       );
+    } else if (widget.validationError != null) {
+      message = widget.validationError!;
+      color = TrackletColors.errorBorder;
+      icon = Icons.warning_amber_rounded;
+      trailing = null;
     } else if (widget.isAvailable == true) {
       message = 'Username available';
-      color = TrackletColors.primary;
+      color = TrackletColors.success;
       icon = Icons.verified_outlined;
       trailing = null;
     } else if (widget.isAvailable == false) {
@@ -107,7 +122,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
       trailing = null;
     } else {
       message = 'Availability has not been checked yet';
-      color = TrackletColors.textSecondary;
+      color =
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.textSecondary;
       icon = Icons.info_outline_rounded;
       trailing = null;
     }
@@ -160,12 +178,14 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final text = _controller.text.trim();
-    final isLengthValid = text.length >= 3 && text.length <= 16;
+    final localValidation = UsernameValidator.validate(text);
     final canContinue =
-        isLengthValid &&
+        localValidation.isValid &&
         widget.isAvailable == true &&
-        !widget.isCheckingUsername;
+        !widget.isCheckingUsername &&
+        widget.validationError == null;
     final topSpace =
         (MediaQuery.sizeOf(context).height * 0.11)
             .clamp(56.0, 108.0)
@@ -200,7 +220,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               height: 1.2,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.45,
-              color: TrackletColors.textPrimary,
+              color:
+                  isDark
+                      ? TrackletColors.darkTextPrimary
+                      : TrackletColors.textPrimary,
             ),
           ).enterOnboarding(context, delay: 40.ms),
           const SizedBox(height: 5),
@@ -210,7 +233,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 fontFamily: TrackletTypography.secondaryFontFamily,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: TrackletColors.textSecondary,
+                color:
+                    isDark
+                        ? TrackletColors.darkTextSecondary
+                        : TrackletColors.textSecondary,
                 height: 1.4,
               ),
               children: [
@@ -246,7 +272,9 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   autofillHints: const [AutofillHints.nickname],
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
-                    LengthLimitingTextInputFormatter(16),
+                    LengthLimitingTextInputFormatter(
+                      UsernameValidator.maxLength,
+                    ),
                   ],
                   buildCounter:
                       (
@@ -259,13 +287,19 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                     hintText: 'Username',
                     hintStyle: TrackletTypography.bodyMedium.copyWith(
                       fontFamily: TrackletTypography.secondaryFontFamily,
-                      color: TrackletColors.textPrimary,
+                      color:
+                          isDark
+                              ? TrackletColors.darkTextSecondary
+                              : TrackletColors.textSecondary,
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: TrackletColors.alternate,
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? TrackletColors.darkBorder
+                                : TrackletColors.alternate,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(14),
@@ -278,7 +312,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.82),
+                    fillColor:
+                        isDark
+                            ? TrackletColors.darkSurfaceElevated
+                            : Colors.white.withValues(alpha: 0.82),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 15,
@@ -286,7 +323,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   ),
                   style: TrackletTypography.bodyMedium.copyWith(
                     fontFamily: TrackletTypography.secondaryFontFamily,
-                    color: TrackletColors.textPrimary,
+                    color:
+                        isDark
+                            ? TrackletColors.darkTextPrimary
+                            : TrackletColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -323,7 +363,11 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
             ],
           ).enterOnboarding(context, delay: 100.ms),
           const SizedBox(height: 8),
-          _buildValidationFeedback(text: text, isLengthValid: isLengthValid),
+          _buildValidationFeedback(
+            context: context,
+            text: text,
+            localValidation: localValidation,
+          ),
           const SizedBox(height: 18),
           Align(
             alignment: Alignment.centerRight,

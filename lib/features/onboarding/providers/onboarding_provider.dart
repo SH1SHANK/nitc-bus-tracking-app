@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/validation/username_validator.dart';
 import '../../../data/academic/department.dart';
 import '../../../data/academic/department_repository.dart';
 import '../../../data/campus/hostel.dart';
@@ -34,8 +35,8 @@ class OnboardingState {
     this.username = '',
     this.isUsernameAvailable,
     this.isCheckingUsername = false,
+    this.usernameValidationError,
     this.locationPermissionGranted = false,
-    this.notificationPermissionGranted = false,
     this.hostel = '',
     this.primaryStop = '',
     this.agreedToTerms = false,
@@ -59,8 +60,8 @@ class OnboardingState {
   final String username;
   final bool? isUsernameAvailable;
   final bool isCheckingUsername;
+  final String? usernameValidationError;
   final bool locationPermissionGranted;
-  final bool notificationPermissionGranted;
   final String hostel;
   final String primaryStop;
   final bool agreedToTerms;
@@ -90,8 +91,8 @@ class OnboardingState {
     String? username,
     bool? isUsernameAvailable,
     bool? isCheckingUsername,
+    Object? usernameValidationError = _errorSentinel,
     bool? locationPermissionGranted,
-    bool? notificationPermissionGranted,
     String? hostel,
     String? primaryStop,
     bool? agreedToTerms,
@@ -115,10 +116,12 @@ class OnboardingState {
       username: username ?? this.username,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
+      usernameValidationError:
+          identical(usernameValidationError, _errorSentinel)
+              ? this.usernameValidationError
+              : usernameValidationError as String?,
       locationPermissionGranted:
           locationPermissionGranted ?? this.locationPermissionGranted,
-      notificationPermissionGranted:
-          notificationPermissionGranted ?? this.notificationPermissionGranted,
       hostel: hostel ?? this.hostel,
       primaryStop: primaryStop ?? this.primaryStop,
       agreedToTerms: agreedToTerms ?? this.agreedToTerms,
@@ -152,6 +155,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
 
   @override
   OnboardingState build() {
+    ref.onDispose(() => _usernameDebounceTimer?.cancel());
     Future.microtask(loadInstitutionalData);
     return const OnboardingState();
   }
@@ -274,20 +278,56 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     state = state.copyWith(locationPermissionGranted: granted);
   }
 
-  void setNotificationPermission(bool granted) {
-    state = state.copyWith(notificationPermissionGranted: granted);
-  }
+  Timer? _usernameDebounceTimer;
 
   void updateUsername(String text) {
+    _usernameDebounceTimer?.cancel();
     final cleaned = text.replaceAll('@', '').trim().toLowerCase();
-    final takenUsernames = ['admin', 'root', 'support', 'nitc', 'tracklet'];
+    const takenUsernames = ['admin', 'root', 'support', 'nitc', 'tracklet'];
 
-    final hasValidLength = cleaned.length >= 3 && cleaned.length <= 16;
+    final validation = UsernameValidator.validate(cleaned);
+    final isSynchronouslyValid =
+        validation.isValid &&
+        !takenUsernames.contains(cleaned) &&
+        cleaned.length <= 16;
+
     state = state.copyWith(
       username: cleaned,
-      isCheckingUsername: false,
-      isUsernameAvailable: hasValidLength && !takenUsernames.contains(cleaned),
+      isCheckingUsername: isSynchronouslyValid,
+      isUsernameAvailable: isSynchronouslyValid,
+      usernameValidationError:
+          takenUsernames.contains(cleaned)
+              ? 'Sorry, username already taken.'
+              : (!validation.isValid ? validation.errorMessage : null),
     );
+
+    if (!isSynchronouslyValid) return;
+
+    _usernameDebounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final repo = _ref.read(profileRepositoryProvider);
+        final available = await repo.isUsernameAvailable(cleaned);
+        if (!ref.mounted) return;
+        if (state.username == cleaned) {
+          state = state.copyWith(
+            isCheckingUsername: false,
+            isUsernameAvailable: available,
+            usernameValidationError:
+                available ? null : 'Sorry, username already taken.',
+          );
+        }
+      } catch (e) {
+        if (!ref.mounted) return;
+        if (state.username == cleaned) {
+          state = state.copyWith(
+            isCheckingUsername: false,
+            isUsernameAvailable: null,
+            usernameValidationError:
+                'Could not verify username due to network error.',
+          );
+        }
+      }
+    });
   }
 
   void generateRandomUsername() {
@@ -310,6 +350,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       username: generated,
       isUsernameAvailable: true,
       isCheckingUsername: false,
+      usernameValidationError: null,
     );
   }
 
@@ -338,7 +379,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       batch: state.batch,
       semester: '',
       hostel: state.hostel,
-      notificationsEnabled: state.notificationPermissionGranted,
+      notificationsEnabled: false,
       locationPermissionGranted: state.locationPermissionGranted,
       hasCompletedOnboarding: true,
     );

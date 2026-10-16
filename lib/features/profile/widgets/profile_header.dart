@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/profile/profile.dart';
 import '../../../design_system/components/tracklet_card.dart';
+import '../../../design_system/components/voxel_avatar.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -22,26 +23,7 @@ class ProfileHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [TrackletColors.primary, TrackletColors.velvetSky],
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    profile.name.isNotEmpty
-                        ? profile.name.substring(0, 1).toUpperCase()
-                        : 'U',
-                    style: TrackletTypography.displayMedium.copyWith(
-                      color: TrackletColors.textInverse,
-                    ),
-                  ),
-                ),
-              ),
+              VoxelAvatar(email: profile.email, name: profile.name, size: 56),
               const SizedBox(width: TrackletSpacing.lg),
               Expanded(
                 child: Column(

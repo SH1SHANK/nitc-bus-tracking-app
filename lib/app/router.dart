@@ -15,6 +15,11 @@ import '../features/map/map_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/profile/providers/profile_provider.dart';
+import '../features/schedule/timetable_screen.dart';
+import '../features/settings/screens/about_screen.dart';
+import '../features/settings/screens/open_source_licenses_screen.dart';
+import '../features/settings/screens/privacy_policy_screen.dart';
+import '../features/settings/screens/terms_of_service_screen.dart';
 import 'app_shell.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -82,13 +87,20 @@ GoRouter createRouter({
 
       final loc = state.uri.path;
 
-      // Deep link / Callback handler for auth recovery
+      // Deep link / Callback handler for auth recovery or OAuth completion
       if (loc == '/auth/callback') {
         final type = state.uri.queryParameters['type'];
         if (type == 'recovery') {
           return '/reset-password';
         }
-        return '/login';
+        if (authState.isAuthenticated) {
+          final profile = profileAsync.value;
+          final bool isGuest = authState.isGuest;
+          final bool onboardingComplete =
+              isGuest || (profile?.hasCompletedOnboarding ?? false);
+          return onboardingComplete ? '/' : '/onboarding';
+        }
+        return null;
       }
 
       final isAuthRoute =
@@ -115,9 +127,17 @@ GoRouter createRouter({
         return '/forgot-password';
       }
 
-      // If not authenticated or domain unauthorized
-      if (!authState.isAuthenticated || !isNitcEmail(authState.email)) {
-        if (!isAuthRoute) {
+      final bool isGuest = authState.isGuest;
+      final isPublicLegalRoute =
+          loc == '/terms' ||
+          loc == '/privacy' ||
+          loc == '/licenses' ||
+          loc == '/about';
+
+      // If not authenticated or domain unauthorized (for registered accounts)
+      if (!authState.isAuthenticated ||
+          (!isGuest && !isNitcEmail(authState.email))) {
+        if (!isAuthRoute && !isPublicLegalRoute) {
           return '/login';
         }
         return null;
@@ -130,11 +150,12 @@ GoRouter createRouter({
 
       // If authenticated
       final profile = profileAsync.value;
-      final bool onboardingComplete = profile?.hasCompletedOnboarding ?? false;
+      final bool onboardingComplete =
+          isGuest || (profile?.hasCompletedOnboarding ?? false);
 
       // If onboarding is incomplete, restrict access to onboarding screen
       if (!onboardingComplete) {
-        if (loc != '/onboarding') {
+        if (loc != '/onboarding' && !isPublicLegalRoute) {
           return '/onboarding';
         }
         return null;
@@ -212,6 +233,58 @@ GoRouter createRouter({
             (context, state) => _buildSmoothPage(
               key: state.pageKey,
               child: const ResetPasswordScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/schedule',
+        name: 'schedule',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: TimetableScreen(
+                initialStopId: state.uri.queryParameters['stopId'],
+              ),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/terms',
+        name: 'terms',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const TermsOfServiceScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/privacy',
+        name: 'privacy',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const PrivacyPolicyScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/licenses',
+        name: 'licenses',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const OpenSourceLicensesScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/about',
+        name: 'about',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const AboutScreen(),
             ),
       ),
 
