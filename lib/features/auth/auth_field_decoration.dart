@@ -36,7 +36,10 @@ InputDecoration authInputDecoration({
   required String hint,
   required IconData icon,
   Widget? suffixIcon,
+  BuildContext? context,
 }) {
+  final isDark = context != null && TrackletColors.isDark(context);
+
   OutlineInputBorder border(Color color) => OutlineInputBorder(
     borderSide: BorderSide(color: color, width: 2.0),
     borderRadius: BorderRadius.circular(TrackletRadii.card),
@@ -46,7 +49,10 @@ InputDecoration authInputDecoration({
     labelText: label,
     hintText: hint,
     labelStyle: TrackletTypography.labelMedium.copyWith(
-      color: TrackletColors.secondaryText,
+      color:
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.secondaryText,
       fontWeight: FontWeight.w600,
     ),
     floatingLabelStyle: TrackletTypography.labelMedium.copyWith(
@@ -58,16 +64,31 @@ InputDecoration authInputDecoration({
       fontWeight: FontWeight.w600,
     ),
     hintStyle: TrackletTypography.labelLarge.copyWith(
-      color: TrackletColors.secondaryText,
+      color:
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.secondaryText,
       fontWeight: FontWeight.w700,
     ),
-    prefixIcon: Icon(icon, color: TrackletColors.secondaryText, size: 20),
+    prefixIcon: Icon(
+      icon,
+      color:
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.secondaryText,
+      size: 20,
+    ),
     prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
     suffixIcon: suffixIcon,
     filled: true,
-    fillColor: TrackletColors.primaryBackground,
+    fillColor:
+        isDark
+            ? TrackletColors.darkSurfaceElevated
+            : TrackletColors.primaryBackground,
     contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 18),
-    enabledBorder: border(TrackletColors.alternate),
+    enabledBorder: border(
+      isDark ? TrackletColors.darkBorder : TrackletColors.alternate,
+    ),
     focusedBorder: border(TrackletColors.primary),
     errorBorder: border(TrackletColors.errorBorder),
     focusedErrorBorder: border(TrackletColors.errorBorder),

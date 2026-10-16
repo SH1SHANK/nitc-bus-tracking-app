@@ -28,13 +28,6 @@ class UserPreferences {
     this.preferredRouteId = '10000000-0000-4000-8000-000000000001', // R1
     this.preferredRouteName = 'R1 (East ↔ MBH)',
     this.timeFormat = TransitTimeFormat.twelveHour,
-    this.alertLeadTimeMinutes = 5,
-    this.notificationsEnabled = true,
-    this.busArrivalAlerts = true,
-    this.disruptionAlerts = true,
-    this.scheduleChangeAlerts = true,
-    this.campusTransportationNotices = true,
-    this.quietHoursEnabled = false,
     this.themeMode = 'Light',
     this.hapticFeedbackEnabled = true,
     this.map3DBuildingsEnabled = true,
@@ -45,13 +38,6 @@ class UserPreferences {
   final String preferredRouteId;
   final String preferredRouteName;
   final TransitTimeFormat timeFormat;
-  final int alertLeadTimeMinutes;
-  final bool notificationsEnabled;
-  final bool busArrivalAlerts;
-  final bool disruptionAlerts;
-  final bool scheduleChangeAlerts;
-  final bool campusTransportationNotices;
-  final bool quietHoursEnabled;
   final String themeMode;
   final bool hapticFeedbackEnabled;
   final bool map3DBuildingsEnabled;
@@ -62,13 +48,6 @@ class UserPreferences {
     String? preferredRouteId,
     String? preferredRouteName,
     TransitTimeFormat? timeFormat,
-    int? alertLeadTimeMinutes,
-    bool? notificationsEnabled,
-    bool? busArrivalAlerts,
-    bool? disruptionAlerts,
-    bool? scheduleChangeAlerts,
-    bool? campusTransportationNotices,
-    bool? quietHoursEnabled,
     String? themeMode,
     bool? hapticFeedbackEnabled,
     bool? map3DBuildingsEnabled,
@@ -79,14 +58,6 @@ class UserPreferences {
       preferredRouteId: preferredRouteId ?? this.preferredRouteId,
       preferredRouteName: preferredRouteName ?? this.preferredRouteName,
       timeFormat: timeFormat ?? this.timeFormat,
-      alertLeadTimeMinutes: alertLeadTimeMinutes ?? this.alertLeadTimeMinutes,
-      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
-      busArrivalAlerts: busArrivalAlerts ?? this.busArrivalAlerts,
-      disruptionAlerts: disruptionAlerts ?? this.disruptionAlerts,
-      scheduleChangeAlerts: scheduleChangeAlerts ?? this.scheduleChangeAlerts,
-      campusTransportationNotices:
-          campusTransportationNotices ?? this.campusTransportationNotices,
-      quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
       themeMode: themeMode ?? this.themeMode,
       hapticFeedbackEnabled:
           hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
@@ -101,23 +72,12 @@ class UserPreferences {
     'preferred_route_id': preferredRouteId,
     'preferred_route_name': preferredRouteName,
     'time_format': timeFormat.name,
-    'alert_lead_time_minutes': alertLeadTimeMinutes,
-    'notifications_enabled': notificationsEnabled,
-    'bus_arrival_alerts': busArrivalAlerts,
-    'disruption_alerts': disruptionAlerts,
-    'schedule_change_alerts': scheduleChangeAlerts,
-    'campus_transportation_notices': campusTransportationNotices,
-    'quiet_hours_enabled': quietHoursEnabled,
     'theme_mode': themeMode,
     'haptic_feedback_enabled': hapticFeedbackEnabled,
     'map_3d_buildings_enabled': map3DBuildingsEnabled,
   };
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) {
-    // Validate and clamp alert lead time between 1 and 30 minutes
-    final rawLeadTime = (json['alert_lead_time_minutes'] as num?)?.toInt();
-    final clampedLeadTime = rawLeadTime != null ? rawLeadTime.clamp(1, 30) : 5;
-
     // Validate theme mode
     final rawTheme = json['theme_mode'] as String?;
     final validTheme = switch (rawTheme) {
@@ -137,14 +97,6 @@ class UserPreferences {
       preferredRouteName:
           json['preferred_route_name'] as String? ?? 'R1 (East ↔ MBH)',
       timeFormat: TransitTimeFormat.fromString(json['time_format'] as String?),
-      alertLeadTimeMinutes: clampedLeadTime,
-      notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
-      busArrivalAlerts: json['bus_arrival_alerts'] as bool? ?? true,
-      disruptionAlerts: json['disruption_alerts'] as bool? ?? true,
-      scheduleChangeAlerts: json['schedule_change_alerts'] as bool? ?? true,
-      campusTransportationNotices:
-          json['campus_transportation_notices'] as bool? ?? true,
-      quietHoursEnabled: json['quiet_hours_enabled'] as bool? ?? false,
       themeMode: validTheme,
       hapticFeedbackEnabled: json['haptic_feedback_enabled'] as bool? ?? true,
       map3DBuildingsEnabled: json['map_3d_buildings_enabled'] as bool? ?? true,
@@ -159,13 +111,6 @@ class UserPreferences {
           preferredStopId == other.preferredStopId &&
           preferredRouteId == other.preferredRouteId &&
           timeFormat == other.timeFormat &&
-          alertLeadTimeMinutes == other.alertLeadTimeMinutes &&
-          notificationsEnabled == other.notificationsEnabled &&
-          busArrivalAlerts == other.busArrivalAlerts &&
-          disruptionAlerts == other.disruptionAlerts &&
-          scheduleChangeAlerts == other.scheduleChangeAlerts &&
-          campusTransportationNotices == other.campusTransportationNotices &&
-          quietHoursEnabled == other.quietHoursEnabled &&
           themeMode == other.themeMode &&
           hapticFeedbackEnabled == other.hapticFeedbackEnabled &&
           map3DBuildingsEnabled == other.map3DBuildingsEnabled;
@@ -175,13 +120,6 @@ class UserPreferences {
     preferredStopId,
     preferredRouteId,
     timeFormat,
-    alertLeadTimeMinutes,
-    notificationsEnabled,
-    busArrivalAlerts,
-    disruptionAlerts,
-    scheduleChangeAlerts,
-    campusTransportationNotices,
-    quietHoursEnabled,
     themeMode,
     hapticFeedbackEnabled,
     map3DBuildingsEnabled,
@@ -231,35 +169,6 @@ class UserPreferencesNotifier extends Notifier<UserPreferences> {
 
   Future<void> setTimeFormat(TransitTimeFormat format) async {
     await _persist(state.copyWith(timeFormat: format));
-  }
-
-  Future<void> setAlertLeadTime(int minutes) async {
-    final clamped = minutes.clamp(1, 30);
-    await _persist(state.copyWith(alertLeadTimeMinutes: clamped));
-  }
-
-  Future<void> toggleNotifications(bool enabled) async {
-    await _persist(state.copyWith(notificationsEnabled: enabled));
-  }
-
-  Future<void> toggleBusArrivalAlerts(bool enabled) async {
-    await _persist(state.copyWith(busArrivalAlerts: enabled));
-  }
-
-  Future<void> toggleDisruptionAlerts(bool enabled) async {
-    await _persist(state.copyWith(disruptionAlerts: enabled));
-  }
-
-  Future<void> toggleScheduleChangeAlerts(bool enabled) async {
-    await _persist(state.copyWith(scheduleChangeAlerts: enabled));
-  }
-
-  Future<void> setCampusTransportationNotices(bool enabled) async {
-    await _persist(state.copyWith(campusTransportationNotices: enabled));
-  }
-
-  Future<void> toggleQuietHours(bool enabled) async {
-    await _persist(state.copyWith(quietHoursEnabled: enabled));
   }
 
   Future<void> setThemeMode(String mode) async {

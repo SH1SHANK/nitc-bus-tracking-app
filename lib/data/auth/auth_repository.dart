@@ -27,29 +27,47 @@ abstract class AuthRepository {
   bool get isAuthenticated;
 
   /// Sign in with student email and password.
-  Future<AuthResult> signInWithEmail(String email, String password);
+  Future<AuthResult> signInWithEmail(
+    String email,
+    String password, {
+    String? captchaToken,
+  });
 
   /// Register a new student account.
   Future<AuthResult> signUpWithEmail(
     String email,
     String password, {
     String? fullName,
+    String? captchaToken,
   });
 
   /// Request a password recovery email.
-  Future<AuthResult> resetPasswordForEmail(String email, {String? redirectTo});
+  Future<AuthResult> resetPasswordForEmail(
+    String email, {
+    String? redirectTo,
+    String? captchaToken,
+  });
 
   /// Update password for the currently authenticated recovery or active session.
   Future<AuthResult> updatePassword(String newPassword);
 
   /// Resend confirmation / verification email.
-  Future<AuthResult> resendVerificationEmail(String email);
+  Future<AuthResult> resendVerificationEmail(
+    String email, {
+    String? captchaToken,
+  });
 
   /// Sign in using Google OAuth.
   Future<AuthResult> signInWithGoogle();
 
+  /// Sign in anonymously as a guest.
+  Future<AuthResult> signInAnonymously({String? captchaToken});
+
   /// Sign out the current user session and invalidate tokens.
   Future<void> signOut();
+
+  /// Permanently delete the currently authenticated user account and associated profile data.
+  Future<void> deleteAccount();
 
   /// Clean up streams and resources.
   void dispose();
@@ -81,7 +99,7 @@ class SupabaseAuthRepository implements AuthRepository {
       final currentUser = client.auth.currentUser;
 
       if (currentSession != null && currentUser != null) {
-        if (!isNitcEmail(currentUser.email)) {
+        if (!currentUser.isAnonymous && !isNitcEmail(currentUser.email)) {
           AppLogger.warning(
             'Active session rejected for unauthorized email: ${currentUser.email}',
           );
@@ -118,7 +136,9 @@ class SupabaseAuthRepository implements AuthRepository {
 
           switch (event) {
             case AuthChangeEvent.signedIn:
-              if (user != null && !isNitcEmail(user.email)) {
+              if (user != null &&
+                  !user.isAnonymous &&
+                  !isNitcEmail(user.email)) {
                 AppLogger.warning(
                   'Signed-in user rejected for unauthorized email: ${user.email}',
                 );
@@ -157,7 +177,7 @@ class SupabaseAuthRepository implements AuthRepository {
             case AuthChangeEvent.tokenRefreshed:
             case AuthChangeEvent.userUpdated:
               if (user != null) {
-                if (!isNitcEmail(user.email)) {
+                if (!user.isAnonymous && !isNitcEmail(user.email)) {
                   AppLogger.warning(
                     'Token refresh/update rejected for unauthorized email: ${user.email}',
                   );
@@ -221,7 +241,11 @@ class SupabaseAuthRepository implements AuthRepository {
   bool get isAuthenticated => currentUser != null;
 
   @override
-  Future<AuthResult> signInWithEmail(String email, String password) async {
+  Future<AuthResult> signInWithEmail(
+    String email,
+    String password, {
+    String? captchaToken,
+  }) async {
     final cleanEmail = email.trim();
     if (!isNitcEmail(cleanEmail)) {
       return AuthResult.failure(
@@ -240,6 +264,7 @@ class SupabaseAuthRepository implements AuthRepository {
       final response = await client.auth.signInWithPassword(
         email: cleanEmail,
         password: password,
+        captchaToken: captchaToken,
       );
 
       final user = response.user;
@@ -270,6 +295,7 @@ class SupabaseAuthRepository implements AuthRepository {
     String email,
     String password, {
     String? fullName,
+    String? captchaToken,
   }) async {
     final cleanEmail = email.trim();
     if (!isNitcEmail(cleanEmail)) {
@@ -295,6 +321,7 @@ class SupabaseAuthRepository implements AuthRepository {
         email: cleanEmail,
         password: password,
         data: data.isNotEmpty ? data : null,
+        captchaToken: captchaToken,
       );
 
       final user = response.user;
@@ -338,6 +365,7 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<AuthResult> resetPasswordForEmail(
     String email, {
     String? redirectTo,
+    String? captchaToken,
   }) async {
     final cleanEmail = email.trim();
     final client = _supabase;
@@ -352,6 +380,7 @@ class SupabaseAuthRepository implements AuthRepository {
       await client.auth.resetPasswordForEmail(
         cleanEmail,
         redirectTo: redirectTo ?? 'nitcbus://auth-callback/reset-password',
+        captchaToken: captchaToken,
       );
 
       _emitState(
@@ -407,7 +436,10 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> resendVerificationEmail(String email) async {
+  Future<AuthResult> resendVerificationEmail(
+    String email, {
+    String? captchaToken,
+  }) async {
     final cleanEmail = email.trim();
     final client = _supabase;
 
@@ -418,7 +450,11 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     try {
-      await client.auth.resend(type: OtpType.signup, email: cleanEmail);
+      await client.auth.resend(
+        type: OtpType.signup,
+        email: cleanEmail,
+        captchaToken: captchaToken,
+      );
       return AuthResult.success();
     } catch (e) {
       final message = _mapAuthError(e);
@@ -459,6 +495,43 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthResult> signInAnonymously({String? captchaToken}) async {
+    final client = _supabase;
+
+    if (client == null) {
+      return AuthResult.failure(
+        'Authentication service is unavailable. Please check your configuration.',
+      );
+    }
+
+    try {
+      final response = await client.auth.signInAnonymously(
+        captchaToken: captchaToken,
+      );
+      final user = response.user;
+      final session = response.session;
+
+      if (user != null) {
+        _emitState(
+          AuthState(
+            status: AuthStatus.authenticated,
+            user: user,
+            session: session,
+            email: user.email,
+          ),
+        );
+        return AuthResult.success(user: user, session: session);
+      }
+
+      return AuthResult.failure('Failed to initialize guest session.');
+    } catch (e) {
+      final message = _mapAuthError(e);
+      AppLogger.warning('Guest sign in error: $message');
+      return AuthResult.failure(message);
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     final client = _supabase;
 
@@ -471,6 +544,23 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     _emitState(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final client = _supabase;
+    if (client != null && client.auth.currentUser != null) {
+      final user = client.auth.currentUser!;
+      if (!user.isAnonymous) {
+        try {
+          await client.rpc<dynamic>('delete_user_account');
+        } catch (e) {
+          AppLogger.error('Error invoking delete_user_account RPC: $e');
+          rethrow;
+        }
+      }
+      await signOut();
+    }
   }
 
   @override
@@ -513,6 +603,14 @@ class SupabaseAuthRepository implements AuthRepository {
       if (msg.contains('password should be at least') ||
           msg.contains('weak password')) {
         return 'Password must be at least 6 characters long.';
+      }
+      if (msg.contains('captcha')) {
+        return 'CAPTCHA verification challenge failed or required. Please complete the verification challenge and try again.';
+      }
+      if (msg.contains('anonymous sign-ins are disabled') ||
+          msg.contains('anonymous sign-in is disabled') ||
+          msg.contains('anonymous_provider_disabled')) {
+        return 'Guest sign-in is currently disabled. Please sign in with your NITC account.';
       }
       if (msg.contains('over_email_send_rate_limit') ||
           msg.contains('rate limit') ||

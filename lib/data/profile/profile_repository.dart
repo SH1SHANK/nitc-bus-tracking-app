@@ -8,8 +8,9 @@ import 'profile.dart';
 abstract class ProfileRepository {
   Future<Profile> getProfile();
   Future<void> saveProfile(Profile profile);
-  Future<void> updateNotificationPreference(bool enabled);
   Future<void> setOnboardingCompleted(bool completed);
+  Future<bool> isUsernameAvailable(String username);
+  Future<Profile> changeUsername(String newUsername);
 }
 
 class LocalOrSupabaseProfileRepository implements ProfileRepository {
@@ -18,6 +19,68 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
   final SupabaseClient? _supabase;
   Profile? _cachedProfile;
   String? _cachedUserId;
+  final Set<String> _localTakenUsernames = {
+    'admin',
+    'root',
+    'support',
+    'nitc',
+    'tracklet',
+  };
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async {
+    final client = _supabase;
+    final clean = username.trim().toLowerCase();
+    if (clean.isEmpty) return false;
+
+    if (client != null && client.auth.currentUser != null) {
+      try {
+        final res = await client.rpc<bool>(
+          'check_username_available',
+          params: {'p_username': clean},
+        );
+        return res == true;
+      } catch (e) {
+        AppLogger.error('Error checking username availability: $e');
+        rethrow;
+      }
+    }
+
+    return !_localTakenUsernames.contains(clean);
+  }
+
+  @override
+  Future<Profile> changeUsername(String newUsername) async {
+    final clean = newUsername.trim();
+    final client = _supabase;
+    final currentUser = client?.auth.currentUser;
+
+    if (client != null && currentUser != null && !currentUser.isAnonymous) {
+      try {
+        final data = await client.rpc<dynamic>(
+          'change_my_username',
+          params: {'p_username': clean},
+        );
+        if (data is List && data.isNotEmpty) {
+          final row = Map<String, dynamic>.from(data.first as Map);
+          _cachedProfile = _mapRowToProfile(row, currentUser);
+          return _cachedProfile!;
+        }
+        throw StateError('Updated profile record was not returned.');
+      } catch (e) {
+        AppLogger.error('Error changing username in Supabase: $e');
+        rethrow;
+      }
+    } else {
+      if (_localTakenUsernames.contains(clean.toLowerCase())) {
+        throw StateError('Username is already taken');
+      }
+      _localTakenUsernames.add(clean.toLowerCase());
+      final current = _cachedProfile ?? await getProfile();
+      _cachedProfile = current.copyWith(username: clean);
+      return _cachedProfile!;
+    }
+  }
 
   @override
   Future<Profile> getProfile() async {
@@ -29,6 +92,17 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
     }
 
     if (client != null && currentUser != null) {
+      if (currentUser.isAnonymous) {
+        _cachedProfile = Profile(
+          id: currentUser.id,
+          name: 'Guest Rider',
+          email: '',
+          role: 'Guest',
+          hasCompletedOnboarding: true,
+        );
+        return _cachedProfile!;
+      }
+
       try {
         final data = await client.rpc<dynamic>('ensure_my_profile');
         if (data is List && data.isNotEmpty) {
@@ -55,7 +129,8 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
   @override
   Future<void> saveProfile(Profile profile) async {
     final client = _supabase;
-    if (client != null && client.auth.currentUser != null) {
+    final currentUser = client?.auth.currentUser;
+    if (client != null && currentUser != null && !currentUser.isAnonymous) {
       try {
         await client.rpc<dynamic>(
           'update_my_profile',
@@ -65,9 +140,10 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
             'p_batch': profile.batch,
             'p_hostel': profile.hostel,
             'p_notification_prefs': {
-              'notifications_enabled': profile.notificationsEnabled,
               'location_permission_granted': profile.locationPermissionGranted,
             },
+            if (profile.username != null && profile.username!.trim().isNotEmpty)
+              'p_username': profile.username!.trim(),
           },
         );
         _cachedProfile = profile;
@@ -88,16 +164,13 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<void> updateNotificationPreference(bool enabled) async {
-    final current = _cachedProfile ?? await getProfile();
-    final updated = current.copyWith(notificationsEnabled: enabled);
-    await saveProfile(updated);
-  }
-
-  @override
   Future<void> setOnboardingCompleted(bool completed) async {
     final client = _supabase;
-    if (client != null && client.auth.currentUser != null && completed) {
+    final currentUser = client?.auth.currentUser;
+    if (client != null &&
+        currentUser != null &&
+        !currentUser.isAnonymous &&
+        completed) {
       try {
         final current = _cachedProfile ?? await getProfile();
         await client.rpc<dynamic>(
@@ -108,9 +181,10 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
             'p_batch': current.batch,
             'p_hostel': current.hostel,
             'p_notification_prefs': {
-              'notifications_enabled': current.notificationsEnabled,
               'location_permission_granted': current.locationPermissionGranted,
             },
+            if (current.username != null && current.username!.trim().isNotEmpty)
+              'p_username': current.username!.trim(),
           },
         );
         _cachedProfile = current.copyWith(hasCompletedOnboarding: completed);
@@ -134,7 +208,11 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
     return Profile(
       id: row['user_id']?.toString() ?? authUser.id,
       name: row['full_name'] as String? ?? 'Student',
-      username: authUser.email?.split('@').first ?? 'student',
+      username:
+          row['username'] as String? ??
+          authUser.userMetadata?['username'] as String? ??
+          authUser.email?.split('@').first ??
+          'student',
       email: authUser.email ?? 'student@nitc.ac.in',
       role: 'Student',
       department:
@@ -148,10 +226,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
       batch: row['batch'] as String? ?? '',
       semester: row['semester'] as String? ?? '',
       hostel: row['hostel'] as String? ?? '',
-      notificationsEnabled:
-          (row['notification_prefs'] as Map?)?['notifications_enabled']
-              as bool? ??
-          true,
+      notificationsEnabled: false,
       locationPermissionGranted:
           (row['notification_prefs'] as Map?)?['location_permission_granted']
               as bool? ??

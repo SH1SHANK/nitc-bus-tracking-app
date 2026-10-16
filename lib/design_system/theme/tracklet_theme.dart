@@ -88,4 +88,86 @@ class TrackletTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    final textTheme = const TextTheme(
+      displayLarge: TrackletTypography.displayLarge,
+      displayMedium: TrackletTypography.displayMedium,
+      headlineLarge: TrackletTypography.headlineLarge,
+      headlineMedium: TrackletTypography.headlineMedium,
+      titleLarge: TrackletTypography.titleLarge,
+      titleMedium: TrackletTypography.titleMedium,
+      bodyLarge: TrackletTypography.bodyLarge,
+      bodyMedium: TrackletTypography.bodyMedium,
+      bodySmall: TrackletTypography.bodySmall,
+      labelLarge: TrackletTypography.labelLarge,
+      labelMedium: TrackletTypography.labelMedium,
+      labelSmall: TrackletTypography.labelSmall,
+    ).apply(
+      bodyColor: TrackletColors.darkTextPrimary,
+      displayColor: TrackletColors.darkTextPrimary,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: TrackletTypography.primaryFontFamily,
+      fontFamilyFallback: TrackletTypography.fontFallbacks,
+      colorScheme: const ColorScheme.dark(
+        primary: TrackletColors.primary,
+        onPrimary: TrackletColors.textInverse,
+        secondary: TrackletColors.secondary,
+        onSecondary: TrackletColors.textInverse,
+        surface: TrackletColors.darkSurface,
+        onSurface: TrackletColors.darkTextPrimary,
+        error: TrackletColors.absentRed,
+        onError: TrackletColors.textInverse,
+      ),
+      scaffoldBackgroundColor: TrackletColors.darkBackground,
+      textTheme: textTheme,
+      extensions: <ThemeExtension<dynamic>>[
+        md.MoonTheme(tokens: md.MoonTokens.dark),
+      ],
+      cardTheme: const CardThemeData(
+        color: TrackletColors.darkSurfaceElevated,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: TrackletRadii.roundedLg,
+          side: BorderSide(color: TrackletColors.darkBorder),
+        ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: TrackletColors.darkBackground,
+        foregroundColor: TrackletColors.darkTextPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: TrackletColors.darkDivider,
+        thickness: 1,
+        space: 1,
+      ),
+      iconTheme: const IconThemeData(
+        color: TrackletColors.darkTextPrimary,
+        size: 24,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: TrackletColors.primary,
+          foregroundColor: TrackletColors.textInverse,
+          minimumSize: const Size(
+            TrackletSpacing.minTouchTarget,
+            TrackletSpacing.minTouchTarget,
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: TrackletRadii.roundedMd,
+          ),
+          textStyle: TrackletTypography.labelLarge,
+          elevation: 0,
+        ),
+      ),
+    );
+  }
 }

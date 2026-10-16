@@ -5,8 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../design_system/components/icons/tracklet_icon.dart';
-import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -111,8 +109,8 @@ class _ResetPasswordSentScreenState
                         ),
                       ),
                       child: const Center(
-                        child: TrackletIcon(
-                          TrackletIcons.notifications,
+                        child: Icon(
+                          Icons.mark_email_read_rounded,
                           color: TrackletColors.primary,
                           size: 64.0,
                         ),

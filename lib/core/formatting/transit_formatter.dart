@@ -19,6 +19,12 @@ class TransitFormatter {
     return '$minutes mins walk';
   }
 
+  /// Estimates walking time in minutes from distance in meters (using ~80 m/min).
+  static int estimateWalkMinutes(double distanceMeters) {
+    if (distanceMeters <= 0) return 1;
+    return (distanceMeters / 80).ceil();
+  }
+
   /// Formats distance in meters or kilometers.
   static String formatDistance(double meters) {
     if (meters < 1000) {
@@ -34,11 +40,11 @@ class TransitFormatter {
   }
 
   /// Formats relative update timestamp (e.g., "Updated just now", "Updated 2m ago").
-  static String formatLastUpdated(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
+  static String formatLastUpdated(DateTime timestamp, {DateTime? now}) {
+    final current = now ?? DateTime.now();
+    final difference = current.difference(timestamp);
 
-    if (difference.inSeconds < 15) return 'Live';
+    if (difference.isNegative || difference.inSeconds < 15) return 'just now';
     if (difference.inSeconds < 60) return '${difference.inSeconds}s ago';
     if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
     return '${difference.inHours}h ago';

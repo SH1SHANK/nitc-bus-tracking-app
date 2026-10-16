@@ -47,8 +47,12 @@ class AuthState {
 
   bool get isAuthenticated =>
       status == AuthStatus.authenticated && user != null;
+  bool get isGuest => isAuthenticated && (user?.isAnonymous ?? false);
   bool get isAuthenticating => status == AuthStatus.authenticating;
   bool get isRecoveryFlow => status == AuthStatus.passwordRecoveryInProgress;
+  bool get isGoogleUser =>
+      user?.appMetadata['provider'] == 'google' ||
+      (user?.identities?.any((i) => i.provider == 'google') ?? false);
 
   AuthState copyWith({
     AuthStatus? status,

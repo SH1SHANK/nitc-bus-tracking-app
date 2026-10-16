@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/turnstile_service.dart';
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
@@ -63,7 +64,34 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    await ref.read(authNotifierProvider.notifier).sendPasswordRecovery(email);
+    String? captchaToken;
+    try {
+      captchaToken = await TurnstileService.instance.getCaptchaToken(
+        action: 'password_reset',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e
+                .toString()
+                .replaceAll('Exception: ', '')
+                .replaceAll('Error: ', ''),
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    await ref
+        .read(authNotifierProvider.notifier)
+        .sendPasswordRecovery(email, captchaToken: captchaToken);
 
     if (!mounted) return;
     setState(() => _isLoading = false);

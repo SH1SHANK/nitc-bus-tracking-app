@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/turnstile_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -46,9 +47,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    String? captchaToken;
+    try {
+      captchaToken = await TurnstileService.instance.getCaptchaToken(
+        action: 'login',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e
+                .toString()
+                .replaceAll('Exception: ', '')
+                .replaceAll('Error: ', ''),
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .signIn(email, password);
+        .signIn(email, password, captchaToken: captchaToken);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -87,13 +113,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result.isSuccess) {
-      final profile = await ref.read(profileStateProvider.future);
-      if (!mounted) return;
+      final currentAuth = ref.read(authNotifierProvider);
+      if (currentAuth.isAuthenticated) {
+        final profile = await ref.read(profileStateProvider.future);
+        if (!mounted) return;
 
-      if (profile.hasCompletedOnboarding) {
-        context.go('/');
-      } else {
-        context.go('/onboarding');
+        if (profile.hasCompletedOnboarding) {
+          context.go('/');
+        } else {
+          context.go('/onboarding');
+        }
       }
     } else {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -104,6 +133,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
+        ),
+      );
+    }
+  }
+
+  bool _isGuestSigningIn = false;
+
+  Future<void> _handleGuestSignIn() async {
+    if (_isLoading) return;
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isLoading = true;
+      _isGuestSigningIn = true;
+    });
+    String? captchaToken;
+    try {
+      captchaToken = await TurnstileService.instance.getCaptchaToken(
+        action: 'guest_login',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isGuestSigningIn = false;
+      });
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e
+                .toString()
+                .replaceAll('Exception: ', '')
+                .replaceAll('Error: ', ''),
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    final result = await ref
+        .read(authNotifierProvider.notifier)
+        .signInAnonymously(captchaToken: captchaToken);
+
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _isGuestSigningIn = false;
+    });
+
+    if (result.isSuccess) {
+      context.go('/');
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.errorMessage ??
+                'Guest sign-in failed. Please check your internet connection.',
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -128,6 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    final isDark = TrackletColors.isDark(context);
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return GestureDetector(
@@ -135,7 +231,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        backgroundColor: TrackletColors.secondaryBackground,
+        backgroundColor:
+            isDark
+                ? TrackletColors.darkBackground
+                : TrackletColors.secondaryBackground,
         body: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.max,
@@ -217,7 +316,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: TrackletTypography.displaySmall.copyWith(
                               fontSize: 26.0,
                               fontWeight: FontWeight.bold,
-                              color: TrackletColors.altPrimaryText,
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkTextPrimary
+                                      : TrackletColors.altPrimaryText,
                             ),
                           ),
                         ),
@@ -237,7 +339,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               "Log in and pick up right where you left off. We've been saving your seat. ",
                               style: TrackletTypography.labelMedium.copyWith(
                                 fontSize: 14.0,
-                                color: TrackletColors.secondaryText,
+                                color:
+                                    isDark
+                                        ? TrackletColors.darkTextSecondary
+                                        : TrackletColors.secondaryText,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -290,10 +395,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   label: 'Email address',
                                   hint: 'name@nitc.ac.in',
                                   icon: Icons.mail_outline_rounded,
+                                  context: context,
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
                                   fontSize: 15.0,
-                                  color: TrackletColors.altPrimaryText,
+                                  color:
+                                      isDark
+                                          ? TrackletColors.darkTextPrimary
+                                          : TrackletColors.altPrimaryText,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -329,6 +438,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   label: 'Password',
                                   hint: 'Enter your password',
                                   icon: Icons.lock_outline_rounded,
+                                  context: context,
                                   suffixIcon: IconButton(
                                     tooltip:
                                         _passwordVisibility
@@ -343,14 +453,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       _passwordVisibility
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
-                                      color: TrackletColors.secondaryText,
+                                      color:
+                                          isDark
+                                              ? TrackletColors.darkTextSecondary
+                                              : TrackletColors.secondaryText,
                                       size: 22,
                                     ),
                                   ),
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
                                   fontSize: 15.0,
-                                  color: TrackletColors.altPrimaryText,
+                                  color:
+                                      isDark
+                                          ? TrackletColors.darkTextPrimary
+                                          : TrackletColors.altPrimaryText,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -377,7 +493,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: TrackletTypography.bodyMedium.copyWith(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w500,
-                                  color: TrackletColors.altPrimaryText,
+                                  color:
+                                      isDark
+                                          ? TrackletColors.velvetSky
+                                          : TrackletColors.altPrimaryText,
                                 ),
                               ),
                             ),
@@ -412,7 +531,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ),
                                 child:
-                                    _isLoading
+                                    _isLoading && !_isGuestSigningIn
                                         ? const SizedBox(
                                           width: 20,
                                           height: 20,
@@ -443,7 +562,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: TrackletTypography.caption.copyWith(
                               fontSize: 13.0,
                               fontWeight: FontWeight.w500,
-                              color: TrackletColors.secondaryText,
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkTextSecondary
+                                      : TrackletColors.secondaryText,
                             ),
                           ),
                         ),
@@ -463,13 +585,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed:
                                   _isLoading ? null : _handleGoogleSignIn,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: TrackletColors.altPrimaryText,
+                                backgroundColor:
+                                    isDark
+                                        ? TrackletColors.darkSurfaceElevated
+                                        : TrackletColors.altPrimaryText,
                                 foregroundColor: TrackletColors.pure,
                                 elevation: 0.0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                     TrackletRadii.input,
                                   ),
+                                  side:
+                                      isDark
+                                          ? const BorderSide(
+                                            color: TrackletColors.darkBorder,
+                                          )
+                                          : BorderSide.none,
                                 ),
                               ),
                               child: Row(
@@ -502,6 +633,130 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
 
+                        // Continue as Guest Option
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            0.0,
+                            12.0,
+                            0.0,
+                            0.0,
+                          ),
+                          child: Material(
+                            key: const ValueKey('continue_as_guest_button'),
+                            color:
+                                isDark
+                                    ? TrackletColors.darkSurfaceElevated
+                                    : const Color(0xFFF7F6FE),
+                            borderRadius: BorderRadius.circular(
+                              TrackletRadii.input,
+                            ),
+                            child: InkWell(
+                              onTap: _isLoading ? null : _handleGuestSignIn,
+                              borderRadius: BorderRadius.circular(
+                                TrackletRadii.input,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    TrackletRadii.input,
+                                  ),
+                                  border: Border.all(
+                                    color:
+                                        isDark
+                                            ? TrackletColors.darkBorder
+                                            : TrackletColors.primary.withValues(
+                                              alpha: 0.25,
+                                            ),
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: TrackletColors.primary
+                                            .withValues(
+                                              alpha: isDark ? 0.2 : 0.1,
+                                            ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_outline_rounded,
+                                        size: 20,
+                                        color: TrackletColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Continue as Guest',
+                                            style: TrackletTypography.titleSmall
+                                                .copyWith(
+                                                  fontSize: 15.0,
+                                                  fontWeight: FontWeight.w700,
+                                                  color:
+                                                      isDark
+                                                          ? TrackletColors
+                                                              .darkTextPrimary
+                                                          : TrackletColors
+                                                              .altPrimaryText,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Explore Tracklet live bus tracking without creating an account',
+                                            style: TrackletTypography.bodySmall
+                                                .copyWith(
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.w500,
+                                                  color:
+                                                      isDark
+                                                          ? TrackletColors
+                                                              .darkTextSecondary
+                                                          : TrackletColors
+                                                              .secondaryText,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (_isGuestSigningIn)
+                                      const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: TrackletColors.primary,
+                                        ),
+                                      )
+                                    else
+                                      Icon(
+                                        Icons.arrow_forward_rounded,
+                                        size: 18,
+                                        color:
+                                            isDark
+                                                ? TrackletColors
+                                                    .darkTextSecondary
+                                                : TrackletColors.secondaryText,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
                         // Sign Up / Create Account Link
                         Align(
                           alignment: const AlignmentDirectional(0.0, 0.0),
@@ -521,7 +776,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         .copyWith(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 16.0,
-                                          color: TrackletColors.altPrimaryText,
+                                          color:
+                                              isDark
+                                                  ? TrackletColors
+                                                      .darkTextSecondary
+                                                  : TrackletColors
+                                                      .altPrimaryText,
                                         ),
                                   ),
                                   TextSpan(

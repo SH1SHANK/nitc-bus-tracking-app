@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 /// Tracklet core and transit semantic color tokens matching Attendrix styling.
 abstract final class TrackletColors {
@@ -25,6 +25,43 @@ abstract final class TrackletColors {
   static const Color inputBorder = Color(0xFFCAC0C0);
   static const Color divider = Color(0xFFE5E7EB);
   static const Color pure = Color(0xFFFFFFFF);
+
+  // Dark Palette Surfaces & Text Tokens
+  static const Color darkBackground = Color(0xFF0F1117);
+  static const Color darkSurface = Color(0xFF161922);
+  static const Color darkSurfaceElevated = Color(0xFF1F2430);
+  static const Color darkBorder = Color(0xFF232836);
+  static const Color darkDivider = Color(0xFF232836);
+  static const Color darkTextPrimary = Color(0xFFF1F4F8);
+  static const Color darkTextSecondary = Color(0xFF9098A9);
+
+  // Adaptive Theme Helpers
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color adaptiveBackground(BuildContext context) =>
+      isDark(context) ? darkBackground : background;
+
+  static Color adaptiveSurface(BuildContext context) =>
+      isDark(context) ? darkSurface : surface;
+
+  static Color adaptiveSurfaceElevated(BuildContext context) =>
+      isDark(context) ? darkSurfaceElevated : surfaceElevated;
+
+  static Color adaptiveBorder(BuildContext context) =>
+      isDark(context) ? darkBorder : border;
+
+  static Color adaptiveCardBorder(BuildContext context) =>
+      isDark(context) ? darkBorder : cardBorder;
+
+  static Color adaptiveDivider(BuildContext context) =>
+      isDark(context) ? darkDivider : divider;
+
+  static Color adaptiveTextPrimary(BuildContext context) =>
+      isDark(context) ? darkTextPrimary : textPrimary;
+
+  static Color adaptiveTextSecondary(BuildContext context) =>
+      isDark(context) ? darkTextSecondary : textSecondary;
 
   // Text Tokens
   static const Color textPrimary = Color(0xFF15161E);

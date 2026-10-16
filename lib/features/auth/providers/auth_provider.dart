@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/auth/auth_repository.dart';
-import '../../../data/profile/profile_repository.dart';
-import '../../profile/providers/profile_provider.dart';
 import '../../../data/auth/auth_result.dart';
 import '../../../data/auth/auth_state.dart';
 
@@ -12,7 +10,6 @@ class AuthNotifier extends Notifier<AuthState> {
   StreamSubscription<AuthState>? _authSub;
 
   AuthRepository get _authRepository => ref.read(authRepositoryProvider);
-  Ref get _ref => ref;
 
   @override
   AuthState build() {
@@ -46,10 +43,18 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Sign in with student email and password.
-  Future<AuthResult> signIn(String email, String password) async {
+  Future<AuthResult> signIn(
+    String email,
+    String password, {
+    String? captchaToken,
+  }) async {
     state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
 
-    final result = await _authRepository.signInWithEmail(email, password);
+    final result = await _authRepository.signInWithEmail(
+      email,
+      password,
+      captchaToken: captchaToken,
+    );
 
     if (result.isSuccess) {
       state = AuthState(
@@ -58,7 +63,6 @@ class AuthNotifier extends Notifier<AuthState> {
         session: result.session,
         email: result.user?.email ?? email.trim(),
       );
-      _ref.invalidate(profileStateProvider);
     } else {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -74,6 +78,7 @@ class AuthNotifier extends Notifier<AuthState> {
     String email,
     String password, {
     String? fullName,
+    String? captchaToken,
   }) async {
     state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
 
@@ -81,6 +86,7 @@ class AuthNotifier extends Notifier<AuthState> {
       email,
       password,
       fullName: fullName,
+      captchaToken: captchaToken,
     );
 
     if (result.isSuccess) {
@@ -97,7 +103,6 @@ class AuthNotifier extends Notifier<AuthState> {
           session: result.session,
           email: email.trim(),
         );
-        _ref.invalidate(profileStateProvider);
       }
     } else {
       state = state.copyWith(
@@ -110,10 +115,16 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Send password recovery magic link to email.
-  Future<AuthResult> sendPasswordRecovery(String email) async {
+  Future<AuthResult> sendPasswordRecovery(
+    String email, {
+    String? captchaToken,
+  }) async {
     state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
 
-    final result = await _authRepository.resetPasswordForEmail(email);
+    final result = await _authRepository.resetPasswordForEmail(
+      email,
+      captchaToken: captchaToken,
+    );
 
     if (result.isSuccess) {
       state = AuthState(
@@ -155,8 +166,14 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Resend email verification.
-  Future<AuthResult> resendVerification(String email) async {
-    return _authRepository.resendVerificationEmail(email);
+  Future<AuthResult> resendVerification(
+    String email, {
+    String? captchaToken,
+  }) async {
+    return _authRepository.resendVerificationEmail(
+      email,
+      captchaToken: captchaToken,
+    );
   }
 
   /// Sign in with Google OAuth.
@@ -165,6 +182,29 @@ class AuthNotifier extends Notifier<AuthState> {
 
     final result = await _authRepository.signInWithGoogle();
     if (!result.isSuccess) {
+      state = state.copyWith(
+        status: AuthStatus.unauthenticated,
+        errorMessage: result.errorMessage,
+      );
+    }
+    return result;
+  }
+
+  /// Sign in anonymously as a guest.
+  Future<AuthResult> signInAnonymously({String? captchaToken}) async {
+    state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
+
+    final result = await _authRepository.signInAnonymously(
+      captchaToken: captchaToken,
+    );
+    if (result.isSuccess) {
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: result.user,
+        session: result.session,
+        email: result.user?.email,
+      );
+    } else {
       state = state.copyWith(
         status: AuthStatus.unauthenticated,
         errorMessage: result.errorMessage,
@@ -184,8 +224,12 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Sign out current student session.
   Future<void> signOut() async {
     await _authRepository.signOut();
-    _ref.invalidate(profileStateProvider);
-    _ref.invalidate(profileRepositoryProvider);
+    state = const AuthState(status: AuthStatus.unauthenticated);
+  }
+
+  /// Permanently delete student account and associated data.
+  Future<void> deleteAccount() async {
+    await _authRepository.deleteAccount();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/turnstile_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -73,9 +74,34 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    String? captchaToken;
+    try {
+      captchaToken = await TurnstileService.instance.getCaptchaToken(
+        action: 'signup',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e
+                .toString()
+                .replaceAll('Exception: ', '')
+                .replaceAll('Error: ', ''),
+            style: const TextStyle(color: TrackletColors.info),
+          ),
+          backgroundColor: TrackletColors.errorBorder,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     final result = await ref
         .read(authNotifierProvider.notifier)
-        .signUp(email, password);
+        .signUp(email, password, captchaToken: captchaToken);
 
     if (!mounted) return;
     setState(() => _isLoading = false);

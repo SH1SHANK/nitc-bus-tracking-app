@@ -17,24 +17,36 @@ class AppConfig {
   // Supabase Configuration
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: '',
+    defaultValue: 'https://fnngudikrvelpuhngtlw.supabase.co',
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: '',
+    defaultValue:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubmd1ZGlrcnZlbHB1aG5ndGx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0Mjc0MDAsImV4cCI6MjEwNzAwMzQwMH0.K7L2ESSZjV3R7OCwcOy_WA8XNCivIrUqZGRMitRrMEc',
   );
 
   static bool get hasSupabaseCredentials =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
-  // OneSignal Configuration
-  static const String onesignalAppId = String.fromEnvironment(
-    'ONESIGNAL_APP_ID',
-    defaultValue: '',
+  // Supabase CAPTCHA Bot Protection Configuration (Cloudflare Turnstile or hCaptcha)
+  static const bool captchaEnabled = bool.fromEnvironment(
+    'CAPTCHA_ENABLED',
+    defaultValue: true,
   );
 
-  static bool get hasOneSignalAppId => onesignalAppId.isNotEmpty;
+  static const String captchaSiteKey = String.fromEnvironment(
+    'CAPTCHA_SITE_KEY',
+    defaultValue: '0x4AAAAAAFXxHTiFZHgWmlcA',
+  );
+
+  static const String captchaProvider = String.fromEnvironment(
+    'CAPTCHA_PROVIDER',
+    defaultValue: 'turnstile', // 'turnstile' or 'hcaptcha'
+  );
+
+  static bool get isCaptchaConfigured =>
+      captchaEnabled && captchaSiteKey.isNotEmpty;
 
   // Map Tile Provider Configuration Boundary
   // Note: OpenStreetMap standard tiles are provided as a dev fallback.

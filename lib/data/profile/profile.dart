@@ -12,7 +12,7 @@ class Profile {
     this.batch = '',
     this.semester = '',
     this.hostel = '',
-    this.notificationsEnabled = true,
+    this.notificationsEnabled = false,
     this.locationPermissionGranted = false,
     this.hasCompletedOnboarding = false,
   });
@@ -31,6 +31,15 @@ class Profile {
   final bool notificationsEnabled;
   final bool locationPermissionGranted;
   final bool hasCompletedOnboarding;
+
+  /// Deterministic DiceBear Voxel Art avatar URL generated dynamically from user email.
+  String get avatarUrl {
+    final seed =
+        email.trim().isNotEmpty
+            ? email.trim().toLowerCase()
+            : (name.trim().isNotEmpty ? name.trim().toLowerCase() : 'guest');
+    return 'https://api.dicebear.com/10.x/voxel-art/png?seed=${Uri.encodeComponent(seed)}&size=150&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf';
+  }
 
   Profile copyWith({
     String? id,
