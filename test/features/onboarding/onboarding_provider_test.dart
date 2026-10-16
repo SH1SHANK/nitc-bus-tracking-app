@@ -23,7 +23,6 @@ void main() {
       expect(state.username, isEmpty);
       expect(state.hostel, isEmpty);
       expect(state.locationPermissionGranted, isFalse);
-      expect(state.notificationPermissionGranted, isFalse);
       expect(state.agreedToTerms, isFalse);
       expect(state.loadingProgress, 0.0);
     });
@@ -113,12 +112,6 @@ void main() {
       notifier.setLocationPermission(true);
       expect(
         container.read(onboardingProvider).locationPermissionGranted,
-        isTrue,
-      );
-
-      notifier.setNotificationPermission(true);
-      expect(
-        container.read(onboardingProvider).notificationPermissionGranted,
         isTrue,
       );
 

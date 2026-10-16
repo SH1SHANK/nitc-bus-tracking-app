@@ -214,6 +214,56 @@ void main() {
 
       expect(router.routeInformationProvider.value.uri.path, '/reset-password');
     });
+
+    testWidgets(
+      'authenticated anonymous guest is routed to / without requiring onboarding',
+      (tester) async {
+        final mockGuestUser = User(
+          id: 'test-guest-uuid',
+          appMetadata: {},
+          userMetadata: {},
+          aud: 'authenticated',
+          createdAt: DateTime.now().toIso8601String(),
+          isAnonymous: true,
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              FakeAuthRepository(
+                AuthState(
+                  status: AuthStatus.authenticated,
+                  user: mockGuestUser,
+                ),
+              ),
+            ),
+            profileStateProvider.overrideWith(
+              () => _FixedProfileNotifier(
+                const Profile(
+                  id: 'test-guest-uuid',
+                  name: 'Guest Rider',
+                  email: '',
+                  role: 'Guest',
+                  hasCompletedOnboarding: true,
+                ),
+              ),
+            ),
+          ],
+        );
+
+        final router = container.read(routerProvider);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(router.routeInformationProvider.value.uri.path, '/');
+      },
+    );
   });
 }
 
@@ -237,20 +287,25 @@ class FakeAuthRepository implements AuthRepository {
   bool get isAuthenticated => _state.isAuthenticated;
 
   @override
-  Future<AuthResult> signInWithEmail(String email, String password) async =>
-      AuthResult.success(user: _state.user);
+  Future<AuthResult> signInWithEmail(
+    String email,
+    String password, {
+    String? captchaToken,
+  }) async => AuthResult.success(user: _state.user);
 
   @override
   Future<AuthResult> signUpWithEmail(
     String email,
     String password, {
     String? fullName,
+    String? captchaToken,
   }) async => AuthResult.success(user: _state.user);
 
   @override
   Future<AuthResult> resetPasswordForEmail(
     String email, {
     String? redirectTo,
+    String? captchaToken,
   }) async => AuthResult.success();
 
   @override
@@ -258,15 +313,24 @@ class FakeAuthRepository implements AuthRepository {
       AuthResult.success(user: _state.user);
 
   @override
-  Future<AuthResult> resendVerificationEmail(String email) async =>
-      AuthResult.success();
+  Future<AuthResult> resendVerificationEmail(
+    String email, {
+    String? captchaToken,
+  }) async => AuthResult.success();
 
   @override
   Future<AuthResult> signInWithGoogle() async =>
       AuthResult.success(user: _state.user);
 
   @override
+  Future<AuthResult> signInAnonymously({String? captchaToken}) async =>
+      AuthResult.success(user: _state.user);
+
+  @override
   Future<void> signOut() async {}
+
+  @override
+  Future<void> deleteAccount() async {}
 
   @override
   void dispose() {}

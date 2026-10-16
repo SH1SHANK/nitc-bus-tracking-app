@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/data/transit/bus.dart';
+import 'package:tracklet/data/transit/bus_eta.dart';
+import 'package:tracklet/data/transit/bus_position.dart';
 import 'package:tracklet/data/transit/bus_stop_event.dart';
+import 'package:tracklet/data/transit/bus_stop_progress.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/data/transit/bus_route.dart';
 import 'package:tracklet/data/transit/route_stop_occurrence.dart';
@@ -9,6 +12,7 @@ import 'package:tracklet/data/transit/scheduled_departure.dart';
 import 'package:tracklet/data/transit/stop.dart';
 import 'package:tracklet/data/transit/transit_repository.dart';
 import 'package:tracklet/features/home/home_screen.dart';
+import 'package:tracklet/features/home/home_transit_logic.dart';
 
 import 'package:tracklet/features/home/widgets/live_bus_route_preview.dart';
 import 'package:tracklet/features/home/widgets/next_bus_card.dart';
@@ -25,31 +29,20 @@ void main() {
       await _pumpHome(tester);
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Student'), findsOneWidget);
-      expect(find.text('Where are you headed?'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.byType(NextBusCard), findsOneWidget);
-      expect(find.byType(LiveBusRoutePreview), findsOneWidget);
-      expect(find.byType(NextBusesCard), findsOneWidget);
-      expect(find.text('Default boarding stop'), findsOneWidget);
+      expect(find.text('Tracklet'), findsOneWidget);
+      expect(find.text('NIT Calicut'), findsOneWidget);
+      expect(find.text('BOARDING STOP'), findsOneWidget);
+      expect(find.text('Main Gate'), findsWidgets);
+      expect(find.text('Choose a stop near you'), findsOneWidget);
       expect(
         find.text('Turn on location to find your nearest stop'),
         findsOneWidget,
       );
       expect(find.text('Locate'), findsOneWidget);
-      expect(find.text('Your next ride'), findsOneWidget);
-      expect(find.text('Open map'), findsOneWidget);
-      expect(
-        find.textContaining('Demo bus locations are simulated'),
-        findsNothing,
-      );
-      expect(find.text('Next buses'), findsOneWidget);
-      expect(find.text('ROUTE TRACKER'), findsOneWidget);
-      expect(find.text('Board here'), findsOneWidget);
-      expect(
-        find.text('No other buses are available to display.'),
-        findsOneWidget,
-      );
+      expect(find.text('No buses approaching this stop'), findsOneWidget);
+      expect(find.text('Change stop'), findsOneWidget);
+      expect(find.text('Refresh'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
     });
 
     testWidgets(
@@ -87,11 +80,123 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Nearest bus stop'), findsOneWidget);
+      expect(find.text('BOARDING STOP'), findsOneWidget);
       expect(find.text('Architecture'), findsWidgets);
-      expect(find.text('~0 m straight-line distance'), findsOneWidget);
-      expect(find.text('1 min walk'), findsOneWidget);
+      expect(find.textContaining('0 m away'), findsOneWidget);
+      expect(find.textContaining('1 min'), findsOneWidget);
+      expect(
+        find.text('Automatically selected using your location'),
+        findsOneWidget,
+      );
       expect(find.text('Locate'), findsNothing);
+    });
+
+    testWidgets('keeps GPS visible when stop events are unavailable', (
+      tester,
+    ) async {
+      final bus = Bus(
+        id: 'live-bus',
+        numberPlate: 'NITC-1',
+        name: 'Campus Bus',
+        routeId: 'route-test',
+        tripId: 'trip-live',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: _homeTestStops.first.location,
+          speedKmH: 6,
+          timestamp: DateTime.now(),
+        ),
+        lastUpdated: DateTime.now(),
+      );
+      await tester.pumpTrackletWidget(
+        const HomeScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(
+            _HomeTestTransitRepository(buses: [bus]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('BUS ON ROUTE'), findsOneWidget);
+      expect(find.text('ETA'), findsOneWidget);
+      expect(find.text('Unavailable'), findsOneWidget);
+      expect(find.text('Live'), findsOneWidget);
+      expect(find.textContaining('Updated'), findsOneWidget);
+      expect(find.text('Track bus'), findsOneWidget);
+    });
+
+    testWidgets('shows ETA when event progress resolves the boarding stop', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final route = BusRoute(
+        id: 'route-test',
+        name: 'Main Gate to Architecture',
+        code: 'R1',
+        path: [_homeTestStops.first.location, _homeTestStops.last.location],
+        stopIds: const ['main-gate', 'architecture'],
+        stopOccurrences: [
+          RouteStopOccurrence(
+            routeId: 'route-test',
+            stopId: 'main-gate',
+            sequence: 0,
+            stop: _homeTestStops.first,
+          ),
+          RouteStopOccurrence(
+            routeId: 'route-test',
+            stopId: 'architecture',
+            sequence: 1,
+            stop: _homeTestStops.last,
+          ),
+        ],
+      );
+      final bus = Bus(
+        id: 'live-bus',
+        numberPlate: 'NITC-1',
+        name: 'Campus Bus',
+        routeId: route.id,
+        tripId: 'trip-live',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: const GeoPoint(latitude: 11.3215555, longitude: 75.934722),
+          speedKmH: 18,
+          timestamp: now,
+        ),
+        lastUpdated: now,
+      );
+      final repository = _HomeTestTransitRepository(
+        buses: [bus],
+        routes: [route],
+        stopEvents: [
+          BusStopEvent(
+            stopId: 'main-gate',
+            type: 'arrived',
+            occurredAt: now.subtract(const Duration(minutes: 3)),
+          ),
+          BusStopEvent(
+            stopId: 'main-gate',
+            type: 'departed',
+            occurredAt: now.subtract(const Duration(minutes: 2)),
+          ),
+        ],
+      );
+
+      await tester.pumpTrackletWidget(
+        const HomeScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(repository),
+          locationStateProvider.overrideWith(
+            () => _FixedLocationNotifier(_homeTestStops.last.location),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('NEXT BUS'), findsOneWidget);
+      expect(find.text('MIN'), findsOneWidget);
+      expect(find.textContaining('En route to Architecture'), findsOneWidget);
+      expect(find.text('Track bus'), findsOneWidget);
     });
 
     testWidgets('hides campus walking estimates for a distant location', (
@@ -114,29 +219,34 @@ void main() {
         find.text('Location is outside the campus service area'),
         findsOneWidget,
       );
-      expect(find.textContaining('straight-line distance'), findsNothing);
-      expect(find.textContaining('min walk'), findsNothing);
+      expect(find.textContaining('away'), findsNothing);
+      expect(find.textContaining('walk'), findsNothing);
     });
 
-    testWidgets('stop search suggests and selects a campus destination', (
-      tester,
-    ) async {
-      await _pumpHome(tester);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Change button opens stop selector sheet to pick a boarding stop',
+      (tester) async {
+        await _pumpHome(tester);
+        await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'Architecture');
-      await tester.pumpAndSettle();
+        final changeButton = find.widgetWithText(TextButton, 'Change');
+        expect(changeButton, findsOneWidget);
+        expect(tester.getSize(changeButton).height, greaterThanOrEqualTo(48));
+        await tester.tap(changeButton);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Architecture'), findsWidgets);
-      await tester.tap(find.text('Architecture').at(1));
-      await tester.pumpAndSettle();
+        expect(find.byType(TextField), findsOneWidget);
+        await tester.enterText(find.byType(TextField), 'Architecture');
+        await tester.pumpAndSettle();
 
-      final searchField = tester.widget<TextField>(find.byType(TextField));
-      expect(searchField.controller?.text, 'Architecture');
-      expect(find.text('Architecture is on this route'), findsOneWidget);
-      expect(find.text('Board here'), findsOneWidget);
-      expect(find.textContaining('Seats Available'), findsNothing);
-    });
+        expect(find.text('Architecture'), findsWidgets);
+        await tester.tap(find.text('Architecture').last);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Architecture'), findsWidgets);
+        expect(find.text('Selected manually'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'tracker highlights the closest served stop for an unmatched destination',
@@ -182,11 +292,11 @@ void main() {
         );
 
         expect(
-          find.text('Closest route stop to East Gate: Lecture Hall'),
+          find.text('Estimated closest route stop to East Gate: Lecture Hall'),
           findsOneWidget,
         );
-        expect(find.text('Last stop'), findsOneWidget);
-        expect(find.text('Next stop'), findsOneWidget);
+        expect(find.text('Upcoming'), findsWidgets);
+        expect(find.text('Next stop'), findsNothing);
       },
     );
 
@@ -235,10 +345,9 @@ void main() {
         ),
       );
 
-      expect(find.text('2 stops back'), findsOneWidget);
-      expect(find.text('Last stop'), findsOneWidget);
+      expect(find.text('Earlier stop'), findsNWidgets(2));
       expect(find.text('Board here'), findsOneWidget);
-      expect(find.text('Next stop'), findsNWidgets(3));
+      expect(find.text('Upcoming'), findsNWidgets(3));
       expect(find.text('Center Circle'), findsNWidgets(3));
       expect(find.text('Main Gate'), findsNWidgets(2));
       expect(find.text('Architecture'), findsOneWidget);
@@ -258,6 +367,211 @@ void main() {
       expect(boardingStopX, lessThan(firstNextStopX));
       expect(firstNextStopX, lessThan(repeatedNextStopX));
       expect(repeatedNextStopX, lessThan(finalStopX));
+    });
+
+    testWidgets('tracker separates the bus position from the boarding stop', (
+      tester,
+    ) async {
+      const boarding = Stop(
+        id: 'boarding',
+        name: 'Boarding Stop',
+        location: GeoPoint(latitude: 0, longitude: 0),
+      );
+      const current = Stop(
+        id: 'current',
+        name: 'East Campus',
+        location: GeoPoint(latitude: 0, longitude: 0.01),
+      );
+      const route = BusRoute(
+        id: 'route',
+        name: 'Campus Loop',
+        code: 'R1',
+        stopIds: ['current', 'boarding'],
+      );
+      final progress = resolveBusStopProgress(
+        routeStops: const [
+          RouteStopOccurrence(routeId: 'route', stopId: 'current', sequence: 0),
+          RouteStopOccurrence(
+            routeId: 'route',
+            stopId: 'boarding',
+            sequence: 1,
+          ),
+        ],
+        events: [
+          BusStopEvent(
+            stopId: 'current',
+            type: 'arrived',
+            occurredAt: DateTime(2026),
+          ),
+        ],
+        direction: 'forward',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: LiveBusRoutePreview(
+                route: route,
+                stop: boarding,
+                stops: const [boarding, current],
+                bus: null,
+                progress: progress,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Bus here'), findsWidgets);
+      expect(find.text('Board here'), findsOneWidget);
+    });
+
+    testWidgets(
+      'next ride separates unavailable ETA, stale status and action',
+      (tester) async {
+        const stop = Stop(
+          id: 'main-gate',
+          name: 'Main Gate',
+          location: GeoPoint(latitude: 0, longitude: 0),
+        );
+        const route = BusRoute(
+          id: 'route',
+          name: 'Campus Loop',
+          code: 'R1',
+          stopIds: ['main-gate'],
+        );
+        final bus = Bus(
+          id: 'bus',
+          name: 'Campus Bus',
+          numberPlate: 'KL-00-0000',
+          routeId: 'route',
+          status: BusStatus.live,
+          isStale: true,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 0, longitude: 0.01),
+            speedKmH: 6,
+            timestamp: DateTime(2026),
+          ),
+          lastUpdated: DateTime(2026),
+        );
+        var tracked = false;
+        await tester.pumpTrackletWidget(
+          Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: NextBusCard(
+                selectedStop: stop,
+                arrival: BusArrivalEstimate(
+                  bus: bus,
+                  route: route,
+                  eta: const BusEtaResult.unavailable(
+                    BusEtaStatus.staleTelemetry,
+                  ),
+                ),
+                routePreview: const SizedBox.shrink(),
+                busLocationHint: 'East Campus',
+                onTrackPressed: () => tracked = true,
+              ),
+            ),
+          ),
+        );
+        expect(find.text('LAST KNOWN BUS'), findsOneWidget);
+        expect(find.text('Stale'), findsOneWidget);
+        expect(find.text('ETA'), findsOneWidget);
+        expect(find.text('Unavailable'), findsOneWidget);
+        expect(find.textContaining('Updated'), findsOneWidget);
+        expect(find.text('Track bus'), findsOneWidget);
+        expect(find.textContaining('Near East Campus'), findsOneWidget);
+        await tester.tap(find.text('Track bus'));
+        expect(tracked, isTrue);
+      },
+    );
+
+    testWidgets('shows a numeric ETA only for a valid along-route result', (
+      tester,
+    ) async {
+      const stop = Stop(
+        id: 'main-gate',
+        name: 'Main Gate',
+        location: GeoPoint(latitude: 11.32, longitude: 75.93),
+      );
+      const route = BusRoute(
+        id: 'route',
+        name: 'Campus Loop',
+        code: 'R1',
+        stopIds: ['main-gate'],
+      );
+      final bus = Bus(
+        id: 'bus',
+        name: 'Campus Bus',
+        numberPlate: 'KL-00-0000',
+        routeId: 'route',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: const GeoPoint(latitude: 0, longitude: 0.01),
+          speedKmH: 6,
+          timestamp: DateTime.now(),
+        ),
+        lastUpdated: DateTime.now(),
+      );
+      await tester.pumpTrackletWidget(
+        Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: NextBusCard(
+              selectedStop: stop,
+              arrival: BusArrivalEstimate(
+                bus: bus,
+                route: route,
+                eta: const BusEtaResult.valid(
+                  minutes: 6,
+                  distanceMeters: 500,
+                  busProgressMeters: 100,
+                  smoothedSpeedMetersPerSecond: 4,
+                ),
+              ),
+              routePreview: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('NEXT BUS'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
+      expect(find.text('MIN'), findsOneWidget);
+    });
+
+    testWidgets('homepage adapts to narrow, standard and landscape screens', (
+      tester,
+    ) async {
+      for (final size in [
+        const Size(320, 568),
+        const Size(390, 844),
+        const Size(844, 390),
+      ]) {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = size;
+        await tester.pumpTrackletWidget(
+          MediaQuery(
+            data: MediaQueryData(
+              size: size,
+              devicePixelRatio: 1,
+              textScaler: const TextScaler.linear(1.3),
+              disableAnimations: true,
+            ),
+            child: const HomeScreen(),
+          ),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(
+              _HomeTestTransitRepository(),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: 'layout at $size');
+      }
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets(
@@ -328,11 +642,46 @@ void main() {
       );
 
       expect(
-        find.text('No other buses are available to display.'),
+        find.text('No more scheduled departures for this service period.'),
         findsOneWidget,
       );
       expect(find.text('Kozhikode City'), findsNothing);
       expect(find.text('Kuttipuram'), findsNothing);
+    });
+
+    testWidgets('limits Next Buses list items to at most 4 items', (
+      tester,
+    ) async {
+      final manyDepartures = List.generate(
+        8,
+        (i) => ScheduledDeparture(
+          id: 'dep-$i',
+          routeId: 'r1',
+          hour: i + 1,
+          minute: 0,
+        ),
+      );
+      const testRoute = BusRoute(
+        id: 'r1',
+        name: 'Route 1',
+        code: 'R1',
+        stopIds: ['stop-mg'],
+      );
+
+      await tester.pumpTrackletWidget(
+        Scaffold(
+          body: SingleChildScrollView(
+            child: NextBusesCard(
+              stopName: 'Main Gate',
+              scheduledDepartures: manyDepartures,
+              routes: const [testRoute],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Route 1'), findsNWidgets(4));
     });
 
     testWidgets('opens drawer on tapping hamburger icon', (tester) async {
@@ -394,9 +743,18 @@ const _homeTestRoutes = <BusRoute>[
 ];
 
 class _HomeTestTransitRepository implements TransitRepository {
+  _HomeTestTransitRepository({
+    this.buses = const [],
+    this.routes = _homeTestRoutes,
+    this.stopEvents = const [],
+  });
+
+  final List<Bus> buses;
+  final List<BusRoute> routes;
+  final List<BusStopEvent> stopEvents;
+
   @override
-  Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async =>
-      _homeTestRoutes;
+  Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async => routes;
 
   @override
   Future<List<Stop>> getStops() async => _homeTestStops;
@@ -406,13 +764,13 @@ class _HomeTestTransitRepository implements TransitRepository {
       const [];
 
   @override
-  Future<List<Bus>> getActiveBuses() async => const [];
+  Future<List<Bus>> getActiveBuses() async => buses;
 
   @override
   Future<List<ScheduledDeparture>> getScheduledDepartures() async => const [];
 
   @override
-  Stream<List<Bus>> watchActiveBuses() => Stream.value(const []);
+  Stream<List<Bus>> watchActiveBuses() => Stream.value(buses);
 
   @override
   Future<Stop?> getNearestStop(GeoPoint userLocation) async =>
@@ -421,7 +779,8 @@ class _HomeTestTransitRepository implements TransitRepository {
   @override
   Future<Bus?> getBusById(String busId) async => null;
   @override
-  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
+  Future<List<BusStopEvent>> getBusStopEvents(String tripId) async =>
+      stopEvents;
 }
 
 class _FixedLocationNotifier extends LocationNotifier {

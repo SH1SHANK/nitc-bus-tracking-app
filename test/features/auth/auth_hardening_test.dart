@@ -48,14 +48,19 @@ class TestMockProfileRepo implements ProfileRepository {
   }
 
   @override
-  Future<void> updateNotificationPreference(bool enabled) async {
-    mockProfile = (mockProfile ??
+  Future<bool> isUsernameAvailable(String username) async => true;
+
+  @override
+  Future<Profile> changeUsername(String newUsername) async {
+    final updated = (mockProfile ??
             const Profile(
               id: 'test-user',
               name: 'Student',
               email: 'student@nitc.ac.in',
             ))
-        .copyWith(notificationsEnabled: enabled);
+        .copyWith(username: newUsername);
+    mockProfile = updated;
+    return updated;
   }
 }
 

@@ -77,7 +77,16 @@ class MockProfileRepo implements ProfileRepository {
   }
 
   @override
-  Future<void> updateNotificationPreference(bool enabled) async {}
+  Future<bool> isUsernameAvailable(String username) async => true;
+
+  @override
+  Future<Profile> changeUsername(String newUsername) async {
+    final updated = (savedProfile ??
+            const Profile(id: '1', name: 'Test', email: 'test@nitc.ac.in'))
+        .copyWith(username: newUsername);
+    savedProfile = updated;
+    return updated;
+  }
 }
 
 void main() {
@@ -221,7 +230,6 @@ void main() {
         notifier.setHostel('Ladies Hostel (LH - Main Block)');
         notifier.updateUsername('ananya');
         notifier.setLocationPermission(true);
-        notifier.setNotificationPermission(true);
 
         var completed = false;
         await notifier.runInitializationSequence(

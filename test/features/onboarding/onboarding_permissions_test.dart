@@ -6,7 +6,7 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   group('OnboardingStepPermissions Widget Tests', () {
-    testWidgets('renders permissions cards and default checked states', (
+    testWidgets('renders permissions card and toggles selection', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
@@ -14,20 +14,14 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       bool? enabledLocation;
-      bool? enabledNotifications;
       bool skipCalled = false;
 
       await tester.pumpTrackletWidget(
         Scaffold(
           body: OnboardingStepPermissions(
             locationGranted: false,
-            notificationsGranted: false,
-            onEnablePermissions: ({
-              required bool enableLocation,
-              required bool enableNotifications,
-            }) async {
+            onEnableLocation: ({required bool enableLocation}) async {
               enabledLocation = enableLocation;
-              enabledNotifications = enableNotifications;
             },
             onSkip: () {
               skipCalled = true;
@@ -39,7 +33,7 @@ void main() {
 
       expect(find.text('Permissions & Access'), findsOneWidget);
       expect(find.text('Campus Live Location'), findsOneWidget);
-      expect(find.text('Transit & Arrival Alerts'), findsOneWidget);
+      expect(find.text('Transit & Arrival Alerts'), findsNothing);
       expect(find.text('Continue without permissions'), findsOneWidget);
       expect(find.text('Skip for now'), findsOneWidget);
 
@@ -54,7 +48,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(enabledLocation, isTrue);
-      expect(enabledNotifications, isFalse);
       expect(skipCalled, isFalse);
     });
 
@@ -71,12 +64,7 @@ void main() {
         Scaffold(
           body: OnboardingStepPermissions(
             locationGranted: false,
-            notificationsGranted: false,
-            onEnablePermissions:
-                ({
-                  required bool enableLocation,
-                  required bool enableNotifications,
-                }) async {},
+            onEnableLocation: ({required bool enableLocation}) async {},
             onSkip: () {
               skipCalled = true;
             },
@@ -102,12 +90,7 @@ void main() {
         Scaffold(
           body: OnboardingStepPermissions(
             locationGranted: true,
-            notificationsGranted: false,
-            onEnablePermissions:
-                ({
-                  required bool enableLocation,
-                  required bool enableNotifications,
-                }) async {},
+            onEnableLocation: ({required bool enableLocation}) async {},
             onSkip: () {},
           ),
         ),

@@ -14,6 +14,7 @@ class MockAuthRepository implements AuthRepository {
   Session? _mockSession;
 
   bool shouldFail = false;
+  String? lastCaptchaToken;
 
   void emit(AuthState state) {
     _current = state;
@@ -39,7 +40,12 @@ class MockAuthRepository implements AuthRepository {
   bool get isAuthenticated => _mockUser != null;
 
   @override
-  Future<AuthResult> signInWithEmail(String email, String password) async {
+  Future<AuthResult> signInWithEmail(
+    String email,
+    String password, {
+    String? captchaToken,
+  }) async {
+    lastCaptchaToken = captchaToken;
     if (shouldFail) {
       return AuthResult.failure('Incorrect email or password.');
     }
@@ -72,7 +78,9 @@ class MockAuthRepository implements AuthRepository {
     String email,
     String password, {
     String? fullName,
+    String? captchaToken,
   }) async {
+    lastCaptchaToken = captchaToken;
     if (shouldFail) {
       return AuthResult.failure('An account with this email already exists.');
     }
@@ -91,7 +99,9 @@ class MockAuthRepository implements AuthRepository {
   Future<AuthResult> resetPasswordForEmail(
     String email, {
     String? redirectTo,
+    String? captchaToken,
   }) async {
+    lastCaptchaToken = captchaToken;
     if (shouldFail) {
       return AuthResult.failure('Too many requests. Please wait.');
     }
@@ -108,7 +118,11 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> resendVerificationEmail(String email) async {
+  Future<AuthResult> resendVerificationEmail(
+    String email, {
+    String? captchaToken,
+  }) async {
+    lastCaptchaToken = captchaToken;
     if (shouldFail) {
       return AuthResult.failure('Failed to resend email.');
     }
@@ -124,7 +138,43 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthResult> signInAnonymously({String? captchaToken}) async {
+    lastCaptchaToken = captchaToken;
+    if (shouldFail) {
+      return AuthResult.failure('Guest sign in failed.');
+    }
+    _mockUser = User(
+      id: 'test-guest-id',
+      appMetadata: {},
+      userMetadata: {'full_name': 'Guest Rider'},
+      aud: 'authenticated',
+      createdAt: DateTime.now().toIso8601String(),
+      isAnonymous: true,
+    );
+    _mockSession = Session(
+      accessToken: 'test-guest-token',
+      tokenType: 'bearer',
+      user: _mockUser!,
+    );
+    emit(
+      AuthState(
+        status: AuthStatus.authenticated,
+        user: _mockUser,
+        session: _mockSession,
+      ),
+    );
+    return AuthResult.success(user: _mockUser, session: _mockSession);
+  }
+
+  @override
   Future<void> signOut() async {
+    _mockUser = null;
+    _mockSession = null;
+    emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  @override
+  Future<void> deleteAccount() async {
     _mockUser = null;
     _mockSession = null;
     emit(const AuthState(status: AuthStatus.unauthenticated));
@@ -256,6 +306,36 @@ void main() {
       expect(container.read(authNotifierProvider).isAuthenticated, isFalse);
     });
 
+    test(
+      'signInAnonymously authenticates guest and sets isGuest flag',
+      () async {
+        final notifier = container.read(authNotifierProvider.notifier);
+
+        final result = await notifier.signInAnonymously();
+
+        expect(result.isSuccess, isTrue);
+        final state = container.read(authNotifierProvider);
+        expect(state.status, AuthStatus.authenticated);
+        expect(state.isAuthenticated, isTrue);
+        expect(state.isGuest, isTrue);
+        expect(state.user?.isAnonymous, isTrue);
+      },
+    );
+
+    test('signInAnonymously handles failure cleanly', () async {
+      mockRepo.shouldFail = true;
+      final notifier = container.read(authNotifierProvider.notifier);
+
+      final result = await notifier.signInAnonymously();
+
+      expect(result.isSuccess, isFalse);
+      expect(result.errorMessage, 'Guest sign in failed.');
+      final state = container.read(authNotifierProvider);
+      expect(state.status, AuthStatus.unauthenticated);
+      expect(state.isAuthenticated, isFalse);
+      expect(state.isGuest, isFalse);
+    });
+
     test('clearError removes error message from state', () {
       final notifier = container.read(authNotifierProvider.notifier);
       notifier.setRecoveryInProgress(email: 'test@nitc.ac.in');
@@ -263,5 +343,35 @@ void main() {
 
       expect(container.read(authNotifierProvider).errorMessage, isNull);
     });
+
+    test(
+      'propagates captchaToken to signIn, signUp, sendPasswordRecovery, and signInAnonymously',
+      () async {
+        final notifier = container.read(authNotifierProvider.notifier);
+
+        await notifier.signIn(
+          'test@nitc.ac.in',
+          'password123',
+          captchaToken: 'test-captcha-token-1',
+        );
+        expect(mockRepo.lastCaptchaToken, 'test-captcha-token-1');
+
+        await notifier.signUp(
+          'test@nitc.ac.in',
+          'password123',
+          captchaToken: 'test-captcha-token-2',
+        );
+        expect(mockRepo.lastCaptchaToken, 'test-captcha-token-2');
+
+        await notifier.sendPasswordRecovery(
+          'test@nitc.ac.in',
+          captchaToken: 'test-captcha-token-3',
+        );
+        expect(mockRepo.lastCaptchaToken, 'test-captcha-token-3');
+
+        await notifier.signInAnonymously(captchaToken: 'test-captcha-token-4');
+        expect(mockRepo.lastCaptchaToken, 'test-captcha-token-4');
+      },
+    );
   });
 }

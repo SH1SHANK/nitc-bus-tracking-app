@@ -9,11 +9,6 @@ void main() {
       expect(prefs.preferredStopName, 'Main Gate');
       expect(prefs.preferredRouteName, 'R1 (East ↔ MBH)');
       expect(prefs.timeFormat, TransitTimeFormat.twelveHour);
-      expect(prefs.alertLeadTimeMinutes, 5);
-      expect(prefs.notificationsEnabled, isTrue);
-      expect(prefs.busArrivalAlerts, isTrue);
-      expect(prefs.disruptionAlerts, isTrue);
-      expect(prefs.quietHoursEnabled, isFalse);
       expect(prefs.themeMode, 'Light');
       expect(prefs.hapticFeedbackEnabled, isTrue);
       expect(prefs.map3DBuildingsEnabled, isTrue);
@@ -26,11 +21,6 @@ void main() {
         preferredRouteId: 'route-456',
         preferredRouteName: 'R2 (East ↔ LH)',
         timeFormat: TransitTimeFormat.twentyFourHour,
-        alertLeadTimeMinutes: 10,
-        notificationsEnabled: false,
-        busArrivalAlerts: false,
-        disruptionAlerts: true,
-        quietHoursEnabled: true,
         themeMode: 'Dark',
         hapticFeedbackEnabled: false,
         map3DBuildingsEnabled: false,
@@ -44,11 +34,6 @@ void main() {
       expect(restored.preferredRouteId, 'route-456');
       expect(restored.preferredRouteName, 'R2 (East ↔ LH)');
       expect(restored.timeFormat, TransitTimeFormat.twentyFourHour);
-      expect(restored.alertLeadTimeMinutes, 10);
-      expect(restored.notificationsEnabled, isFalse);
-      expect(restored.busArrivalAlerts, isFalse);
-      expect(restored.disruptionAlerts, isTrue);
-      expect(restored.quietHoursEnabled, isTrue);
       expect(restored.themeMode, 'Dark');
       expect(restored.hapticFeedbackEnabled, isFalse);
       expect(restored.map3DBuildingsEnabled, isFalse);
@@ -56,7 +41,6 @@ void main() {
 
     test('handles malformed, corrupt, or out-of-range JSON gracefully', () {
       final corruptJson = <String, dynamic>{
-        'alert_lead_time_minutes': 999, // Should clamp to 30
         'theme_mode': 'NeonPurple', // Invalid theme, should fallback to Light
         'time_format':
             'invalid_format', // Invalid time format, should fallback to twelveHour
@@ -65,41 +49,27 @@ void main() {
 
       final restored = UserPreferences.fromJson(corruptJson);
 
-      expect(restored.alertLeadTimeMinutes, 30);
       expect(restored.themeMode, 'Light');
       expect(restored.timeFormat, TransitTimeFormat.twelveHour);
       expect(restored.preferredStopName, 'Main Gate');
     });
 
-    test('clamps negative lead time to minimum of 1 minute', () {
-      final json = <String, dynamic>{'alert_lead_time_minutes': -10};
-
-      final restored = UserPreferences.fromJson(json);
-      expect(restored.alertLeadTimeMinutes, 1);
-    });
-
     test(
-      'UserPreferencesNotifier clamps lead time and validates theme mode',
+      'UserPreferencesNotifier validates theme mode and persists values',
       () async {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
         final notifier = container.read(userPreferencesProvider.notifier);
 
-        await notifier.setAlertLeadTime(100);
-        expect(
-          container.read(userPreferencesProvider).alertLeadTimeMinutes,
-          30,
-        );
-
-        await notifier.setAlertLeadTime(-5);
-        expect(container.read(userPreferencesProvider).alertLeadTimeMinutes, 1);
-
         await notifier.setThemeMode('InvalidCustomTheme');
         expect(container.read(userPreferencesProvider).themeMode, 'Light');
 
         await notifier.setThemeMode('Dark');
         expect(container.read(userPreferencesProvider).themeMode, 'Dark');
+
+        await notifier.setThemeMode('System');
+        expect(container.read(userPreferencesProvider).themeMode, 'System');
       },
     );
 
@@ -120,9 +90,6 @@ void main() {
         TransitTimeFormat.twentyFourHour,
       );
 
-      await notifier.setAlertLeadTime(8);
-      expect(container.read(userPreferencesProvider).alertLeadTimeMinutes, 8);
-
       await notifier.setPreferredStop('stop-test', 'Mega Hostel Boys');
       expect(
         container.read(userPreferencesProvider).preferredStopName,
@@ -138,9 +105,9 @@ void main() {
       await notifier.setThemeMode('Dark');
       expect(container.read(userPreferencesProvider).themeMode, 'Dark');
 
-      await notifier.toggleNotifications(false);
+      await notifier.toggleHapticFeedback(false);
       expect(
-        container.read(userPreferencesProvider).notificationsEnabled,
+        container.read(userPreferencesProvider).hapticFeedbackEnabled,
         isFalse,
       );
 

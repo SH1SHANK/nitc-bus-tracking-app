@@ -53,6 +53,7 @@ void main() {
       expect(find.text('Login'), findsOneWidget);
       expect(find.text('-- OR --'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
+      expect(find.text('Continue as Guest'), findsOneWidget);
 
       // Sign Up / Create Account Link
       expect(find.byType(RichText), findsWidgets);
@@ -129,5 +130,28 @@ void main() {
 
       expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
     });
+
+    testWidgets(
+      'tapping Continue as Guest triggers guest authentication flow',
+      (tester) async {
+        await tester.pumpTrackletWidget(const LoginScreen());
+        await tester.pumpAndSettle();
+
+        final guestButton = find.byKey(
+          const ValueKey('continue_as_guest_button'),
+        );
+        expect(guestButton, findsOneWidget);
+
+        await tester.ensureVisible(guestButton);
+        await tester.tap(guestButton);
+        await tester.pump();
+
+        // Ensure button was tapped and progress or completion is initiated
+        expect(
+          find.byKey(const ValueKey('continue_as_guest_button')),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

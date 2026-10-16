@@ -240,7 +240,7 @@ void main() {
         expect(find.text('Step 3 of 4'), findsOneWidget);
         expect(find.text('Permissions & Access'), findsOneWidget);
         expect(find.text('Campus Live Location'), findsOneWidget);
-        expect(find.text('Transit & Arrival Alerts'), findsOneWidget);
+        expect(find.text('Transit & Arrival Alerts'), findsNothing);
         expect(find.text('Continue without permissions'), findsOneWidget);
       },
     );

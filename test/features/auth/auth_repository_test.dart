@@ -138,6 +138,46 @@ void main() {
       );
     });
 
+    test('signInAnonymously fails cleanly when uninitialized', () async {
+      final result = await repository.signInAnonymously(
+        captchaToken: 'dummy-token',
+      );
+
+      expect(result.isSuccess, isFalse);
+      expect(
+        result.errorMessage,
+        contains('Authentication service is unavailable'),
+      );
+    });
+
+    test('methods accept captchaToken parameter without errors', () async {
+      final res1 = await repository.signInWithEmail(
+        'student@nitc.ac.in',
+        'password123',
+        captchaToken: 'token-abc',
+      );
+      expect(res1.isSuccess, isFalse);
+
+      final res2 = await repository.signUpWithEmail(
+        'student@nitc.ac.in',
+        'password123',
+        captchaToken: 'token-xyz',
+      );
+      expect(res2.isSuccess, isFalse);
+
+      final res3 = await repository.resetPasswordForEmail(
+        'student@nitc.ac.in',
+        captchaToken: 'token-123',
+      );
+      expect(res3.isSuccess, isFalse);
+
+      final res4 = await repository.resendVerificationEmail(
+        'student@nitc.ac.in',
+        captchaToken: 'token-456',
+      );
+      expect(res4.isSuccess, isFalse);
+    });
+
     test('signOut clears authenticated state', () async {
       await repository.signOut();
       expect(repository.isAuthenticated, isFalse);
