@@ -32,7 +32,6 @@ void main() {
           );
         }
         if (_containsAny(line, <String>[
-          'package:onesignal_flutter',
           'package:supabase_flutter',
           'package:geolocator',
           'package:flutter_map',

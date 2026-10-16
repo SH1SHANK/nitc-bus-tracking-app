@@ -57,7 +57,9 @@ flutter build web --release --no-pub \
   --dart-define=ENVIRONMENT="${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-production}}" \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-  --dart-define=ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-}" \
+  --dart-define=CAPTCHA_ENABLED="${CAPTCHA_ENABLED:-true}" \
+  --dart-define=CAPTCHA_SITE_KEY="${CAPTCHA_SITE_KEY:-0x4AAAAAAFXxHTiFZHgWmlcA}" \
+  --dart-define=CAPTCHA_PROVIDER="${CAPTCHA_PROVIDER:-turnstile}" \
   --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
   --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
 
