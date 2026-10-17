@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/services/turnstile_service.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
+import '../../design_system/components/tracklet_brand_lockup.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
@@ -82,14 +84,18 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
+      final rawMsg = e
+          .toString()
+          .replaceAll('Exception: ', '')
+          .replaceAll('Error: ', '');
+      if (rawMsg.contains('Verification cancelled')) {
+        return;
+      }
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e
-                .toString()
-                .replaceAll('Exception: ', '')
-                .replaceAll('Error: ', ''),
+            rawMsg,
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -159,8 +165,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       builder:
           (ctx) => AlertDialog(
             backgroundColor: TrackletColors.primaryBackground,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(TrackletRadii.card),
+            shape: const RoundedRectangleBorder(
+              borderRadius: TrackletRadii.roundedCard,
             ),
             title: Text(
               'Verification Email Sent',
@@ -226,9 +232,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                     Align(
                       alignment: Alignment.topCenter,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          TrackletRadii.input,
-                        ),
+                        borderRadius: TrackletRadii.roundedInput,
                         child: Image.asset(
                           'assets/images/Clean_Login_Design_Rectangle_10.png',
                           width: double.infinity,
@@ -247,9 +251,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                     Align(
                       alignment: const Alignment(0.0, 1.6),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          TrackletRadii.input,
-                        ),
+                        borderRadius: TrackletRadii.roundedInput,
                         child: Image.asset(
                           'assets/images/Young_Man_with_Laptop.png',
                           width: 270.0,
@@ -262,6 +264,17 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 height: 250.0,
                                 fit: BoxFit.cover,
                               ),
+                        ),
+                      ),
+                    ),
+                    const Positioned(
+                      top: 16.0,
+                      left: 16.0,
+                      child: SafeArea(
+                        child: TrackletBrandLockup(
+                          logoSize: 28.0,
+                          wordmarkHeight: 18.0,
+                          withContainer: true,
                         ),
                       ),
                     ),
@@ -285,6 +298,18 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Brand Logo and Wordmark
+                        AuthEntrance(
+                          delay: 20.ms,
+                          child: const Padding(
+                            padding: EdgeInsets.only(bottom: 14.0),
+                            child: TrackletBrandLockup(
+                              logoSize: 40.0,
+                              wordmarkHeight: 22.0,
+                            ),
+                          ),
+                        ),
+
                         // Title
                         AuthEntrance(
                           child: Text(
@@ -348,7 +373,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 decoration: authInputDecoration(
                                   label: 'Email address',
                                   hint: 'name@nitc.ac.in',
-                                  icon: Icons.mail_outline_rounded,
+                                  icon: TrackletIcons.mail,
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
                                   fontSize: 15.0,
@@ -389,7 +414,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 decoration: authInputDecoration(
                                   label: 'Password',
                                   hint: 'Create a password',
-                                  icon: Icons.lock_outline_rounded,
+                                  icon: TrackletIcons.lock,
                                   suffixIcon: IconButton(
                                     tooltip:
                                         _passwordVisibility
@@ -402,8 +427,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                         }),
                                     icon: Icon(
                                       _passwordVisibility
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
+                                          ? TrackletIcons.eye
+                                          : TrackletIcons.eyeOff,
                                       color: TrackletColors.secondaryText,
                                       size: 22,
                                     ),
@@ -449,7 +474,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 decoration: authInputDecoration(
                                   label: 'Confirm Password',
                                   hint: 'Re-enter your password',
-                                  icon: Icons.lock_outline_rounded,
+                                  icon: TrackletIcons.lock,
                                   suffixIcon: IconButton(
                                     tooltip:
                                         _confirmPasswordVisibility
@@ -462,8 +487,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                         }),
                                     icon: Icon(
                                       _confirmPasswordVisibility
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
+                                          ? TrackletIcons.eye
+                                          : TrackletIcons.eyeOff,
                                       color: TrackletColors.secondaryText,
                                       size: 22,
                                     ),
@@ -489,7 +514,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     child: Row(
                                       children: [
                                         Icon(
-                                          Icons.check_circle_outline,
+                                          TrackletIcons.checkCircle2,
                                           size: 16,
                                           color: TrackletColors.success,
                                         ),
@@ -525,10 +550,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   elevation: 3.0,
                                   shadowColor: TrackletColors.primary
                                       .withValues(alpha: 0.35),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      TrackletRadii.card,
-                                    ),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: TrackletRadii.roundedCard,
                                   ),
                                 ),
                                 child:
@@ -586,10 +609,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 backgroundColor: TrackletColors.altPrimaryText,
                                 foregroundColor: TrackletColors.pure,
                                 elevation: 0.0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    TrackletRadii.input,
-                                  ),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: TrackletRadii.roundedInput,
                                 ),
                               ),
                               child: Row(
@@ -601,7 +622,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     height: 20,
                                     errorBuilder:
                                         (_, _, _) => const Icon(
-                                          Icons.g_mobiledata_rounded,
+                                          TrackletIcons.globe,
                                           size: 24,
                                           color: TrackletColors.pure,
                                         ),

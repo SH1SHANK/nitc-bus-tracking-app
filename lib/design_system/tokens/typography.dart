@@ -266,4 +266,79 @@ abstract final class TrackletTypography {
     }
     return style.copyWith(fontFeatures: features);
   }
+
+  // ===========================================================================
+  // COMPLETE MATERIAL 3 TEXT THEMES
+  // ===========================================================================
+
+  static const TextTheme lightTextTheme = TextTheme(
+    displayLarge: displayLarge,
+    displayMedium: displayMedium,
+    displaySmall: displaySmall,
+    headlineLarge: headlineLarge,
+    headlineMedium: headlineMedium,
+    headlineSmall: headlineSmall,
+    titleLarge: titleLarge,
+    titleMedium: titleMedium,
+    titleSmall: titleSmall,
+    bodyLarge: bodyLarge,
+    bodyMedium: bodyMedium,
+    bodySmall: bodySmall,
+    labelLarge: labelLarge,
+    labelMedium: labelMedium,
+    labelSmall: labelSmall,
+  );
+
+  static final TextTheme darkTextTheme = TextTheme(
+    displayLarge: displayLarge.copyWith(color: TrackletColors.darkTextPrimary),
+    displayMedium: displayMedium.copyWith(
+      color: TrackletColors.darkTextPrimary,
+    ),
+    displaySmall: displaySmall.copyWith(color: TrackletColors.darkTextPrimary),
+    headlineLarge: headlineLarge.copyWith(
+      color: TrackletColors.darkTextPrimary,
+    ),
+    headlineMedium: headlineMedium.copyWith(
+      color: TrackletColors.darkTextPrimary,
+    ),
+    headlineSmall: headlineSmall.copyWith(
+      color: TrackletColors.darkTextPrimary,
+    ),
+    titleLarge: titleLarge.copyWith(color: TrackletColors.darkTextPrimary),
+    titleMedium: titleMedium.copyWith(color: TrackletColors.darkTextPrimary),
+    titleSmall: titleSmall.copyWith(color: TrackletColors.darkTextPrimary),
+    bodyLarge: bodyLarge.copyWith(color: TrackletColors.darkTextPrimary),
+    bodyMedium: bodyMedium.copyWith(color: TrackletColors.darkTextPrimary),
+    bodySmall: bodySmall.copyWith(color: TrackletColors.darkTextSecondary),
+    labelLarge: labelLarge.copyWith(color: TrackletColors.darkTextSecondary),
+    labelMedium: labelMedium.copyWith(color: TrackletColors.darkTextSecondary),
+    labelSmall: labelSmall.copyWith(color: TrackletColors.darkTextSecondary),
+  );
+
+  // ===========================================================================
+  // CONTEXT-ADAPTIVE HELPERS
+  // ===========================================================================
+
+  static TextStyle adaptive(
+    BuildContext context,
+    TextStyle style, {
+    Color? lightColor,
+    Color? darkColor,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color =
+        isDark
+            ? (darkColor ?? TrackletColors.darkTextPrimary)
+            : (lightColor ?? TrackletColors.textPrimary);
+    return style.copyWith(color: color);
+  }
+
+  static TextStyle adaptiveSecondary(BuildContext context, TextStyle style) {
+    return adaptive(
+      context,
+      style,
+      lightColor: TrackletColors.textSecondary,
+      darkColor: TrackletColors.darkTextSecondary,
+    );
+  }
 }

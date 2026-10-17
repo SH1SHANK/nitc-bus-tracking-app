@@ -5,6 +5,7 @@ import '../../../data/preferences/user_preferences.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -152,10 +153,10 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     color: TrackletColors.absentRed.withValues(
                       alpha: isDark ? 0.2 : 0.1,
                     ),
-                    borderRadius: BorderRadius.circular(TrackletRadii.xl),
+                    borderRadius: TrackletRadii.roundedXl,
                   ),
                   child: const Icon(
-                    Icons.warning_amber_rounded,
+                    TrackletIcons.alertTriangle,
                     color: TrackletColors.absentRed,
                     size: 24.0,
                   ),
@@ -182,7 +183,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     color: TrackletColors.absentRed.withValues(
                       alpha: isDark ? 0.15 : 0.08,
                     ),
-                    borderRadius: BorderRadius.circular(TrackletRadii.md),
+                    borderRadius: TrackletRadii.roundedCard,
                     border: Border.all(
                       color: TrackletColors.absentRed.withValues(
                         alpha: isDark ? 0.35 : 0.25,
@@ -193,7 +194,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
-                        Icons.error_outline_rounded,
+                        TrackletIcons.alertCircle,
                         color: TrackletColors.absentRed,
                         size: 18.0,
                       ),
@@ -302,14 +303,14 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                                 : TrackletColors.secondaryText,
                         width: 1.5,
                       ),
-                      borderRadius: BorderRadius.circular(TrackletRadii.sm),
+                      borderRadius: TrackletRadii.roundedSm,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
                         color: TrackletColors.absentRed,
                         width: TrackletSpacing.xxs,
                       ),
-                      borderRadius: BorderRadius.circular(TrackletRadii.sm),
+                      borderRadius: TrackletRadii.roundedSm,
                     ),
                   ),
                   style: TrackletFonts.outfit(
@@ -331,9 +332,13 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                             : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TrackletColors.absentRed,
-                      disabledBackgroundColor: TrackletColors.alternate,
+                      disabledBackgroundColor:
+                          isDark
+                              ? TrackletColors.darkSurfaceContainerHighest
+                              : TrackletColors.alternate,
                       foregroundColor: TrackletColors.textInverse,
-                      disabledForegroundColor: TrackletColors.secondaryText,
+                      disabledForegroundColor:
+                          TrackletColors.adaptiveTextSecondary(context),
                       elevation: 0,
                       shape: const RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedSm,
@@ -367,11 +372,14 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      backgroundColor: TrackletColors.primaryBackground,
-                      shape: const RoundedRectangleBorder(
+                      backgroundColor:
+                          isDark
+                              ? TrackletColors.darkSurfaceElevated
+                              : TrackletColors.primaryBackground,
+                      shape: RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedSm,
                         side: BorderSide(
-                          color: TrackletColors.alternate,
+                          color: TrackletColors.adaptiveBorder(context),
                           width: 1.5,
                         ),
                       ),
@@ -381,7 +389,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                       style: TrackletFonts.outfit(
                         fontSize: 15.0,
                         fontWeight: FontWeight.w600,
-                        color: TrackletColors.secondaryText,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
                   ),

@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
+import '../../design_system/components/tracklet_brand_lockup.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
@@ -80,8 +82,12 @@ class _ResetPasswordSentScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+
     return Scaffold(
-      backgroundColor: TrackletColors.primaryBackground,
+      backgroundColor: TrackletColors.adaptiveBackground(context),
       body: SafeArea(
         top: true,
         child: Padding(
@@ -92,7 +98,22 @@ class _ResetPasswordSentScreenState
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const SizedBox(height: 80.0),
+              const SizedBox(height: 48.0),
+
+              // Brand Lockup
+              TrackletBrandLockup(
+                logoSize: 42.0,
+                wordmarkHeight: 24.0,
+                isDark: isDark,
+              )
+                  .animate()
+                  .fadeIn(duration: 350.ms)
+                  .scale(
+                    begin: const Offset(0.9, 0.9),
+                    end: const Offset(1.0, 1.0),
+                  ),
+
+              const SizedBox(height: 32.0),
 
               // Mail Icon / Illustration Container
               Align(
@@ -101,7 +122,10 @@ class _ResetPasswordSentScreenState
                       width: 140.0,
                       height: 140.0,
                       decoration: BoxDecoration(
-                        color: TrackletColors.background2,
+                        color:
+                            isDark
+                                ? TrackletColors.darkSurfaceElevated
+                                : TrackletColors.background2,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: TrackletColors.primary.withValues(alpha: 0.2),
@@ -110,7 +134,7 @@ class _ResetPasswordSentScreenState
                       ),
                       child: const Center(
                         child: Icon(
-                          Icons.mark_email_read_rounded,
+                          TrackletIcons.mailCheck,
                           color: TrackletColors.primary,
                           size: 64.0,
                         ),
@@ -132,7 +156,7 @@ class _ResetPasswordSentScreenState
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       style: TrackletTypography.bodyMedium.copyWith(
-                        color: TrackletColors.primaryText,
+                        color: textPrimary,
                         fontWeight: FontWeight.w500,
                         height: 1.5,
                       ),
@@ -140,18 +164,18 @@ class _ResetPasswordSentScreenState
                         TextSpan(
                           text: 'Your reset request is on its way!\n',
                           style: TrackletTypography.titleMedium.copyWith(
-                            color: TrackletColors.primaryText,
+                            color: textPrimary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text:
                               'It might be hiding in Promotions or Spam,\nso don’t forget to check there. \n',
-                          style: TextStyle(color: TrackletColors.secondaryText),
+                          style: TextStyle(color: textSecondary),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text: 'Still missing? No worries \n Just hit ',
-                          style: TextStyle(color: TrackletColors.secondaryText),
+                          style: TextStyle(color: textSecondary),
                         ),
                         TextSpan(
                           text: '‘Resend’ ',
@@ -160,9 +184,9 @@ class _ResetPasswordSentScreenState
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text: 'and we’ve got you covered.',
-                          style: TextStyle(color: TrackletColors.secondaryText),
+                          style: TextStyle(color: textSecondary),
                         ),
                       ],
                     ),
@@ -183,7 +207,7 @@ class _ResetPasswordSentScreenState
                     TextSpan(
                       text: 'Didn’t show up? ',
                       style: TrackletTypography.bodyMedium.copyWith(
-                        color: TrackletColors.secondaryText,
+                        color: textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -195,7 +219,7 @@ class _ResetPasswordSentScreenState
                       style: TrackletTypography.bodyMedium.copyWith(
                         color:
                             _cooldownSeconds > 0
-                                ? TrackletColors.secondaryText
+                                ? textSecondary
                                 : TrackletColors.primary,
                         fontWeight: FontWeight.w800,
                       ),
@@ -220,20 +244,27 @@ class _ResetPasswordSentScreenState
                     child: ElevatedButton(
                       onPressed: () => context.go('/login'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: TrackletColors.primaryText,
-                        foregroundColor: TrackletColors.primaryBackground,
+                        backgroundColor:
+                            isDark
+                                ? TrackletColors.primary
+                                : TrackletColors.primaryText,
+                        foregroundColor:
+                            isDark
+                                ? Colors.white
+                                : TrackletColors.primaryBackground,
                         elevation: 3.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            TrackletRadii.button,
-                          ),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: TrackletRadii.roundedButton,
                         ),
                         padding: EdgeInsets.zero,
                       ),
                       child: Text(
                         'Back to Login',
                         style: TrackletTypography.titleSmall.copyWith(
-                          color: TrackletColors.primaryBackground,
+                          color:
+                              isDark
+                                  ? Colors.white
+                                  : TrackletColors.primaryBackground,
                         ),
                       ),
                     ),

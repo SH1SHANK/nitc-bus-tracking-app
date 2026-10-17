@@ -33,9 +33,9 @@ class TrackletButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = switch (size) {
-      TrackletButtonSize.small => 36.0,
-      TrackletButtonSize.medium => 48.0,
-      TrackletButtonSize.large => 56.0,
+      TrackletButtonSize.small => TrackletSpacing.controlHeightSm,
+      TrackletButtonSize.medium => TrackletSpacing.controlHeightLg,
+      TrackletButtonSize.large => TrackletSpacing.controlHeightXl,
     };
 
     final horizontalPadding = switch (size) {
@@ -45,6 +45,7 @@ class TrackletButton extends StatelessWidget {
     };
 
     final isEnabled = onPressed != null && !isLoading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Color backgroundColor;
     Color foregroundColor;
@@ -53,33 +54,58 @@ class TrackletButton extends StatelessWidget {
     switch (variant) {
       case TrackletButtonVariant.primary:
         backgroundColor =
-            isEnabled ? TrackletColors.primary : TrackletColors.surface;
+            isEnabled
+                ? TrackletColors.primary
+                : (isDark
+                    ? TrackletColors.darkSurfaceContainer
+                    : TrackletColors.surface);
         foregroundColor =
             isEnabled
                 ? TrackletColors.textInverse
-                : TrackletColors.textTertiary;
+                : (isDark
+                    ? TrackletColors.darkTextMuted
+                    : TrackletColors.textTertiary);
         border = null;
       case TrackletButtonVariant.secondary:
         backgroundColor =
-            isEnabled ? TrackletColors.secondary : TrackletColors.surface;
+            isEnabled
+                ? TrackletColors.secondary
+                : (isDark
+                    ? TrackletColors.darkSurfaceContainer
+                    : TrackletColors.surface);
         foregroundColor =
             isEnabled
                 ? TrackletColors.textInverse
-                : TrackletColors.textTertiary;
+                : (isDark
+                    ? TrackletColors.darkTextMuted
+                    : TrackletColors.textTertiary);
         border = null;
       case TrackletButtonVariant.outline:
         backgroundColor = Colors.transparent;
         foregroundColor =
-            isEnabled ? TrackletColors.primary : TrackletColors.textTertiary;
+            isEnabled
+                ? TrackletColors.primary
+                : (isDark
+                    ? TrackletColors.darkTextMuted
+                    : TrackletColors.textTertiary);
         border = BorderSide(
-          color: isEnabled ? TrackletColors.border : TrackletColors.divider,
+          color:
+              isEnabled
+                  ? (isDark ? TrackletColors.darkBorder : TrackletColors.border)
+                  : (isDark
+                      ? TrackletColors.darkDivider
+                      : TrackletColors.divider),
         );
       case TrackletButtonVariant.ghost:
         backgroundColor = Colors.transparent;
         foregroundColor =
             isEnabled
-                ? TrackletColors.textPrimary
-                : TrackletColors.textTertiary;
+                ? (isDark
+                    ? TrackletColors.darkTextPrimary
+                    : TrackletColors.textPrimary)
+                : (isDark
+                    ? TrackletColors.darkTextMuted
+                    : TrackletColors.textTertiary);
         border = null;
     }
 
@@ -89,8 +115,8 @@ class TrackletButton extends StatelessWidget {
       children: [
         if (isLoading) ...[
           SizedBox(
-            width: 18,
-            height: 18,
+            width: TrackletSpacing.smallIcon,
+            height: TrackletSpacing.smallIcon,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(foregroundColor),
@@ -111,12 +137,12 @@ class TrackletButton extends StatelessWidget {
     Widget content = Material(
       color: backgroundColor,
       shape: RoundedRectangleBorder(
-        borderRadius: TrackletRadii.roundedMd,
+        borderRadius: TrackletRadii.roundedButton,
         side: border ?? BorderSide.none,
       ),
       child: InkWell(
         onTap: isEnabled ? onPressed : null,
-        borderRadius: TrackletRadii.roundedMd,
+        borderRadius: TrackletRadii.roundedButton,
         child: Container(
           constraints: const BoxConstraints(
             minHeight: TrackletSpacing.minTouchTarget,

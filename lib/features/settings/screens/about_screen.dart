@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -56,12 +57,12 @@ class _AboutScreenState extends State<AboutScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(TrackletIcons.chevronLeft, size: 20),
           onPressed: () => Navigator.of(context).maybePop(),
           tooltip: 'Back',
         ),
         title: Text(
-          'About Tracklet',
+          'About BusTracker',
           style: TrackletFonts.outfit(
             fontSize: 19,
             fontWeight: FontWeight.w700,
@@ -87,7 +88,7 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveSurface(context),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.adaptiveBorder(context),
                 ),
@@ -95,8 +96,8 @@ class _AboutScreenState extends State<AboutScreen> {
               child: Column(
                 children: [
                   Container(
-                    width: 72,
-                    height: 72,
+                    width: 76,
+                    height: 76,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
@@ -106,36 +107,35 @@ class _AboutScreenState extends State<AboutScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: TrackletRadii.roundedPill,
                       boxShadow: [
                         BoxShadow(
-                          color: TrackletColors.primary.withValues(alpha: 0.25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
+                          color: TrackletColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.directions_bus_rounded,
-                      color: TrackletColors.pure,
-                      size: 38,
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset(
+                      'assets/branding/bustracker_bus_icon.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: TrackletSpacing.md),
-                  Text(
-                    'Tracklet',
-                    style: TrackletFonts.outfit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: TrackletColors.adaptiveTextPrimary(context),
-                    ),
+                  Image.asset(
+                    'assets/branding/bustracker_wordmark.png',
+                    height: 28,
+                    fit: BoxFit.contain,
+                    color: isDark ? TrackletColors.darkTextPrimary : null,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    'NITC Campus Public Transit Tracking',
+                    'BusTracker · NITC Campus Public Transit Tracking',
+                    textAlign: TextAlign.center,
                     style: TrackletFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -149,7 +149,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       color: TrackletColors.primary.withValues(
                         alpha: isDark ? 0.2 : 0.08,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: TrackletRadii.roundedLg,
                       border: Border.all(
                         color: TrackletColors.primary.withValues(
                           alpha: isDark ? 0.4 : 0.2,
@@ -178,7 +178,7 @@ class _AboutScreenState extends State<AboutScreen> {
               padding: const EdgeInsets.all(TrackletSpacing.lg),
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveSurface(context),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.adaptiveBorder(context),
                 ),
@@ -196,7 +196,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tracklet is an official campus mobility platform developed specifically for the students, faculty, and residents of the National Institute of Technology Calicut.\n\nFeaturing live GPS vehicle positions, arrival timeline calculations, and interactive transit cartography grounded in OpenStreetMap.',
+                    'BusTracker is an official campus mobility platform developed specifically for the students, faculty, and residents of the National Institute of Technology Calicut.\n\nFeaturing live GPS vehicle positions, arrival timeline calculations, and interactive transit cartography grounded in OpenStreetMap.',
                     style: TrackletFonts.outfit(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w400,
@@ -213,7 +213,7 @@ class _AboutScreenState extends State<AboutScreen> {
             Container(
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveSurface(context),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.adaptiveBorder(context),
                 ),
@@ -222,7 +222,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 children: [
                   _buildNavTile(
                     context,
-                    icon: Icons.gavel_rounded,
+                    icon: TrackletIcons.scale,
                     title: 'Terms of Service',
                     onTap: () => context.push('/terms'),
                   ),
@@ -233,7 +233,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   _buildNavTile(
                     context,
-                    icon: Icons.privacy_tip_outlined,
+                    icon: TrackletIcons.shield,
                     title: 'Privacy Policy',
                     onTap: () => context.push('/privacy'),
                   ),
@@ -244,7 +244,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   _buildNavTile(
                     context,
-                    icon: Icons.source_outlined,
+                    icon: TrackletIcons.folderGit2,
                     title: 'Open Source Licenses',
                     onTap: () => context.push('/licenses'),
                   ),
@@ -298,13 +298,13 @@ class _AboutScreenState extends State<AboutScreen> {
           color: TrackletColors.adaptiveTextPrimary(context),
         ),
       ),
-      trailing: const Icon(
-        Icons.chevron_right_rounded,
+      trailing: Icon(
+        TrackletIcons.chevronRight,
         size: 20,
-        color: TrackletColors.textTertiary,
+        color: TrackletColors.adaptiveTextMuted(context),
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TrackletRadii.card),
+      shape: const RoundedRectangleBorder(
+        borderRadius: TrackletRadii.roundedCard,
       ),
       onTap: onTap,
     );

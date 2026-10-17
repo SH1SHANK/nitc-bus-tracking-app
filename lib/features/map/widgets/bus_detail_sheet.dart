@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../core/formatting/transit_formatter.dart';
 import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_eta.dart';
-import '../../../data/transit/bus_telemetry.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -51,24 +51,27 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final bus = widget.bus;
-    final stale =
-        bus.isStale ||
-        bus.status == BusStatus.offline ||
-        DateTime.now().difference(bus.position.timestamp) >
-            BusTelemetry.staleAfter;
-    final status =
-        stale
-            ? BusStatus.offline
-            : bus.position.hasSpeed && bus.position.speedKmH < 2
-            ? BusStatus.due
-            : bus.status;
-    final statusLabel =
-        stale
-            ? 'Stale / offline'
-            : bus.position.hasSpeed && bus.position.speedKmH < 2
-            ? 'Stationary'
-            : bus.status.displayName;
+    final trackingState = bus.trackingState();
+    final bool hasLocation = bus.hasValidLocation;
+    final String statusLabel = switch (trackingState) {
+      BusTrackingState.liveMoving => bus.status.displayName,
+      BusTrackingState.liveStationary => 'Stationary',
+      BusTrackingState.stale => 'Stale / offline',
+      BusTrackingState.noLocation => 'No GPS fix',
+      BusTrackingState.offline => 'Offline',
+    };
+    final TrackletBadgeStatus badgeStatus = switch (trackingState) {
+      BusTrackingState.liveMoving =>
+        bus.status == BusStatus.delayed
+            ? TrackletBadgeStatus.delayed
+            : TrackletBadgeStatus.live,
+      BusTrackingState.liveStationary => TrackletBadgeStatus.delayed,
+      BusTrackingState.stale => TrackletBadgeStatus.offline,
+      BusTrackingState.noLocation => TrackletBadgeStatus.offline,
+      BusTrackingState.offline => TrackletBadgeStatus.offline,
+    };
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -92,15 +95,28 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                     height: 42,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: TrackletColors.primary.withValues(alpha: 0.12),
+                      color:
+                          isDark
+                              ? TrackletColors.primaryContainerDark
+                              : TrackletColors.primary.withValues(alpha: 0.12),
                       borderRadius: TrackletRadii.roundedMd,
                       border: Border.all(
-                        color: TrackletColors.primary.withValues(alpha: 0.25),
+                        color:
+                            isDark
+                                ? TrackletColors.primaryDark.withValues(
+                                  alpha: 0.3,
+                                )
+                                : TrackletColors.primary.withValues(
+                                  alpha: 0.25,
+                                ),
                       ),
                     ),
-                    child: const Icon(
-                      Icons.directions_bus_rounded,
-                      color: TrackletColors.primary,
+                    child: Icon(
+                      TrackletIcons.bus,
+                      color:
+                          isDark
+                              ? TrackletColors.primaryDark
+                              : TrackletColors.primary,
                       size: 22,
                     ),
                   ),
@@ -113,6 +129,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                           bus.name,
                           style: TrackletTypography.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -123,7 +140,9 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                             child: Text(
                               bus.numberPlate,
                               style: TrackletTypography.caption.copyWith(
-                                color: TrackletColors.textSecondary,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -131,19 +150,14 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                       ],
                     ),
                   ),
-                  TrackletStatusBadge(
-                    label: statusLabel,
-                    status: switch (status) {
-                      BusStatus.live => TrackletBadgeStatus.live,
-                      BusStatus.delayed => TrackletBadgeStatus.delayed,
-                      BusStatus.due => TrackletBadgeStatus.delayed,
-                      BusStatus.offline => TrackletBadgeStatus.offline,
-                    },
-                  ),
+                  TrackletStatusBadge(label: statusLabel, status: badgeStatus),
                   IconButton(
                     tooltip: 'Close bus details',
                     onPressed: widget.onClose,
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(
+                      TrackletIcons.x,
+                      color: TrackletColors.adaptiveTextSecondary(context),
+                    ),
                     constraints: const BoxConstraints(
                       minWidth: TrackletSpacing.minTouchTarget,
                       minHeight: TrackletSpacing.minTouchTarget,
@@ -156,7 +170,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
               Text(
                 widget.route?.name ?? 'Route unavailable',
                 style: TrackletTypography.bodySmall.copyWith(
-                  color: TrackletColors.textSecondary,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
@@ -170,7 +184,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TrackletTypography.caption.copyWith(
-                      color: TrackletColors.textSecondary,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
                 ),
@@ -180,34 +194,39 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                   horizontal: 10,
                   vertical: 6,
                 ),
-                decoration: const BoxDecoration(
-                  color: TrackletColors.background,
+                decoration: BoxDecoration(
+                  color: TrackletColors.adaptiveSurfaceContainer(context),
                   borderRadius: TrackletRadii.roundedSm,
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.place_rounded,
+                    Icon(
+                      TrackletIcons.mapPin,
                       size: 15,
-                      color: TrackletColors.primary,
+                      color:
+                          isDark
+                              ? TrackletColors.primaryDark
+                              : TrackletColors.primary,
                     ),
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'Next stop',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.nextStop?.stop?.name ?? 'Unavailable',
+                        !hasLocation
+                            ? 'Location unavailable'
+                            : (widget.nextStop?.stop?.name ?? 'Unavailable'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TrackletTypography.labelMedium.copyWith(
-                          color: TrackletColors.textPrimary,
+                          color: TrackletColors.adaptiveTextPrimary(context),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -219,15 +238,23 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: TrackletColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                          color:
+                              isDark
+                                  ? TrackletColors.primaryContainerDark
+                                  : TrackletColors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
                         child: Text(
                           widget.eta.displayValue,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: TrackletColors.primary,
+                            color:
+                                isDark
+                                    ? TrackletColors.primaryDark
+                                    : TrackletColors.primary,
                           ),
                         ),
                       ),
@@ -243,7 +270,9 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         widget.onExpandedChanged?.call(_expanded);
                       }),
                   icon: Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    _expanded
+                        ? TrackletIcons.chevronUp
+                        : TrackletIcons.chevronDown,
                     size: 18,
                   ),
                   label: Text(_expanded ? 'Less detail' : 'More detail'),
@@ -264,15 +293,18 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Divider(height: 12),
+                            Divider(
+                              height: 12,
+                              color: TrackletColors.adaptiveDivider(context),
+                            ),
                             Row(
                               children: [
                                 Expanded(
                                   child: _DetailValue(
-                                    icon: Icons.speed_rounded,
+                                    icon: TrackletIcons.gauge,
                                     label: 'Speed',
                                     value:
-                                        bus.position.hasSpeed
+                                        hasLocation && bus.position.hasSpeed
                                             ? TransitFormatter.formatSpeed(
                                               bus.position.speedKmH,
                                             )
@@ -282,7 +314,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                 const SizedBox(width: TrackletSpacing.xs),
                                 Expanded(
                                   child: _DetailValue(
-                                    icon: Icons.timer_outlined,
+                                    icon: TrackletIcons.timer,
                                     label: 'ETA',
                                     value: widget.eta.displayValue,
                                   ),
@@ -290,7 +322,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                 const SizedBox(width: TrackletSpacing.xs),
                                 Expanded(
                                   child: _DetailValue(
-                                    icon: Icons.schedule_rounded,
+                                    icon: TrackletIcons.clock,
                                     label: 'Updated',
                                     value: TransitFormatter.formatLastUpdated(
                                       bus.lastUpdated,
@@ -301,9 +333,13 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                             ),
                             if (widget.stopOccurrences.isNotEmpty) ...[
                               const SizedBox(height: TrackletSpacing.sm),
-                              const Text(
+                              Text(
                                 'Upcoming stops',
-                                style: TrackletTypography.labelLarge,
+                                style: TrackletTypography.labelLarge.copyWith(
+                                  color: TrackletColors.adaptiveTextPrimary(
+                                    context,
+                                  ),
+                                ),
                               ),
                               const SizedBox(height: 4),
                               for (final occurrence in widget.stopOccurrences)
@@ -321,10 +357,19 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                             color:
                                                 occurrence.stopId ==
                                                         widget.nextStop?.stopId
-                                                    ? TrackletColors.primary
-                                                    : TrackletColors
-                                                        .textSecondary
-                                                        .withValues(alpha: 0.4),
+                                                    ? (isDark
+                                                        ? TrackletColors
+                                                            .primaryDark
+                                                        : TrackletColors
+                                                            .primary)
+                                                    : (isDark
+                                                        ? TrackletColors
+                                                            .darkBorder
+                                                        : TrackletColors
+                                                            .textSecondary
+                                                            .withValues(
+                                                              alpha: 0.4,
+                                                            )),
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -346,10 +391,12 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                                               widget
                                                                   .nextStop
                                                                   ?.stopId
-                                                          ? TrackletColors
-                                                              .textPrimary
-                                                          : TrackletColors
-                                                              .textSecondary,
+                                                          ? TrackletColors.adaptiveTextPrimary(
+                                                            context,
+                                                          )
+                                                          : TrackletColors.adaptiveTextSecondary(
+                                                            context,
+                                                          ),
                                                 ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -363,17 +410,28 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                               vertical: 1,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: TrackletColors.primary
-                                                  .withValues(alpha: 0.1),
+                                              color:
+                                                  isDark
+                                                      ? TrackletColors
+                                                          .primaryContainerDark
+                                                      : TrackletColors.primary
+                                                          .withValues(
+                                                            alpha: 0.1,
+                                                          ),
                                               borderRadius:
-                                                  BorderRadius.circular(6),
+                                                  TrackletRadii.roundedCompact,
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'Next',
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w700,
-                                                color: TrackletColors.primary,
+                                                color:
+                                                    isDark
+                                                        ? TrackletColors
+                                                            .primaryDark
+                                                        : TrackletColors
+                                                            .primary,
                                               ),
                                             ),
                                           ),
@@ -386,9 +444,13 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                     .isNotEmpty ==
                                 true) ...[
                               const SizedBox(height: TrackletSpacing.sm),
-                              const Text(
+                              Text(
                                 'Stop progress unavailable',
-                                style: TrackletTypography.bodySmall,
+                                style: TrackletTypography.bodySmall.copyWith(
+                                  color: TrackletColors.adaptiveTextSecondary(
+                                    context,
+                                  ),
+                                ),
                               ),
                             ],
                             const SizedBox(height: TrackletSpacing.sm),
@@ -397,16 +459,19 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                               children: [
                                 if (widget.onFollowBus != null)
                                   TextButton.icon(
-                                    onPressed: widget.onFollowBus,
+                                    onPressed:
+                                        hasLocation ? widget.onFollowBus : null,
                                     icon: const Icon(
-                                      Icons.my_location_rounded,
+                                      TrackletIcons.locateFixed,
                                       size: 16,
                                     ),
                                     label: const Text('Follow bus'),
                                     style: TextButton.styleFrom(
                                       foregroundColor:
                                           widget.isFollowing
-                                              ? TrackletColors.primary
+                                              ? (isDark
+                                                  ? TrackletColors.primaryDark
+                                                  : TrackletColors.primary)
                                               : null,
                                     ),
                                   ),
@@ -414,7 +479,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                   TextButton.icon(
                                     onPressed: widget.onFitRoute,
                                     icon: const Icon(
-                                      Icons.route_rounded,
+                                      TrackletIcons.gitCommit,
                                       size: 16,
                                     ),
                                     label: const Text('Fit route'),
@@ -441,46 +506,56 @@ class _DetailValue extends StatelessWidget {
   final IconData? icon;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-    decoration: BoxDecoration(
-      color: TrackletColors.background2,
-      borderRadius: TrackletRadii.roundedSm,
-      border: Border.all(color: TrackletColors.border),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 12, color: TrackletColors.textSecondary),
-              const SizedBox(width: 4),
-            ],
-            Expanded(
-              child: Text(
-                label,
-                style: TrackletTypography.caption.copyWith(
-                  color: TrackletColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+            isDark
+                ? TrackletColors.darkSurfaceContainer
+                : TrackletColors.background2,
+        borderRadius: TrackletRadii.roundedSm,
+        border: Border.all(color: TrackletColors.adaptiveBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 12,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                const SizedBox(width: 4),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: TrackletTypography.caption.copyWith(
+                    color: TrackletColors.adaptiveTextSecondary(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TrackletTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w700,
-            color: TrackletColors.textPrimary,
+            ],
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TrackletTypography.labelMedium.copyWith(
+              fontWeight: FontWeight.w700,
+              color: TrackletColors.adaptiveTextPrimary(context),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
 }

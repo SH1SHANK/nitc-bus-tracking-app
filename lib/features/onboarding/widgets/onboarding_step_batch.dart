@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/radii.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -27,6 +28,8 @@ class OnboardingStepBatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.screenMargin,
@@ -42,7 +45,7 @@ class OnboardingStepBatch extends StatelessWidget {
             style: TrackletTypography.displayLarge.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: TrackletColors.textPrimary,
+              color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -51,7 +54,7 @@ class OnboardingStepBatch extends StatelessWidget {
           RichText(
             text: TextSpan(
               style: TrackletTypography.bodySmall.copyWith(
-                color: TrackletColors.textSecondary,
+                color: TrackletColors.adaptiveTextSecondary(context),
                 fontSize: 12,
                 height: 1.4,
               ),
@@ -88,7 +91,7 @@ class OnboardingStepBatch extends StatelessWidget {
           Text(
             'Which batch do you belong to?',
             style: TrackletTypography.titleSmall.copyWith(
-              color: TrackletColors.textSecondary,
+              color: TrackletColors.adaptiveTextSecondary(context),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -98,9 +101,9 @@ class OnboardingStepBatch extends StatelessWidget {
             items: kNitcBatches,
             initialItem: selectedBatch.isNotEmpty ? selectedBatch : null,
             hintText: 'Select Batch',
-            prefixIcon: const Icon(
-              Icons.groups_outlined,
-              color: TrackletColors.secondaryText,
+            prefixIcon: Icon(
+              TrackletIcons.users,
+              color: TrackletColors.adaptiveTextSecondary(context),
               size: 20,
             ),
             isValid: selectedBatch.isNotEmpty,
@@ -112,7 +115,7 @@ class OnboardingStepBatch extends StatelessWidget {
           Text(
             'Undergraduate Batches',
             style: TrackletTypography.labelSmall.copyWith(
-              color: TrackletColors.textSecondary,
+              color: TrackletColors.adaptiveTextSecondary(context),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -132,19 +135,24 @@ class OnboardingStepBatch extends StatelessWidget {
                       color:
                           isSelected
                               ? Colors.white
-                              : TrackletColors.textPrimary,
+                              : TrackletColors.adaptiveTextPrimary(context),
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                     ),
-                    backgroundColor: TrackletColors.background,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    backgroundColor:
+                        isDark
+                            ? TrackletColors.darkSurfaceContainerHighest
+                            : TrackletColors.background,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: TrackletRadii.roundedInput,
                     ),
                     side: BorderSide(
                       color:
                           isSelected
                               ? TrackletColors.primary
-                              : TrackletColors.border,
+                              : (isDark
+                                  ? TrackletColors.darkBorder
+                                  : TrackletColors.border),
                       width: 1.5,
                     ),
                     onSelected: (selected) {

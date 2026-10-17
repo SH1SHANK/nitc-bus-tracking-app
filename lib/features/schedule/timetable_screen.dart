@@ -5,6 +5,7 @@ import '../../data/transit/bus_route.dart';
 import '../../data/transit/scheduled_departure.dart';
 import '../../data/transit/stop.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/radii.dart';
 import '../home/providers/home_provider.dart';
 
@@ -33,23 +34,23 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final homeStateAsync = ref.watch(homeStateProvider);
 
     return Scaffold(
-      backgroundColor: TrackletColors.background,
+      backgroundColor: TrackletColors.adaptiveBackground(context),
       appBar: AppBar(
-        backgroundColor: TrackletColors.surface,
+        backgroundColor: TrackletColors.adaptiveSurfaceElevated(context),
         elevation: 0,
         centerTitle: false,
         scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: TrackletColors.textPrimary,
+          icon: Icon(
+            TrackletIcons.arrowLeft,
+            color: TrackletColors.adaptiveTextPrimary(context),
           ),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: const Text(
+        title: Text(
           'Campus Timetable',
           style: TextStyle(
-            color: TrackletColors.textPrimary,
+            color: TrackletColors.adaptiveTextPrimary(context),
             fontSize: 18,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
@@ -69,25 +70,25 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.error_outline_rounded,
+                      TrackletIcons.alertCircle,
                       color: TrackletColors.busDelayed,
                       size: 40,
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Could not load timetable',
                       style: TextStyle(
-                        color: TrackletColors.textPrimary,
+                        color: TrackletColors.adaptiveTextPrimary(context),
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Please check your network connection and try again.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 13,
                       ),
                     ),
@@ -96,9 +97,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       onPressed: () => ref.invalidate(homeStateProvider),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TrackletColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        foregroundColor: TrackletColors.pure,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: TrackletRadii.roundedCard,
                         ),
                       ),
                       child: const Text('Retry'),
@@ -108,6 +109,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               ),
             ),
         data: (data) {
+          final isDark = TrackletColors.isDark(context);
           final stops = data.stops;
           final routes = data.routes;
           final allDepartures = data.scheduledDepartures;
@@ -155,39 +157,55 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(12),
+                      color:
+                          isDark
+                              ? TrackletColors.warningContainerDark
+                              : TrackletColors.warningContainer,
+                      borderRadius: TrackletRadii.roundedCard,
                       border: Border.all(
-                        color: const Color(0xFFFDE68A),
+                        color:
+                            isDark
+                                ? TrackletColors.warningContainerDark
+                                    .withValues(alpha: 0.4)
+                                : TrackletColors.warning.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
-                    child: const Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Icon(
-                              Icons.info_outline_rounded,
+                              TrackletIcons.info,
                               size: 16,
-                              color: Color(0xFF92400E),
+                              color:
+                                  isDark
+                                      ? TrackletColors.onWarningContainerDark
+                                      : TrackletColors.onWarningContainer,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               'Institute timetable · Reference only',
                               style: TextStyle(
-                                color: Color(0xFF92400E),
+                                color:
+                                    isDark
+                                        ? TrackletColors.onWarningContainerDark
+                                        : TrackletColors.onWarningContainer,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 6),
                         Text(
                           'Actual bus timings may vary depending on traffic and driver availability. These times are scheduled departures published by NIT Calicut and do not represent live tracking.',
                           style: TextStyle(
-                            color: Color(0xFF92400E),
+                            color:
+                                isDark
+                                    ? TrackletColors.onWarningContainerDark
+                                    : TrackletColors.onWarningContainer,
                             fontSize: 12,
                             height: 1.4,
                           ),
@@ -204,10 +222,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: TrackletColors.surface,
-                      borderRadius: BorderRadius.circular(TrackletRadii.md),
+                      color: TrackletColors.adaptiveSurfaceElevated(context),
+                      borderRadius: TrackletRadii.roundedCard,
                       border: Border.all(
-                        color: TrackletColors.border,
+                        color: TrackletColors.adaptiveCardBorder(context),
                         width: 1,
                       ),
                     ),
@@ -218,18 +236,23 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(
-                              Icons.place_rounded,
+                              TrackletIcons.mapPin,
                               size: 15,
-                              color: TrackletColors.primary,
+                              color:
+                                  isDark
+                                      ? TrackletColors.primaryDark
+                                      : TrackletColors.primary,
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
                               'VIEW TIMINGS FOR STOP',
                               style: TextStyle(
-                                color: TrackletColors.textSecondary,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.5,
@@ -245,19 +268,22 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                     ? _filteredStopId
                                     : null,
                             isExpanded: true,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: TrackletColors.textPrimary,
+                            icon: Icon(
+                              TrackletIcons.chevronDown,
+                              color: TrackletColors.adaptiveTextPrimary(
+                                context,
+                              ),
                             ),
-                            style: const TextStyle(
-                              color: TrackletColors.textPrimary,
+                            style: TextStyle(
+                              color: TrackletColors.adaptiveTextPrimary(
+                                context,
+                              ),
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
-                            dropdownColor: TrackletColors.surface,
-                            borderRadius: BorderRadius.circular(
-                              TrackletRadii.md,
-                            ),
+                            dropdownColor:
+                                TrackletColors.adaptiveSurfaceElevated(context),
+                            borderRadius: TrackletRadii.roundedCard,
                             onChanged: (value) {
                               setState(() {
                                 _filteredStopId = value;
@@ -276,12 +302,14 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                               });
                             },
                             items: [
-                              const DropdownMenuItem<String?>(
+                              DropdownMenuItem<String?>(
                                 value: null,
                                 child: Text(
                                   'All campus stops (Full timetable)',
                                   style: TextStyle(
-                                    color: TrackletColors.textPrimary,
+                                    color: TrackletColors.adaptiveTextPrimary(
+                                      context,
+                                    ),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -292,8 +320,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   value: stop.id,
                                   child: Text(
                                     stop.name,
-                                    style: const TextStyle(
-                                      color: TrackletColors.textPrimary,
+                                    style: TextStyle(
+                                      color: TrackletColors.adaptiveTextPrimary(
+                                        context,
+                                      ),
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -328,15 +358,25 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                           selected: isSelected,
                           onSelected:
                               (_) => setState(() => _selectedRouteId = null),
-                          selectedColor: TrackletColors.primary.withValues(
-                            alpha: 0.12,
-                          ),
-                          backgroundColor: TrackletColors.surface,
+                          selectedColor:
+                              isDark
+                                  ? TrackletColors.primaryContainerDark
+                                  : TrackletColors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                          backgroundColor:
+                              isDark
+                                  ? TrackletColors.darkSurfaceContainerHighest
+                                  : TrackletColors.surface,
                           labelStyle: TextStyle(
                             color:
                                 isSelected
-                                    ? TrackletColors.primary
-                                    : TrackletColors.textSecondary,
+                                    ? (isDark
+                                        ? TrackletColors.primaryDark
+                                        : TrackletColors.primary)
+                                    : TrackletColors.adaptiveTextSecondary(
+                                      context,
+                                    ),
                             fontWeight:
                                 isSelected ? FontWeight.w700 : FontWeight.w600,
                             fontSize: 12,
@@ -344,11 +384,13 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                           side: BorderSide(
                             color:
                                 isSelected
-                                    ? TrackletColors.primary
-                                    : TrackletColors.border,
+                                    ? (isDark
+                                        ? TrackletColors.primaryDark
+                                        : TrackletColors.primary)
+                                    : TrackletColors.adaptiveBorder(context),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: TrackletRadii.roundedInput,
                           ),
                         );
                       }
@@ -378,25 +420,36 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   _selectedRouteId =
                                       isSelected ? null : route.id,
                             ),
-                        selectedColor: routeColor.withValues(alpha: 0.12),
-                        backgroundColor: TrackletColors.surface,
+                        selectedColor: routeColor.withValues(
+                          alpha: isDark ? 0.25 : 0.12,
+                        ),
+                        backgroundColor:
+                            isDark
+                                ? TrackletColors.darkSurfaceContainerHighest
+                                : TrackletColors.surface,
                         labelStyle: TextStyle(
                           color:
                               isSelected
-                                  ? (routeColor == const Color(0xFF64748B)
-                                      ? TrackletColors.textPrimary
+                                  ? (routeColor == TrackletColors.routeDefault
+                                      ? TrackletColors.adaptiveTextPrimary(
+                                        context,
+                                      )
                                       : routeColor)
-                                  : TrackletColors.textSecondary,
+                                  : TrackletColors.adaptiveTextSecondary(
+                                    context,
+                                  ),
                           fontWeight:
                               isSelected ? FontWeight.w700 : FontWeight.w600,
                           fontSize: 12,
                         ),
                         side: BorderSide(
                           color:
-                              isSelected ? routeColor : TrackletColors.border,
+                              isSelected
+                                  ? routeColor
+                                  : TrackletColors.adaptiveBorder(context),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
                       );
                     },
@@ -408,22 +461,27 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
               // Departure Count & Timetable List
               if (filteredDepartures.isEmpty)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 48,
+                    ),
                     child: Center(
                       child: Column(
                         children: [
                           Icon(
-                            Icons.departure_board_rounded,
+                            TrackletIcons.bus,
                             size: 40,
-                            color: TrackletColors.textSecondary,
+                            color: TrackletColors.adaptiveTextMuted(context),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Text(
                             'No scheduled departures found for this filter.',
                             style: TextStyle(
-                              color: TrackletColors.textSecondary,
+                              color: TrackletColors.adaptiveTextSecondary(
+                                context,
+                              ),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -444,9 +502,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   sliver: SliverToBoxAdapter(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: TrackletColors.surface,
-                        borderRadius: BorderRadius.circular(TrackletRadii.lg),
-                        border: Border.all(color: TrackletColors.border),
+                        color: TrackletColors.adaptiveSurfaceElevated(context),
+                        borderRadius: TrackletRadii.roundedLg,
+                        border: Border.all(
+                          color: TrackletColors.adaptiveCardBorder(context),
+                        ),
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
@@ -454,8 +514,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                         padding: EdgeInsets.zero,
                         itemCount: filteredDepartures.length,
                         separatorBuilder:
-                            (_, _) => const Divider(
-                              color: TrackletColors.border,
+                            (_, _) => Divider(
+                              color: TrackletColors.adaptiveDivider(context),
                               height: 1,
                               indent: 68,
                             ),
@@ -466,7 +526,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   .where((r) => r.id == dep.routeId)
                                   .firstOrNull;
                           final routeColor =
-                              route?.color ?? const Color(0xFF64748B);
+                              route?.color ?? TrackletColors.routeDefault;
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(
@@ -480,11 +540,13 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   height: 40,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    color: routeColor.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: routeColor.withValues(
+                                      alpha: isDark ? 0.22 : 0.12,
+                                    ),
+                                    borderRadius: TrackletRadii.roundedInput,
                                   ),
                                   child: Icon(
-                                    Icons.directions_bus_rounded,
+                                    TrackletIcons.bus,
                                     color: routeColor,
                                     size: 20,
                                   ),
@@ -499,8 +561,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                         route?.name ?? 'Campus route',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: TrackletColors.textPrimary,
+                                        style: TextStyle(
+                                          color:
+                                              TrackletColors.adaptiveTextPrimary(
+                                                context,
+                                              ),
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -510,8 +575,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                         _buildDepartureSubtitle(dep, route),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: TrackletColors.textSecondary,
+                                        style: TextStyle(
+                                          color:
+                                              TrackletColors.adaptiveTextSecondary(
+                                                context,
+                                              ),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -524,11 +592,14 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                   children: [
                                     Text(
                                       dep.formattedTime,
-                                      style: const TextStyle(
-                                        color: TrackletColors.textPrimary,
+                                      style: TextStyle(
+                                        color:
+                                            TrackletColors.adaptiveTextPrimary(
+                                              context,
+                                            ),
                                         fontSize: 14,
                                         fontWeight: FontWeight.w800,
-                                        fontFeatures: [
+                                        fontFeatures: const [
                                           FontFeature.tabularFigures(),
                                         ],
                                       ),
@@ -541,15 +612,22 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                           vertical: 1,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: TrackletColors.busDelayedBg,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
+                                          color:
+                                              isDark
+                                                  ? TrackletColors
+                                                      .busDelayedBgDark
+                                                  : TrackletColors.busDelayedBg,
+                                          borderRadius:
+                                              TrackletRadii.roundedCompact,
                                         ),
-                                        child: const Text(
+                                        child: Text(
                                           'Special',
                                           style: TextStyle(
-                                            color: TrackletColors.busDelayed,
+                                            color:
+                                                isDark
+                                                    ? TrackletColors
+                                                        .busDelayedTextDark
+                                                    : TrackletColors.busDelayed,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
                                           ),

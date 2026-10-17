@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 import '../tokens/radii.dart';
 import '../tokens/spacing.dart';
+import '../tokens/typography.dart';
+import 'tracklet_shimmer_text.dart';
 
 /// A lightweight loading placeholder for content that has a meaningful wait.
 class TrackletSkeleton extends StatefulWidget {
@@ -45,7 +47,7 @@ class _TrackletSkeletonState extends State<TrackletSkeleton>
     final reducedMotion = MediaQuery.disableAnimationsOf(context);
     final child = DecoratedBox(
       decoration: BoxDecoration(
-        color: TrackletColors.border,
+        color: TrackletColors.adaptiveBorder(context),
         borderRadius: widget.borderRadius,
       ),
       child: SizedBox(width: widget.width, height: widget.height),
@@ -128,10 +130,10 @@ class TrackletMapSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(
+    return SafeArea(
       child: Stack(
         children: [
-          Positioned.fill(
+          const Positioned.fill(
             child: TrackletSkeleton(
               width: double.infinity,
               height: double.infinity,
@@ -143,14 +145,19 @@ class TrackletMapSkeleton extends StatelessWidget {
             right: TrackletSpacing.md,
             bottom: TrackletSpacing.md,
             child: Material(
-              color: TrackletColors.surface,
+              color: TrackletColors.adaptiveSurfaceElevated(context),
               borderRadius: TrackletRadii.roundedXl,
-              child: Padding(
+              child: const Padding(
                 padding: EdgeInsets.all(TrackletSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    TrackletShimmerText(
+                      text: 'Loading transit map...',
+                      style: TrackletTypography.caption,
+                    ),
+                    SizedBox(height: TrackletSpacing.md),
                     TrackletSkeleton(width: 150, height: 20),
                     SizedBox(height: TrackletSpacing.md),
                     TrackletSkeleton(width: double.infinity, height: 16),

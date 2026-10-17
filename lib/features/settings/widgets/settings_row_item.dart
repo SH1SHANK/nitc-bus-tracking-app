@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -86,9 +87,9 @@ class SettingsRowItem extends StatelessWidget {
         ),
       );
     } else if (showChevron) {
-      rightWidget = const Icon(
-        Icons.chevron_right_rounded,
-        color: TrackletColors.textSecondary,
+      rightWidget = Icon(
+        TrackletIcons.chevronRight,
+        color: TrackletColors.adaptiveTextSecondary(context),
         size: 22.0,
       );
     } else {

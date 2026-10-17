@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 
@@ -10,74 +11,84 @@ class MapControls extends StatelessWidget {
     super.key,
     required this.onRecenterCampus,
     this.onRecenterBus,
+    this.onFitFleet,
     this.onFitRoute,
     this.onRecenterUser,
+    this.onOpenLegend,
   });
 
   final VoidCallback onRecenterCampus;
   final VoidCallback? onRecenterBus;
+  final VoidCallback? onFitFleet;
   final VoidCallback? onFitRoute;
   final VoidCallback? onRecenterUser;
+  final VoidCallback? onOpenLegend;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final dividerColor = TrackletColors.adaptiveDivider(context);
+
     return Material(
-      color: TrackletColors.surfaceElevated,
+      color: TrackletColors.adaptiveSurfaceElevated(context),
       elevation: 3,
-      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.12),
+      shadowColor: TrackletColors.adaptiveTextPrimary(
+        context,
+      ).withValues(alpha: isDark ? 0.28 : 0.12),
       borderRadius: TrackletRadii.roundedMd,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: TrackletRadii.roundedMd,
-          border: Border.all(color: TrackletColors.border),
+          border: Border.all(color: TrackletColors.adaptiveCardBorder(context)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (onRecenterUser != null) ...[
               _ControlButton(
-                icon: Icons.my_location_rounded,
+                icon: TrackletIcons.locateFixed,
                 tooltip: 'Recenter on your location',
                 onPressed: onRecenterUser!,
               ),
-              const Divider(
-                height: 1,
-                indent: 8,
-                endIndent: 8,
-                color: TrackletColors.border,
-              ),
+              Divider(height: 1, indent: 8, endIndent: 8, color: dividerColor),
             ],
             if (onRecenterBus != null) ...[
               _ControlButton(
-                icon: Icons.directions_bus_filled_rounded,
+                icon: TrackletIcons.bus,
                 tooltip: 'Recenter on selected bus',
                 onPressed: onRecenterBus!,
               ),
-              const Divider(
-                height: 1,
-                indent: 8,
-                endIndent: 8,
-                color: TrackletColors.border,
+              Divider(height: 1, indent: 8, endIndent: 8, color: dividerColor),
+            ],
+            if (onFitFleet != null) ...[
+              _ControlButton(
+                icon: TrackletIcons.radar,
+                tooltip: 'Fit all active buses in view',
+                onPressed: onFitFleet!,
               ),
+              Divider(height: 1, indent: 8, endIndent: 8, color: dividerColor),
             ],
             if (onFitRoute != null) ...[
               _ControlButton(
-                icon: Icons.route_rounded,
+                icon: TrackletIcons.gitCommit,
                 tooltip: 'Show all stops on this route',
                 onPressed: onFitRoute!,
               ),
-              const Divider(
-                height: 1,
-                indent: 8,
-                endIndent: 8,
-                color: TrackletColors.border,
-              ),
+              Divider(height: 1, indent: 8, endIndent: 8, color: dividerColor),
             ],
             _ControlButton(
-              icon: Icons.explore_outlined,
+              icon: TrackletIcons.compass,
               tooltip: 'Recenter on NIT Calicut campus',
               onPressed: onRecenterCampus,
             ),
+            if (onOpenLegend != null) ...[
+              Divider(height: 1, indent: 8, endIndent: 8, color: dividerColor),
+              _ControlButton(
+                icon: TrackletIcons.layers,
+                tooltip: 'Map legend',
+                onPressed: onOpenLegend!,
+              ),
+            ],
           ],
         ),
       ),
@@ -98,17 +109,27 @@ class _ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: tooltip,
-      icon: Icon(icon, size: 21),
-      color: TrackletColors.textPrimary,
-      constraints: const BoxConstraints(
-        minWidth: TrackletSpacing.minTouchTarget,
-        minHeight: TrackletSpacing.minTouchTarget,
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: tooltip,
+      child: IconButton(
+        onPressed: onPressed,
+        tooltip: tooltip,
+        icon: Icon(icon, size: 21),
+        color: TrackletColors.adaptiveTextPrimary(context),
+        focusColor: TrackletColors.primary.withValues(alpha: 0.18),
+        hoverColor: TrackletColors.adaptiveBorder(
+          context,
+        ).withValues(alpha: 0.45),
+        highlightColor: TrackletColors.primary.withValues(alpha: 0.12),
+        constraints: const BoxConstraints(
+          minWidth: TrackletSpacing.minTouchTarget,
+          minHeight: TrackletSpacing.minTouchTarget,
+        ),
+        padding: const EdgeInsets.all(TrackletSpacing.sm),
+        visualDensity: VisualDensity.standard,
       ),
-      padding: const EdgeInsets.all(TrackletSpacing.sm),
-      visualDensity: VisualDensity.standard,
     );
   }
 }

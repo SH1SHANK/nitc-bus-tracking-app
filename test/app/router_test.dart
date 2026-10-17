@@ -9,6 +9,7 @@ import 'package:tracklet/data/auth/auth_repository.dart';
 import 'package:tracklet/data/profile/profile.dart';
 import 'package:tracklet/data/auth/auth_result.dart';
 import 'package:tracklet/data/auth/auth_state.dart';
+import 'package:tracklet/features/admin/providers/admin_provider.dart';
 import 'package:tracklet/features/profile/providers/profile_provider.dart';
 
 void main() {
@@ -120,7 +121,7 @@ void main() {
             child: MaterialApp.router(routerConfig: router),
           ),
         );
-        await tester.pump(const Duration(milliseconds: 250));
+        await tester.pumpAndSettle();
 
         expect(router.routeInformationProvider.value.uri.path, '/login');
       },
@@ -252,6 +253,122 @@ void main() {
         );
 
         final router = container.read(routerProvider);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(router.routeInformationProvider.value.uri.path, '/');
+      },
+    );
+
+    testWidgets(
+      'unauthenticated user visiting /admin is redirected to /login',
+      (tester) async {
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              FakeAuthRepository(
+                const AuthState(status: AuthStatus.unauthenticated),
+              ),
+            ),
+          ],
+        );
+
+        final router = container.read(routerProvider);
+        router.go('/admin');
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(router.routeInformationProvider.value.uri.path, '/login');
+      },
+    );
+
+    testWidgets('authenticated guest user visiting /admin is redirected to /', (
+      tester,
+    ) async {
+      final mockGuestUser = User(
+        id: 'test-guest-uuid',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+        isAnonymous: true,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(
+              AuthState(status: AuthStatus.authenticated, user: mockGuestUser),
+            ),
+          ),
+        ],
+      );
+
+      final router = container.read(routerProvider);
+      router.go('/admin');
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(router.routeInformationProvider.value.uri.path, '/');
+    });
+
+    testWidgets(
+      'authenticated non-admin user visiting /admin is redirected to /',
+      (tester) async {
+        final mockUser = User(
+          id: 'student-uuid',
+          appMetadata: {},
+          userMetadata: {},
+          aud: 'authenticated',
+          createdAt: DateTime.now().toIso8601String(),
+          email: 'student@nitc.ac.in',
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(
+              FakeAuthRepository(
+                AuthState(
+                  status: AuthStatus.authenticated,
+                  user: mockUser,
+                  email: 'student@nitc.ac.in',
+                ),
+              ),
+            ),
+            profileStateProvider.overrideWith(
+              () => _FixedProfileNotifier(
+                const Profile(
+                  id: 'student-uuid',
+                  name: 'Student',
+                  email: 'student@nitc.ac.in',
+                  hasCompletedOnboarding: true,
+                ),
+              ),
+            ),
+            isAdminProvider.overrideWith((ref) => Future.value(false)),
+          ],
+        );
+
+        final router = container.read(routerProvider);
+        router.go('/admin');
 
         await tester.pumpWidget(
           UncontrolledProviderScope(

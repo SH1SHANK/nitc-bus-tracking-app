@@ -98,6 +98,41 @@ void main() {
       await tester.tap(find.byTooltip('Recenter on NIT Calicut campus'));
       expect(recenterCampusCalled, isTrue);
     });
+
+    testWidgets(
+      'triggers onOpenLegend, onRecenterBus, and onFitRoute when tapped',
+      (tester) async {
+        var openLegendCalled = false;
+        var recenterBusCalled = false;
+        var fitRouteCalled = false;
+
+        await tester.pumpTrackletWidget(
+          Material(
+            child: MapControls(
+              onRecenterCampus: () {},
+              onRecenterUser: () {},
+              onOpenLegend: () => openLegendCalled = true,
+              onRecenterBus: () => recenterBusCalled = true,
+              onFitRoute: () => fitRouteCalled = true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip('Map legend'), findsOneWidget);
+        expect(find.byTooltip('Recenter on selected bus'), findsOneWidget);
+        expect(find.byTooltip('Show all stops on this route'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Map legend'));
+        expect(openLegendCalled, isTrue);
+
+        await tester.tap(find.byTooltip('Recenter on selected bus'));
+        expect(recenterBusCalled, isTrue);
+
+        await tester.tap(find.byTooltip('Show all stops on this route'));
+        expect(fitRouteCalled, isTrue);
+      },
+    );
   });
 
   group('BusDetailSheet telemetry tests', () {

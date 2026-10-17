@@ -438,6 +438,11 @@ export async function authenticateOrResetTracker(
   return { token, epoch, nextSeq };
 }
 
+// In-memory cache structures to eliminate redundant PostgREST calls across simulator runs
+const PROVISIONED_DEVICES = new Set<string>();
+const BUS_ID_CACHE = new Map<string, string>();
+const ACTIVE_TRIP_CACHE = new Map<string, { tripId: string; busId: string; routeId: string; cachedAt: number }>();
+
 // Ensure active trip exists for bus & route so stop arrival/departure events trigger
 async function ensureActiveTrip(
   supabase: SupabaseClient<any, any, any>,
@@ -445,24 +450,41 @@ async function ensureActiveTrip(
   routeId: string,
 ): Promise<{ tripId: string | null; busId: string | null }> {
   try {
-    const { data: bus } = await supabase.from("buses").select("id").eq("bus_number", busNumber).maybeSingle();
-    if (!bus?.id) return { tripId: null, busId: null };
+    const cachedTrip = ACTIVE_TRIP_CACHE.get(busNumber);
+    // Reuse active trip if cached within the last 15 minutes for the same route
+    if (cachedTrip && cachedTrip.routeId === routeId && Date.now() - cachedTrip.cachedAt < 15 * 60 * 1000) {
+      return { tripId: cachedTrip.tripId, busId: cachedTrip.busId };
+    }
+
+    let busId = BUS_ID_CACHE.get(busNumber);
+    if (!busId) {
+      const { data: bus } = await supabase.from("buses").select("id").eq("bus_number", busNumber).maybeSingle();
+      if (!bus?.id) return { tripId: null, busId: null };
+      busId = bus.id;
+      BUS_ID_CACHE.set(busNumber, busId);
+    }
 
     const { data: existingTrip } = await supabase
       .from("trips")
       .select("id, route_id")
-      .eq("bus_id", bus.id)
+      .eq("bus_id", busId)
       .eq("status", "active")
       .maybeSingle();
 
     if (existingTrip?.id) {
-      return { tripId: existingTrip.id, busId: bus.id };
+      ACTIVE_TRIP_CACHE.set(busNumber, {
+        tripId: existingTrip.id,
+        busId,
+        routeId: existingTrip.route_id ?? routeId,
+        cachedAt: Date.now(),
+      });
+      return { tripId: existingTrip.id, busId };
     }
 
     const { data: newTrip, error } = await supabase
       .from("trips")
       .insert({
-        bus_id: bus.id,
+        bus_id: busId,
         route_id: routeId,
         status: "active",
         started_at: new Date().toISOString(),
@@ -472,10 +494,19 @@ async function ensureActiveTrip(
 
     if (error) {
       console.warn("Could not auto-create trip:", error.message);
-      return { tripId: null, busId: bus.id };
+      return { tripId: null, busId };
     }
 
-    return { tripId: newTrip?.id ?? null, busId: bus.id };
+    if (newTrip?.id) {
+      ACTIVE_TRIP_CACHE.set(busNumber, {
+        tripId: newTrip.id,
+        busId,
+        routeId,
+        cachedAt: Date.now(),
+      });
+    }
+
+    return { tripId: newTrip?.id ?? null, busId };
   } catch (e) {
     console.warn("ensureActiveTrip exception:", e);
     return { tripId: null, busId: null };
@@ -977,14 +1008,17 @@ async function handleFleetMode(
 ): Promise<Response> {
   const fleetResults: Array<Record<string, unknown>> = [];
 
-  // Register / Provision fleet devices if not already provisioned
+  // Register / Provision fleet devices if not already provisioned in current runtime isolate
   for (const bus of DEFAULT_FLEET) {
-    await (supabase.rpc as any)("register_tracking_device", {
-      p_device_id: bus.deviceId,
-      p_bus_number: bus.busNumber,
-      p_secret: bus.secret,
-      p_allow_reassign: true,
-    });
+    if (!PROVISIONED_DEVICES.has(bus.deviceId)) {
+      await (supabase.rpc as any)("register_tracking_device", {
+        p_device_id: bus.deviceId,
+        p_bus_number: bus.busNumber,
+        p_secret: bus.secret,
+        p_allow_reassign: true,
+      });
+      PROVISIONED_DEVICES.add(bus.deviceId);
+    }
   }
 
   // Run simulation in parallel for each bus in fleet

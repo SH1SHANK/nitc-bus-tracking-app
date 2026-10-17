@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../design_system/components/tracklet_brand_lockup.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -17,24 +18,48 @@ class AppInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('About Tracklet', style: TrackletTypography.titleMedium),
+          Row(
+            children: [
+              const TrackletBrandLockup(
+                logoSize: 32.0,
+                wordmarkHeight: 18.0,
+              ),
+              const Spacer(),
+              Text(
+                'About BusTracker',
+                style: TrackletTypography.adaptive(
+                  context,
+                  TrackletTypography.titleMedium,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: TrackletSpacing.sm),
-          const Text(
+          Text(
             AppConfig.campusName,
-            style: TrackletTypography.bodyMedium,
+            style: TrackletTypography.adaptive(
+              context,
+              TrackletTypography.bodyMedium,
+            ),
           ),
           const SizedBox(height: TrackletSpacing.md),
-          const Divider(),
+          Divider(color: TrackletColors.adaptiveDivider(context)),
           const SizedBox(height: TrackletSpacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Version', style: TrackletTypography.bodySmall),
+              Text(
+                'Version',
+                style: TrackletTypography.adaptiveSecondary(
+                  context,
+                  TrackletTypography.bodySmall,
+                ),
+              ),
               Text(
                 '${AppConfig.appVersion} (${AppConfig.environment})',
                 style: TrackletTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: TrackletColors.textPrimary,
+                  color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
             ],
@@ -43,7 +68,13 @@ class AppInfoCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Data Provider', style: TrackletTypography.bodySmall),
+              Text(
+                'Data Provider',
+                style: TrackletTypography.adaptiveSecondary(
+                  context,
+                  TrackletTypography.bodySmall,
+                ),
+              ),
               Text(
                 AppConfig.hasSupabaseCredentials
                     ? 'Supabase Realtime'

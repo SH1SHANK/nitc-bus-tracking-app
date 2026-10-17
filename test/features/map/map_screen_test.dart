@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
+import 'package:tracklet/features/map/providers/map_state_provider.dart';
 import 'package:tracklet/data/campus/campus_building.dart';
 import 'package:tracklet/data/campus/campus_building_repository.dart';
 import 'package:tracklet/data/transit/bus.dart';
@@ -21,10 +23,27 @@ import 'package:tracklet/features/map/widgets/route_selector_card.dart';
 import 'package:tracklet/features/map/widgets/route_stops_sheet.dart';
 import 'package:tracklet/features/map/widgets/stop_detail_sheet.dart';
 import 'package:tracklet/features/map/widgets/stop_marker_widget.dart';
+import 'package:tracklet/services/location/location_service.dart';
 import 'package:tracklet/services/maps/map_adapter.dart';
 import 'package:tracklet/services/maps/map_cartography.dart';
 
 import '../../helpers/pump_app.dart';
+
+class _MapTestLocationNotifier extends LocationNotifier {
+  _MapTestLocationNotifier(this.testState);
+
+  final LocationState testState;
+
+  @override
+  LocationState build() => testState;
+
+  @override
+  Future<void> refreshLocationIfPermitted() async {}
+
+  @override
+  Future<GeoPoint?> requestAndFetchLocation() async =>
+      testState.currentLocation;
+}
 
 class TestCampusBuildingRepository implements CampusBuildingRepository {
   bool fail = false;
@@ -615,5 +634,256 @@ void main() {
 
       expect(find.byType(BusDetailSheet), findsNothing);
     });
+
+    testWidgets('opens map legend modal bottom sheet and toggles routes', (
+      tester,
+    ) async {
+      final repository = TestTransitRepository();
+
+      await tester.pumpTrackletWidget(
+        const MapScreen(),
+        overrides: [transitRepositoryProvider.overrideWithValue(repository)],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Map legend'), findsOneWidget);
+      await tester.tap(find.byTooltip('Map legend'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Map Legend'), findsOneWidget);
+      expect(find.text('Hide routes'), findsOneWidget);
+
+      await tester.tap(find.text('Hide routes'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Show routes'), findsOneWidget);
+    });
+
+    testWidgets(
+      'recenter on user cancels bus following and recenters camera when valid',
+      (tester) async {
+        const userLoc = GeoPoint(latitude: 11.3218, longitude: 75.9370);
+        final liveBus = Bus(
+          id: 'bus-follow-test',
+          numberPlate: 'KL 11 BH 0002',
+          name: 'Follow Bus',
+          routeId: 'route-1',
+          status: BusStatus.live,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 11.32168, longitude: 75.93367),
+            speedKmH: 20.0,
+            timestamp: DateTime.now(),
+          ),
+          lastUpdated: DateTime.now(),
+        );
+
+        final repository = TestTransitRepository();
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(repository),
+            activeBusesStreamProvider.overrideWith(
+              (ref) => Stream.value([liveBus]),
+            ),
+            locationStateProvider.overrideWith(
+              () => _MapTestLocationNotifier(
+                const LocationState(
+                  currentLocation: userLoc,
+                  permissionState: LocationPermissionState.granted,
+                ),
+              ),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        // Tap bus and follow it
+        await tester.tap(find.byType(BusMarkerWidget));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('More detail'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Follow bus'));
+        await tester.pumpAndSettle();
+
+        // Recenter on user should clear following bus
+        await tester.tap(find.byTooltip('Recenter on your location'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'shows floating SnackBar with Settings when permission is deniedForever',
+      (tester) async {
+        final repository = TestTransitRepository();
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(repository),
+            locationStateProvider.overrideWith(
+              () => _MapTestLocationNotifier(
+                const LocationState(
+                  permissionState: LocationPermissionState.deniedForever,
+                  errorMessage:
+                      'Location permission is denied. Enable it in settings.',
+                ),
+              ),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Recenter on your location'));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Location permission is denied. Enable it in settings.'),
+          findsOneWidget,
+        );
+        expect(find.text('Settings'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'shows floating SnackBar with Settings when location service is disabled',
+      (tester) async {
+        final repository = TestTransitRepository();
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(repository),
+            locationStateProvider.overrideWith(
+              () => _MapTestLocationNotifier(
+                const LocationState(
+                  permissionState: LocationPermissionState.serviceDisabled,
+                  errorMessage:
+                      'Location services are disabled on your device.',
+                ),
+              ),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Recenter on your location'));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Location services are disabled on your device.'),
+          findsOneWidget,
+        );
+        expect(find.text('Settings'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'when bus has no valid location, onRecenterBus is disabled and following is not enabled',
+      (tester) async {
+        final now = DateTime.now();
+        final noLocationBus = Bus(
+          id: 'bus-no-loc',
+          name: 'Campus Bus No Loc',
+          numberPlate: 'KL 11 BH 9999',
+          routeId: 'route-1',
+          status: BusStatus.live,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 0, longitude: 0),
+            timestamp: now,
+          ),
+          lastUpdated: now,
+        );
+
+        final repository = TestTransitRepository();
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(repository),
+            activeBusesStreamProvider.overrideWith(
+              (ref) => Stream.value([noLocationBus]),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BusMarkerWidget), findsNothing);
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(MapScreen)),
+        );
+        container
+            .read(mapStateNotifierProvider.notifier)
+            .selectBus(noLocationBus);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BusDetailSheet), findsOneWidget);
+        expect(find.text('Campus Bus No Loc'), findsOneWidget);
+
+        final mapControls = tester.widget<MapControls>(
+          find.byType(MapControls),
+        );
+        expect(mapControls.onRecenterBus, isNull);
+        expect(find.text('Resume following'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'clearing BusDetailSheet clears selectedBus on mapStateNotifierProvider',
+      (tester) async {
+        final now = DateTime.now();
+        final liveBus = Bus(
+          id: 'bus-1',
+          name: 'Bus 1 (East ↔ MBH)',
+          numberPlate: 'KL 11 BH 0001',
+          routeId: 'route-1',
+          status: BusStatus.live,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
+            speedKmH: 15,
+            timestamp: now,
+          ),
+          lastUpdated: now,
+        );
+
+        final repository = TestTransitRepository();
+
+        await tester.pumpTrackletWidget(
+          const MapScreen(),
+          overrides: [
+            transitRepositoryProvider.overrideWithValue(repository),
+            activeBusesStreamProvider.overrideWith(
+              (ref) => Stream.value([liveBus]),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(MapScreen)),
+        );
+        container.read(mapStateNotifierProvider.notifier).selectBus(liveBus);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BusDetailSheet), findsOneWidget);
+        expect(find.text('Bus 1 (East ↔ MBH)'), findsOneWidget);
+
+        // Tap close button on sheet
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BusDetailSheet),
+            matching: find.byType(IconButton),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(container.read(mapStateNotifierProvider).selectedBus, isNull);
+      },
+    );
   });
 }

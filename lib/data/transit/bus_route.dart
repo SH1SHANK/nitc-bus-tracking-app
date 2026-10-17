@@ -1,3 +1,4 @@
+import '../../design_system/tokens/colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/geo/geo_point.dart';
@@ -44,10 +45,10 @@ class BusRoute {
   Color get color {
     final cleanHex = colorHex.replaceAll('#', '');
     final value = int.tryParse(cleanHex, radix: 16);
-    if (value == null) return const Color(0xFF64748B);
+    if (value == null) return TrackletColors.routeDefault;
     if (cleanHex.length == 6) return Color(0xFF000000 | value);
     if (cleanHex.length == 8) return Color(value);
-    return const Color(0xFF64748B);
+    return TrackletColors.routeDefault;
   }
 
   BusRoute copyWith({

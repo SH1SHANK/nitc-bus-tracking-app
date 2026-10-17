@@ -1,5 +1,5 @@
 name: tracklet
-description: "Tracklet - NITC campus bus tracking application built with Flutter for Android and Web."
+description: "BusTracker - NITC campus bus tracking application built with Flutter for Android and Web."
 publish_to: 'none'
 
 version: 0.1.0+1
@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  web: ^1.1.1
   flutter_riverpod: ^3.4.3
   go_router: ^18.0.2
   supabase_flutter: ^2.18.0
@@ -23,15 +24,16 @@ dependencies:
   moon_design: ^1.1.0
   shared_preferences: ^2.5.6
   cupertino_icons: ^2.0.0
-  flutter_tabler_icons: ^1.43.0
-  phosphor_flutter: ^2.1.0
   animated_custom_dropdown: ^4.0.0
   flutter_animate: ^4.5.0
   url_launcher: ^6.3.3
   flutter_map_mbtiles: ^1.0.4
   path_provider: ^2.1.6
   path: ^1.9.1
+  http: ^1.2.0
   package_info_plus: ^10.2.2
+  lucide_icons_flutter: ^4.0.0
+  flutter_native_splash: ^2.4.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -43,14 +45,18 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/branding/
     - assets/icons/
     - assets/images/Clean_Login_Design_Rectangle_10.png
     - assets/images/Young_Man_Laptop_Clean_Login_Design.png
     - assets/images/Young_Man_with_Laptop.png
     - assets/images/favicon.png
+    - assets/images/app_launcher_icon.png
+    - assets/images/adaptive_foreground_icon.png
     - assets/images/Abstract_Gradient_Background_4K.jpg
     - assets/images/Research_New_Pin_Crop.gif
     - assets/maps/nitc_campus.mbtiles
+
   fonts:
     - family: Outfit
       fonts:
@@ -58,3 +64,34 @@ flutter:
     - family: Satoshi
       fonts:
         - asset: assets/fonts/Satoshi-Variable.ttf
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/branding/app_launcher_icon.png"
+  adaptive_icon_background: "#6F61EF"
+  adaptive_icon_foreground: "assets/branding/adaptive_foreground_icon.png"
+  web:
+    generate: true
+    image_path: "assets/branding/bustracker_bus_icon.png"
+    background_color: "#6F61EF"
+    theme_color: "#6F61EF"
+
+flutter_native_splash:
+  color: "#FAFBFF"
+  color_dark: "#0F1117"
+  image: "assets/branding/bustracker_bus_icon.png"
+  image_dark: "assets/branding/bustracker_bus_icon.png"
+  branding: "assets/branding/bustracker_wordmark.png"
+  branding_dark: "assets/branding/bustracker_wordmark.png"
+  branding_bottom_padding: 32
+  android: true
+  ios: true
+  web: true
+  android_12:
+    color: "#FAFBFF"
+    color_dark: "#0F1117"
+    image: "assets/branding/bustracker_bus_icon.png"
+    image_dark: "assets/branding/bustracker_bus_icon.png"
+    icon_background_color: "#6F61EF"
+    icon_background_color_dark: "#262445"

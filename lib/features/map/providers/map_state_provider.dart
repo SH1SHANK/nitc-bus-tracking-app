@@ -19,6 +19,7 @@ class MapScreenState {
     this.selectedRoute,
     this.selectedRouteStops = const [],
     this.selectedStop,
+    this.selectedBus,
     this.cameraCenter = MapConfig.campusCenter,
     this.isLoading = false,
     this.errorMessage,
@@ -31,6 +32,7 @@ class MapScreenState {
   final BusRoute? selectedRoute;
   final List<RouteStopOccurrence> selectedRouteStops;
   final Stop? selectedStop;
+  final Bus? selectedBus;
   final GeoPoint cameraCenter;
   final bool isLoading;
   final String? errorMessage;
@@ -55,6 +57,7 @@ class MapScreenState {
     BusRoute? selectedRoute,
     List<RouteStopOccurrence>? selectedRouteStops,
     Stop? selectedStop,
+    Bus? selectedBus,
     GeoPoint? cameraCenter,
     bool? isLoading,
     String? errorMessage,
@@ -62,6 +65,7 @@ class MapScreenState {
     String? routeStopsError,
     bool clearSelectedStop = false,
     bool clearSelectedRoute = false,
+    bool clearSelectedBus = false,
     bool clearError = false,
     bool clearRouteStopsError = false,
   }) {
@@ -76,6 +80,7 @@ class MapScreenState {
               : (selectedRouteStops ?? this.selectedRouteStops),
       selectedStop:
           clearSelectedStop ? null : (selectedStop ?? this.selectedStop),
+      selectedBus: clearSelectedBus ? null : (selectedBus ?? this.selectedBus),
       cameraCenter: cameraCenter ?? this.cameraCenter,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -208,7 +213,7 @@ class MapStateNotifier extends Notifier<MapScreenState> {
   }
 
   void selectBus(Bus bus) {
-    // Selects the route associated with the selected bus if available
+    state = state.copyWith(selectedBus: bus);
     final routeId = bus.routeId;
     if (routeId != null) {
       final route = state.routes.where((r) => r.id == routeId).firstOrNull;
@@ -218,6 +223,10 @@ class MapStateNotifier extends Notifier<MapScreenState> {
       }
     }
     clearSelection();
+  }
+
+  void clearSelectedBus() {
+    state = state.copyWith(clearSelectedBus: true);
   }
 
   void selectStop(Stop stop) {

@@ -53,12 +53,36 @@ class GeoPoint {
   static double _toRadians(double degrees) => degrees * math.pi / 180.0;
   static double _toDegrees(double radians) => radians * 180.0 / math.pi;
 
+  static bool isValidCoordinates(double lat, double lng) =>
+      lat.isFinite &&
+      lng.isFinite &&
+      lat >= -90.0 &&
+      lat <= 90.0 &&
+      lng >= -180.0 &&
+      lng <= 180.0 &&
+      !(lat.abs() < 1e-4 && lng.abs() < 1e-4);
+
+  bool get isValid => isValidCoordinates(latitude, longitude);
+
   Map<String, dynamic> toJson() => {'lat': latitude, 'lng': longitude};
 
   factory GeoPoint.fromJson(Map<String, dynamic> json) {
     final lat = (json['lat'] ?? json['latitude']) as num;
     final lng = (json['lng'] ?? json['longitude'] ?? json['lon']) as num;
     return GeoPoint(latitude: lat.toDouble(), longitude: lng.toDouble());
+  }
+
+  static GeoPoint? tryParse(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final lat = (json['lat'] ?? json['latitude']) as num?;
+    final lng = (json['lng'] ?? json['longitude'] ?? json['lon']) as num?;
+    if (lat == null || lng == null) return null;
+    final latD = lat.toDouble();
+    final lngD = lng.toDouble();
+    if (!isValidCoordinates(latD, lngD)) {
+      return null;
+    }
+    return GeoPoint(latitude: latD, longitude: lngD);
   }
 
   @override

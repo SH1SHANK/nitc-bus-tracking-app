@@ -89,7 +89,7 @@ class LiveTransitPollingState {
 }
 
 class LiveTransitPollingNotifier extends Notifier<LiveTransitPollingState> {
-  Timer? _timer;
+  StreamSubscription<List<Bus>>? _busSubscription;
   bool _isRefreshing = false;
   bool _isPaused = false;
   bool _isDisposed = false;
@@ -100,30 +100,44 @@ class LiveTransitPollingNotifier extends Notifier<LiveTransitPollingState> {
     _isDisposed = false;
     ref.onDispose(() {
       _isDisposed = true;
-      _timer?.cancel();
+      _busSubscription?.cancel();
     });
-    _startPolling();
+    _listenToBusStream();
     return const LiveTransitPollingState();
   }
 
-  void _startPolling() {
-    _timer?.cancel();
-    Future.microtask(() => refresh());
-    _timer = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (!_isPaused) {
-        refresh();
-      }
-    });
+  void _listenToBusStream() {
+    _busSubscription?.cancel();
+    final repository = ref.read(transitRepositoryProvider);
+    _busSubscription = repository.watchActiveBuses().listen(
+      (buses) {
+        if (_isDisposed || _isPaused) return;
+        state = LiveTransitPollingState(
+          buses: buses,
+          lastSuccessfulUpdate: DateTime.now(),
+          isRefreshing: false,
+          error: null,
+        );
+      },
+      onError: (Object error) {
+        if (_isDisposed || _isPaused) return;
+        state = state.copyWith(isRefreshing: false, error: error);
+      },
+    );
   }
 
   void pause() {
     _isPaused = true;
+    _busSubscription?.pause();
   }
 
-  void resume() {
+  Future<void> resume() async {
     if (_isPaused) {
       _isPaused = false;
-      refresh();
+      if (_busSubscription?.isPaused ?? false) {
+        _busSubscription?.resume();
+      }
+      await refresh();
     }
   }
 

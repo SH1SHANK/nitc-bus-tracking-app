@@ -5,10 +5,14 @@ import '../../../data/transit/route_geometry.dart';
 import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
+
+import '../../../design_system/components/tracklet_shimmer_text.dart';
+import '../../../design_system/components/tracklet_skeleton.dart';
 
 /// Compact, expandable route summary with the route's ordered stop occurrences.
 class RouteStopsSheet extends StatelessWidget {
@@ -47,13 +51,16 @@ class RouteStopsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final maxHeight = MediaQuery.sizeOf(context).height * 0.54;
     final routeColor = _parseRouteColor(route.colorHex);
 
     return Material(
-      color: TrackletColors.surfaceElevated,
+      color: TrackletColors.adaptiveSurfaceElevated(context),
       elevation: 4,
-      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.16),
+      shadowColor: TrackletColors.adaptiveTextPrimary(
+        context,
+      ).withValues(alpha: isDark ? 0.28 : 0.16),
       borderRadius: TrackletRadii.roundedLg,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
@@ -66,7 +73,9 @@ class RouteStopsSheet extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             borderRadius: TrackletRadii.roundedLg,
-            border: Border.all(color: TrackletColors.border),
+            border: Border.all(
+              color: TrackletColors.adaptiveCardBorder(context),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -97,8 +106,8 @@ class RouteStopsSheet extends StatelessWidget {
                             child: Container(
                               width: 36,
                               height: 4,
-                              decoration: const BoxDecoration(
-                                color: TrackletColors.border,
+                              decoration: BoxDecoration(
+                                color: TrackletColors.adaptiveBorder(context),
                                 borderRadius: TrackletRadii.roundedFull,
                               ),
                             ),
@@ -126,16 +135,21 @@ class RouteStopsSheet extends StatelessWidget {
                                       style: TrackletTypography.titleSmall
                                           .copyWith(
                                             fontWeight: FontWeight.w700,
-                                            color: TrackletColors.textPrimary,
+                                            color:
+                                                TrackletColors.adaptiveTextPrimary(
+                                                  context,
+                                                ),
                                           ),
                                     ),
                                     const SizedBox(height: 1),
                                     Text(
                                       '${stopOccurrences.length} ${stopOccurrences.length == 1 ? 'stop' : 'stops'} · Ordered route stops',
-                                      style: TrackletTypography.bodySmall
-                                          .copyWith(
-                                            color: TrackletColors.textSecondary,
-                                          ),
+                                      style: TrackletTypography.bodySmall.copyWith(
+                                        color:
+                                            TrackletColors.adaptiveTextSecondary(
+                                              context,
+                                            ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -143,8 +157,8 @@ class RouteStopsSheet extends StatelessWidget {
                               const SizedBox(width: TrackletSpacing.sm),
                               Icon(
                                 isExpanded
-                                    ? Icons.keyboard_arrow_down_rounded
-                                    : Icons.keyboard_arrow_up_rounded,
+                                    ? TrackletIcons.chevronDown
+                                    : TrackletIcons.chevronUp,
                                 color: routeColor,
                                 size: 24,
                               ),
@@ -161,11 +175,54 @@ class RouteStopsSheet extends StatelessWidget {
                   _GeometryNotice(status: route.geometry.status),
                 if (isLoading)
                   const Padding(
-                    padding: EdgeInsets.all(TrackletSpacing.lg),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: TrackletColors.primary,
-                      ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.sm,
+                      vertical: TrackletSpacing.md,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Center(
+                          child: TrackletShimmerText(
+                            text: 'Loading route stops...',
+                            style: TrackletTypography.bodySmall,
+                          ),
+                        ),
+                        SizedBox(height: TrackletSpacing.md),
+                        Row(
+                          children: [
+                            TrackletSkeleton(
+                              width: 24,
+                              height: 24,
+                              borderRadius: TrackletRadii.roundedFull,
+                            ),
+                            SizedBox(width: TrackletSpacing.sm),
+                            Expanded(
+                              child: TrackletSkeleton(
+                                width: double.infinity,
+                                height: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: TrackletSpacing.sm),
+                        Row(
+                          children: [
+                            TrackletSkeleton(
+                              width: 24,
+                              height: 24,
+                              borderRadius: TrackletRadii.roundedFull,
+                            ),
+                            SizedBox(width: TrackletSpacing.sm),
+                            Expanded(
+                              child: TrackletSkeleton(
+                                width: double.infinity,
+                                height: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   )
                 else if (errorMessage != null)
@@ -196,7 +253,7 @@ class RouteStopsSheet extends StatelessWidget {
                     child: Text(
                       'No stops are available for this route yet.',
                       style: TrackletTypography.bodySmall.copyWith(
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
                   )
@@ -246,7 +303,10 @@ class RouteStopsSheet extends StatelessWidget {
                                           bottom: isLast ? 18 : 0,
                                           width: 2,
                                           child: Container(
-                                            color: TrackletColors.border,
+                                            color:
+                                                TrackletColors.adaptiveBorder(
+                                                  context,
+                                                ),
                                           ),
                                         ),
                                         // Stepper circle
@@ -258,13 +318,17 @@ class RouteStopsSheet extends StatelessWidget {
                                             color:
                                                 isSelected
                                                     ? routeColor
-                                                    : TrackletColors.surface,
+                                                    : TrackletColors.adaptiveSurfaceElevated(
+                                                      context,
+                                                    ),
                                             shape: BoxShape.circle,
                                             border: Border.all(
                                               color:
                                                   isSelected
                                                       ? routeColor
-                                                      : TrackletColors.border,
+                                                      : TrackletColors.adaptiveBorder(
+                                                        context,
+                                                      ),
                                               width: isSelected ? 2 : 1.5,
                                             ),
                                           ),
@@ -276,8 +340,9 @@ class RouteStopsSheet extends StatelessWidget {
                                                       isSelected
                                                           ? TrackletColors
                                                               .textInverse
-                                                          : TrackletColors
-                                                              .textSecondary,
+                                                          : TrackletColors.adaptiveTextSecondary(
+                                                            context,
+                                                          ),
                                                   fontWeight: FontWeight.w700,
                                                   fontSize: 10,
                                                 ),
@@ -333,8 +398,9 @@ class RouteStopsSheet extends StatelessWidget {
                                                                 : FontWeight
                                                                     .w500,
                                                         color:
-                                                            TrackletColors
-                                                                .textPrimary,
+                                                            TrackletColors.adaptiveTextPrimary(
+                                                              context,
+                                                            ),
                                                       ),
                                                 ),
                                                 if (stop?.code.isNotEmpty ==
@@ -348,8 +414,9 @@ class RouteStopsSheet extends StatelessWidget {
                                                         .caption
                                                         .copyWith(
                                                           color:
-                                                              TrackletColors
-                                                                  .textSecondary,
+                                                              TrackletColors.adaptiveTextSecondary(
+                                                                context,
+                                                              ),
                                                         ),
                                                   ),
                                               ],
@@ -357,7 +424,7 @@ class RouteStopsSheet extends StatelessWidget {
                                           ),
                                           if (isSelected)
                                             Icon(
-                                              Icons.check_circle_rounded,
+                                              TrackletIcons.checkCircle2,
                                               size: 16,
                                               color: routeColor,
                                             ),
@@ -404,23 +471,23 @@ class _GeometryNotice extends StatelessWidget {
         horizontal: TrackletSpacing.sm,
         vertical: TrackletSpacing.xs,
       ),
-      decoration: const BoxDecoration(
-        color: TrackletColors.background,
+      decoration: BoxDecoration(
+        color: TrackletColors.adaptiveSurfaceContainer(context),
         borderRadius: TrackletRadii.roundedSm,
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.info_outline_rounded,
+          Icon(
+            TrackletIcons.info,
             size: 16,
-            color: TrackletColors.textSecondary,
+            color: TrackletColors.adaptiveTextSecondary(context),
           ),
           const SizedBox(width: TrackletSpacing.xs),
           Expanded(
             child: Text(
               message,
               style: TrackletTypography.caption.copyWith(
-                color: TrackletColors.textSecondary,
+                color: TrackletColors.adaptiveTextSecondary(context),
               ),
             ),
           ),

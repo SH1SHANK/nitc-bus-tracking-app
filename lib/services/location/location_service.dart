@@ -199,6 +199,12 @@ class LocationService {
           timeLimit: timeLimit,
         ),
       );
+      if (!GeoPoint.isValidCoordinates(pos.latitude, pos.longitude)) {
+        AppLogger.warning(
+          'Ignored uncalibrated/invalid location fix: ${pos.latitude}, ${pos.longitude}',
+        );
+        return null;
+      }
       return GeoPoint(latitude: pos.latitude, longitude: pos.longitude);
     } on TimeoutException {
       AppLogger.warning(
@@ -223,11 +229,17 @@ class LocationService {
     LocationAccuracy accuracy = LocationAccuracy.high,
   }) {
     return Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: accuracy,
-        distanceFilter: distanceFilter,
-      ),
-    ).map((pos) => GeoPoint(latitude: pos.latitude, longitude: pos.longitude));
+          locationSettings: LocationSettings(
+            accuracy: accuracy,
+            distanceFilter: distanceFilter,
+          ),
+        )
+        .where(
+          (pos) => GeoPoint.isValidCoordinates(pos.latitude, pos.longitude),
+        )
+        .map(
+          (pos) => GeoPoint(latitude: pos.latitude, longitude: pos.longitude),
+        );
   }
 
   void dispose() {
@@ -266,7 +278,11 @@ class LocationNotifier extends Notifier<LocationState> {
     try {
       final perm = await service.checkPermission();
       if (state.permissionState != perm) {
-        state = state.copyWith(permissionState: perm, clearError: true);
+        state = state.copyWith(
+          permissionState: perm,
+          clearError: true,
+          clearLocation: perm != LocationPermissionState.granted,
+        );
       }
       return perm;
     } catch (_) {
@@ -282,8 +298,14 @@ class LocationNotifier extends Notifier<LocationState> {
     try {
       final service = ref.read(locationServiceProvider);
       final permission = await service.checkPermission();
+      if (permission != LocationPermissionState.granted) {
+        state = state.copyWith(
+          permissionState: permission,
+          clearLocation: true,
+        );
+        return;
+      }
       state = state.copyWith(permissionState: permission);
-      if (permission != LocationPermissionState.granted) return;
 
       final point = await service.getCurrentLocation();
       if (point != null) {
@@ -313,6 +335,7 @@ class LocationNotifier extends Notifier<LocationState> {
       state = state.copyWith(
         isLoading: false,
         permissionState: perm,
+        clearLocation: perm != LocationPermissionState.granted,
         errorMessage:
             perm == LocationPermissionState.granted
                 ? null
@@ -346,6 +369,7 @@ class LocationNotifier extends Notifier<LocationState> {
         state = state.copyWith(
           isLoading: false,
           permissionState: perm,
+          clearLocation: true,
           errorMessage: _getErrorMessage(perm),
         );
         return null;

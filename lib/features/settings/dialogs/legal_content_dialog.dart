@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -52,6 +53,8 @@ class LegalContentDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
     return Dialog(
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(
@@ -63,14 +66,20 @@ class LegalContentDialog extends StatelessWidget {
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 480.0, maxHeight: 600.0),
-        decoration: const BoxDecoration(
-          color: TrackletColors.secondaryBackground,
+        decoration: BoxDecoration(
+          color: TrackletColors.adaptiveSurfaceElevated(context),
           borderRadius: TrackletRadii.roundedLg,
+          border: Border.all(
+            color: TrackletColors.adaptiveCardBorder(context),
+            width: 1.0,
+          ),
           boxShadow: [
             BoxShadow(
               blurRadius: 20.0,
-              color: TrackletColors.scrim,
-              offset: Offset(0.0, 6.0),
+              color: TrackletColors.scrim.withValues(
+                alpha: isDark ? 0.3 : 0.08,
+              ),
+              offset: const Offset(0.0, 6.0),
             ),
           ],
         ),
@@ -92,13 +101,13 @@ class LegalContentDialog extends StatelessWidget {
                     style: TrackletFonts.outfit(
                       fontSize: 20.0,
                       fontWeight: FontWeight.w700,
-                      color: TrackletColors.textPrimary,
+                      color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: TrackletColors.secondaryText,
+                    icon: Icon(
+                      TrackletIcons.x,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                       size: 24.0,
                     ),
                     onPressed: () => Navigator.pop(context),
@@ -106,8 +115,8 @@ class LegalContentDialog extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(
-              color: TrackletColors.alternate,
+            Divider(
+              color: TrackletColors.adaptiveDivider(context),
               height: TrackletSpacing.hairline,
             ),
 
@@ -120,14 +129,14 @@ class LegalContentDialog extends StatelessWidget {
                   style: TrackletFonts.outfit(
                     fontSize: 13.5,
                     height: 1.5,
-                    color: TrackletColors.textPrimary,
+                    color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
               ),
             ),
 
-            const Divider(
-              color: TrackletColors.alternate,
+            Divider(
+              color: TrackletColors.adaptiveDivider(context),
               height: TrackletSpacing.hairline,
             ),
             Padding(

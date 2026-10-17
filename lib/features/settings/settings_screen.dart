@@ -12,6 +12,7 @@ import '../../data/preferences/user_preferences.dart';
 import '../../data/profile/profile.dart';
 import '../../design_system/components/voxel_avatar.dart';
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
@@ -80,7 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     borderRadius: TrackletRadii.roundedSm,
                   ),
                   child: const Icon(
-                    Icons.language_rounded,
+                    TrackletIcons.globe,
                     color: TrackletColors.primary,
                     size: 20,
                   ),
@@ -196,7 +197,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.logout_rounded,
+                    TrackletIcons.logOut,
                     color: TrackletColors.primary,
                     size: 20.0,
                   ),
@@ -215,7 +216,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             content: Text(
               isGuest
                   ? 'Are you sure you want to exit your guest session? You can return to guest mode or sign in with your student account anytime.'
-                  : 'Are you sure you want to log out of Tracklet on this device?',
+                  : 'Are you sure you want to log out of BusTracker on this device?',
               style: TrackletTypography.bodyMedium.copyWith(
                 color: TrackletColors.adaptiveTextSecondary(ctx),
               ),
@@ -381,7 +382,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
-                                          Icons.edit_outlined,
+                                          TrackletIcons.pencil,
                                           size: 16.0,
                                           color: TrackletColors.primary,
                                         ),
@@ -439,14 +440,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(
-                            Icons.info_outline_rounded,
+                            TrackletIcons.info,
                             size: 18.0,
                             color: TrackletColors.primary,
                           ),
                           const SizedBox(width: TrackletSpacing.compactMd),
                           Expanded(
                             child: Text(
-                              'You are browsing Tracklet in guest mode on this device. Live campus bus tracking, active routes, and timetables are fully available. Sign in with your verified @nitc.ac.in student account to sync your profile, bookmarks, and settings across devices.',
+                              'You are browsing BusTracker in guest mode on this device. Live campus bus tracking, active routes, and timetables are fully available. Sign in with your verified @nitc.ac.in student account to sync your profile, bookmarks, and settings across devices.',
                               style: TrackletTypography.bodySmall.copyWith(
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
@@ -463,19 +464,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         runSpacing: 8.0,
                         children: [
                           _buildAcademicPill(
-                            icon: Icons.school_rounded,
+                            icon: TrackletIcons.graduationCap,
                             label: profile.semester,
                           ),
                           _buildAcademicPill(
-                            icon: Icons.account_tree_rounded,
+                            icon: TrackletIcons.gitBranch,
                             label: profile.branch,
                           ),
                           _buildAcademicPill(
-                            icon: Icons.calendar_today_rounded,
+                            icon: TrackletIcons.calendar,
                             label: 'Batch ${profile.batch}',
                           ),
                           _buildAcademicPill(
-                            icon: Icons.apartment_rounded,
+                            icon: TrackletIcons.building,
                             label: profile.hostel,
                           ),
                         ],
@@ -498,7 +499,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         title: 'Sign In with NITC Account',
                         subtitle:
                             'Upgrade to a permanent verified student account',
-                        leadingIcon: Icons.login_rounded,
+                        leadingIcon: TrackletIcons.logIn,
                         leadingIconColor: TrackletColors.primary,
                         showChevron: true,
                         onTap: () {
@@ -510,7 +511,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       SettingsRowItem(
                         title: 'Edit Display Name',
                         subtitle: profile.name,
-                        leadingIcon: Icons.badge_outlined,
+                        leadingIcon: TrackletIcons.award,
                         leadingIconColor: TrackletColors.primary,
                         showChevron: true,
                         onTap: () => ChangeDisplayNameDialog.show(context),
@@ -523,7 +524,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                     profile.username!.isNotEmpty
                                 ? '@${profile.username}'
                                 : 'Set your unique campus username',
-                        leadingIcon: Icons.alternate_email_rounded,
+                        leadingIcon: TrackletIcons.atSign,
                         leadingIconColor: TrackletColors.primary,
                         showChevron: true,
                         onTap:
@@ -537,7 +538,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         title: 'Change Password',
                         subtitle:
                             'Update your student account security credentials',
-                        leadingIcon: Icons.lock_outline_rounded,
+                        leadingIcon: TrackletIcons.lock,
                         leadingIconColor: TrackletColors.primary,
                         showChevron: true,
                         onTap: () => ChangePasswordDialog.show(context),
@@ -573,7 +574,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
-                                Icons.my_location_rounded,
+                                TrackletIcons.locateFixed,
                                 color: TrackletColors.primary,
                                 size: 22.0,
                               ),
@@ -612,7 +613,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ),
                     const SizedBox(height: TrackletSpacing.md),
                     Text(
-                      'Tracklet uses your approximate location exclusively while viewing the campus map to calculate walking distance to nearest stops and show your blue locator dot. Location data never leaves your device.',
+                      'BusTracker uses your approximate location exclusively while viewing the campus map to calculate walking distance to nearest stops and show your blue locator dot. Location data never leaves your device.',
                       style: TrackletTypography.bodySmall.copyWith(
                         fontSize: 12.5,
                         height: 1.45,
@@ -676,7 +677,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                   ),
                                 )
                                 : const Icon(
-                                  Icons.gps_fixed_rounded,
+                                  TrackletIcons.locateFixed,
                                   size: 16.0,
                                 ),
                         label: Text(
@@ -764,7 +765,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       title: 'Haptic Feedback',
                       subtitle:
                           'Tactile vibrations when selecting stops & routes',
-                      leadingIcon: Icons.vibration_rounded,
+                      leadingIcon: TrackletIcons.smartphone,
                       leadingIconColor: TrackletColors.primary,
                       hasSwitch: true,
                       switchValue: prefs.hapticFeedbackEnabled,
@@ -792,7 +793,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       title: 'Transit FAQ',
                       subtitle:
                           'Common questions about campus buses & tracking',
-                      leadingIcon: Icons.help_outline_rounded,
+                      leadingIcon: TrackletIcons.helpCircle,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: () => TransitFaqDialog.show(context),
@@ -802,12 +803,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       title: 'Report Bus / Route Issue',
                       subtitle:
                           'Report delays, incorrect stops, or schedule mismatch',
-                      leadingIcon: Icons.report_problem_outlined,
+                      leadingIcon: TrackletIcons.alertTriangle,
                       leadingIconColor: TrackletColors.warningStrong,
                       showChevron: true,
                       onTap:
                           () => _launchEmail(
-                            'Tracklet Issue Report - [Bus / Route]',
+                            'BusTracker Issue Report - [Bus / Route]',
                             'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.rollNumber ?? "N/A"})',
                           ),
                     ),
@@ -815,12 +816,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     SettingsRowItem(
                       title: 'Contact Transport Committee',
                       subtitle: 'Email transport@nitc.ac.in',
-                      leadingIcon: Icons.mail_outline_rounded,
+                      leadingIcon: TrackletIcons.mail,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap:
                           () => _launchEmail(
-                            'Tracklet Inquiry / Suggestion',
+                            'BusTracker Inquiry / Suggestion',
                             'Hi NITC Transport Committee,\n\n',
                           ),
                     ),
@@ -832,15 +833,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               // ==========================================
               // SECTION 6: ABOUT TRACKLET & LEGAL
               // ==========================================
-              _buildSectionHeader('About Tracklet & Legal'),
+              _buildSectionHeader('About BusTracker & Legal'),
               const SizedBox(height: TrackletSpacing.sm),
               SettingsCard(
                 child: Column(
                   children: [
                     SettingsRowItem(
-                      title: 'About Tracklet',
+                      title: 'About BusTracker',
                       subtitle: 'Mission, team, build info, and architecture',
-                      leadingIcon: Icons.info_outline_rounded,
+                      leadingIcon: TrackletIcons.info,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: () => context.push('/about'),
@@ -849,7 +850,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     SettingsRowItem(
                       title: 'Terms of Service',
                       subtitle: 'Guidelines for campus transit tracking usage',
-                      leadingIcon: Icons.description_outlined,
+                      leadingIcon: TrackletIcons.fileText,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: () => context.push('/terms'),
@@ -858,7 +859,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     SettingsRowItem(
                       title: 'Privacy Policy',
                       subtitle: 'How student data and location are handled',
-                      leadingIcon: Icons.privacy_tip_outlined,
+                      leadingIcon: TrackletIcons.shield,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: () => context.push('/privacy'),
@@ -867,7 +868,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     SettingsRowItem(
                       title: 'Open Source Licenses',
                       subtitle: 'Third-party packages and dependencies',
-                      leadingIcon: Icons.code_rounded,
+                      leadingIcon: TrackletIcons.code,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: () => context.push('/licenses'),
@@ -891,7 +892,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           isGuest
                               ? 'End your current guest session on this device'
                               : 'Sign out of your student account on this device',
-                      leadingIcon: Icons.logout_rounded,
+                      leadingIcon: TrackletIcons.logOut,
                       leadingIconColor: TrackletColors.primary,
                       showChevron: true,
                       onTap: _showLogoutDialog,
@@ -902,7 +903,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         title: 'Delete My Account',
                         subtitle:
                             'Permanently remove your profile and commute data',
-                        leadingIcon: Icons.delete_forever_rounded,
+                        leadingIcon: TrackletIcons.trash2,
                         leadingIconColor: TrackletColors.absentRed,
                         titleColor: TrackletColors.absentRed,
                         showChevron: true,

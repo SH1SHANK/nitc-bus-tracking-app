@@ -94,13 +94,14 @@ Stop? nearestStopTo(GeoPoint point, Iterable<Stop> stops) {
   return nearest;
 }
 
-const campusStopWalkingRangeMeters = 3000.0;
+const campusStopWalkingRangeMeters = BusTelemetry.campusStopWalkingRangeMeters;
 
 /// Returns a campus stop only when the location is within a useful walking range.
 Stop? nearestCampusStopTo(GeoPoint point, Iterable<Stop> stops) {
   final nearest = nearestStopTo(point, stops);
   if (nearest == null) return null;
-  if (point.distanceToMeters(nearest.location) > campusStopWalkingRangeMeters) {
+  if (point.distanceToMeters(nearest.location) >
+      BusTelemetry.campusStopWalkingRangeMeters) {
     return null;
   }
   return nearest;
@@ -109,7 +110,7 @@ Stop? nearestCampusStopTo(GeoPoint point, Iterable<Stop> stops) {
 /// Rough walking-time estimate from straight-line distance, not a pedestrian route.
 int estimateWalkMinutes(double distanceMeters) {
   if (distanceMeters <= 0) return 1;
-  return (distanceMeters / 80).ceil();
+  return (distanceMeters / BusTelemetry.walkingMetersPerMinute).ceil();
 }
 
 /// Returns today's upcoming scheduled route departures that serve [stop].
@@ -284,7 +285,9 @@ BusRouteProgressDetails calculateRouteProgressDetails({
         nearest != null
             ? busPoint.distanceToMeters(nearest.location)
             : double.infinity;
-    final isDwelling = distToNearest <= 35.0 && bus.position.speedKmH <= 12.0;
+    final isDwelling =
+        distToNearest <= BusTelemetry.atStopThresholdMeters &&
+        bus.position.speedKmH <= BusTelemetry.stopDwellingSpeedThresholdKmH;
     return BusRouteProgressDetails(
       orderedStops: orderedStops,
       currentStopIndex: cIdx,
@@ -371,8 +374,9 @@ BusRouteProgressDetails calculateRouteProgressDetails({
   final distNext = busPoint.distanceToMeters(
     orderedStops[segIndex + 1].location,
   );
-  const atStopThresholdMeters = 35.0;
-  final isStopped = bus.position.speedKmH <= 12.0;
+  const atStopThresholdMeters = BusTelemetry.atStopThresholdMeters;
+  final isStopped =
+      bus.position.speedKmH <= BusTelemetry.stopDwellingSpeedThresholdKmH;
 
   final bool isAtStop;
   final int currentStopIndex;
@@ -460,13 +464,14 @@ List<BusArrivalEstimate> filterRelevantBusesForStop({
     }
 
     // Bus position must be a valid GPS coordinate
-    if (!BusTelemetry.isValidPoint(rawBus.position.point)) {
+    if (!rawBus.hasValidLocation) {
       continue;
     }
 
     final telemetryAge = nowClock().difference(rawBus.lastUpdated);
     final isClockSkewAnomalous =
-        telemetryAge.isNegative && telemetryAge.inSeconds < -15;
+        telemetryAge.isNegative &&
+        telemetryAge.inSeconds < -BusTelemetry.clockSkewTolerance.inSeconds;
     final isStaleDynamic =
         rawBus.isStale ||
         telemetryAge > BusTelemetry.staleAfter ||
@@ -503,8 +508,7 @@ List<BusArrivalEstimate> filterRelevantBusesForStop({
     final isOffRoute =
         route.path.length >= 2 &&
         (bestProjection == null ||
-            bestProjection.offsetMeters >
-                RouteProgressProjector.maxOffRouteMeters);
+            bestProjection.offsetMeters > BusTelemetry.maxOffRouteMeters);
 
     // 3. Determine whether bus is physically dwelling at the selected boarding stop
     // Precedence: Verified stop event confirms arrival; live GPS confirms physical presence.

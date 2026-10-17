@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../design_system/components/bottom_sheets/why_do_we_need_your_info_bottom_sheet.dart';
 import '../../../design_system/components/tracklet_dropdown.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -182,7 +183,7 @@ class _OnboardingAcademicProfilePageState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: TrackletColors.error.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.error.withValues(alpha: 0.3),
                 ),
@@ -190,7 +191,7 @@ class _OnboardingAcademicProfilePageState
               child: Row(
                 children: [
                   const Icon(
-                    Icons.error_outline_rounded,
+                    TrackletIcons.alertCircle,
                     color: TrackletColors.error,
                     size: 20,
                   ),
@@ -244,33 +245,33 @@ class _OnboardingAcademicProfilePageState
                 color: TrackletColors.secondaryText,
                 fontWeight: FontWeight.w700,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
+              enabledBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
                   color: TrackletColors.alternate,
                   width: 2.0,
                 ),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
                   color: TrackletColors.primary,
                   width: 2.0,
                 ),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
               ),
-              errorBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
+              errorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
                   color: TrackletColors.errorBorder,
                   width: 2.0,
                 ),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
               ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
+              focusedErrorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
                   color: TrackletColors.errorBorder,
                   width: 2.0,
                 ),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
               ),
               filled: true,
               fillColor: TrackletColors.primaryBackground,
@@ -281,7 +282,7 @@ class _OnboardingAcademicProfilePageState
                 16.0,
               ),
               prefixIcon: const Icon(
-                Icons.person_outline_rounded,
+                TrackletIcons.user,
                 color: TrackletColors.secondaryText,
                 size: 20,
               ),
@@ -295,7 +296,7 @@ class _OnboardingAcademicProfilePageState
                           setState(() {});
                         },
                         icon: const Icon(
-                          Icons.close_rounded,
+                          TrackletIcons.x,
                           size: 18,
                           color: TrackletColors.secondaryText,
                         ),
@@ -325,7 +326,7 @@ class _OnboardingAcademicProfilePageState
                     ? 'No departments found'
                     : 'Select Branch',
             prefixIcon: const Icon(
-              Icons.account_tree_outlined,
+              TrackletIcons.gitBranch,
               color: TrackletColors.secondaryText,
               size: 20,
             ),
@@ -345,7 +346,7 @@ class _OnboardingAcademicProfilePageState
             initialItem: widget.batch.isNotEmpty ? widget.batch : null,
             hintText: 'Select Batch',
             prefixIcon: const Icon(
-              Icons.groups_outlined,
+              TrackletIcons.users,
               color: TrackletColors.secondaryText,
               size: 20,
             ),
@@ -372,7 +373,7 @@ class _OnboardingAcademicProfilePageState
                     ? 'No hostels found'
                     : 'Select Hostel',
             prefixIcon: const Icon(
-              Icons.home_work_outlined,
+              TrackletIcons.building2,
               color: TrackletColors.secondaryText,
               size: 20,
             ),
@@ -390,9 +391,9 @@ class _OnboardingAcademicProfilePageState
             children: [
               Theme(
                 data: ThemeData(
-                  checkboxTheme: CheckboxThemeData(
+                  checkboxTheme: const CheckboxThemeData(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(TrackletRadii.xs),
+                      borderRadius: TrackletRadii.roundedXs,
                     ),
                   ),
                   unselectedWidgetColor: TrackletColors.secondaryText,
@@ -426,7 +427,7 @@ class _OnboardingAcademicProfilePageState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline_rounded,
+                    TrackletIcons.info,
                     size: 16,
                     color: TrackletColors.textSecondary,
                   ),
@@ -454,7 +455,7 @@ class _OnboardingAcademicProfilePageState
               onPressed: isFormValid ? widget.onContinue : null,
               iconAlignment: IconAlignment.end,
               icon: const Icon(
-                Icons.arrow_forward_rounded,
+                TrackletIcons.arrowRight,
                 size: 18,
                 color: TrackletColors.pure,
               ),
@@ -474,8 +475,8 @@ class _OnboardingAcademicProfilePageState
                 ),
                 elevation: 3,
                 shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TrackletRadii.card),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: TrackletRadii.roundedCard,
                 ),
               ),
             ),

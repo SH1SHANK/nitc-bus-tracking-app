@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/auth/auth_repository.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -168,7 +169,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       ),
       suffixIcon: IconButton(
         icon: Icon(
-          isVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+          isVisible ? TrackletIcons.eye : TrackletIcons.eyeOff,
           color: TrackletColors.adaptiveTextSecondary(context),
           size: 20.0,
         ),
@@ -196,7 +197,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
           constraints: const BoxConstraints(maxWidth: 400.0),
           decoration: BoxDecoration(
             color: TrackletColors.adaptiveSurface(context),
-            borderRadius: BorderRadius.circular(TrackletRadii.card),
+            borderRadius: TrackletRadii.roundedCard,
             border: Border.all(color: TrackletColors.adaptiveBorder(context)),
             boxShadow: const [
               BoxShadow(
@@ -227,7 +228,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     ),
                     IconButton(
                       icon: const Icon(
-                        Icons.close_rounded,
+                        TrackletIcons.x,
                         color: TrackletColors.textTertiary,
                         size: 22.0,
                       ),
@@ -243,7 +244,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                         isDark
                             ? TrackletColors.primary.withValues(alpha: 0.12)
                             : TrackletColors.permissionBlueBg,
-                    borderRadius: BorderRadius.circular(TrackletRadii.md),
+                    borderRadius: TrackletRadii.roundedCard,
                     border: Border.all(
                       color:
                           isDark
@@ -257,7 +258,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.lock_person_outlined,
+                        TrackletIcons.lock,
                         size: 22,
                         color:
                             isDark
@@ -281,7 +282,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'You signed in with your official NITC Google account. Your password is managed securely through your Google Account settings, so you do not need a separate Tracklet password.',
+                              'You signed in with your official NITC Google account. Your password is managed securely through your Google Account settings, so you do not need a separate BusTracker password.',
                               style: TrackletFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w400,
@@ -375,7 +376,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                       ),
                       IconButton(
                         icon: const Icon(
-                          Icons.close_rounded,
+                          TrackletIcons.x,
                           color: TrackletColors.textTertiary,
                           size: 24.0,
                         ),

@@ -4,7 +4,7 @@
 class AppConfig {
   const AppConfig._();
 
-  static const String appName = 'Tracklet';
+  static const String appName = 'BusTracker';
   static const String appVersion = '1.0.0';
 
   static const String environment = String.fromEnvironment(
@@ -59,6 +59,25 @@ class AppConfig {
   static const String mapAttribution = String.fromEnvironment(
     'MAP_ATTRIBUTION',
     defaultValue: '© OpenStreetMap contributors',
+  );
+
+  // Mapbox Web Configuration
+  static const String mapboxPublicToken = String.fromEnvironment(
+    'MAPBOX_PUBLIC_TOKEN',
+    defaultValue: '',
+  );
+
+  static const String mapboxStyleUrl = String.fromEnvironment(
+    'MAPBOX_STYLE_URL',
+    defaultValue: 'mapbox://styles/mapbox/streets-v12',
+  );
+
+  static bool get isMapboxConfigured => mapboxPublicToken.trim().isNotEmpty;
+
+  // Fastify Telemetry & Admin Backend Configuration
+  static const String backendUrl = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: 'https://bus-telemetry-api.onrender.com',
   );
 
   // Campus Geolocation Anchor (NITC Campus Center: 11.3216, 75.9337)

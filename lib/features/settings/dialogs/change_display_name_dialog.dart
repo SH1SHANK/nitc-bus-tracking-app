@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -109,6 +110,8 @@ class _ChangeDisplayNameDialogState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
     return Dialog(
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(
@@ -119,14 +122,20 @@ class _ChangeDisplayNameDialogState
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 400.0),
-        decoration: const BoxDecoration(
-          color: TrackletColors.secondaryBackground,
+        decoration: BoxDecoration(
+          color: TrackletColors.adaptiveSurfaceElevated(context),
           borderRadius: TrackletRadii.roundedCard,
+          border: Border.all(
+            color: TrackletColors.adaptiveCardBorder(context),
+            width: 1.0,
+          ),
           boxShadow: [
             BoxShadow(
               blurRadius: 16.0,
-              color: TrackletColors.scrim,
-              offset: Offset(0.0, 4.0),
+              color: TrackletColors.scrim.withValues(
+                alpha: isDark ? 0.3 : 0.08,
+              ),
+              offset: const Offset(0.0, 4.0),
             ),
           ],
         ),
@@ -143,16 +152,16 @@ class _ChangeDisplayNameDialogState
                   style: TrackletFonts.outfit(
                     fontSize: 20.0,
                     fontWeight: FontWeight.w700,
-                    color: TrackletColors.textPrimary,
+                    color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.xs),
                 Text(
-                  'Change how your name appears to others in Tracklet',
+                  'Change how your name appears to others in BusTracker',
                   style: TrackletFonts.outfit(
                     fontSize: 13.0,
                     fontWeight: FontWeight.w500,
-                    color: TrackletColors.secondaryText,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.lg),
@@ -161,29 +170,38 @@ class _ChangeDisplayNameDialogState
                   autofocus: true,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleSave(),
+                  style: TextStyle(
+                    color: TrackletColors.adaptiveTextPrimary(context),
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Type your name',
                     hintStyle: TrackletFonts.outfit(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w500,
-                      color: TrackletColors.secondaryText,
+                      color: TrackletColors.adaptiveTextMuted(context),
                     ),
-                    enabledBorder: const OutlineInputBorder(
+                    enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: TrackletColors.alternate,
+                        color: TrackletColors.adaptiveBorder(context),
                         width: TrackletSpacing.xxs,
                       ),
                       borderRadius: TrackletRadii.roundedButton,
                     ),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: TrackletColors.primary,
+                        color:
+                            isDark
+                                ? TrackletColors.primaryDark
+                                : TrackletColors.primary,
                         width: TrackletSpacing.xxs,
                       ),
                       borderRadius: TrackletRadii.roundedButton,
                     ),
                     filled: true,
-                    fillColor: TrackletColors.secondaryBackground,
+                    fillColor:
+                        isDark
+                            ? TrackletColors.darkSurfaceContainerHighest
+                            : TrackletColors.surface,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: TrackletSpacing.lg,
                       vertical: TrackletSpacing.compactLg,
@@ -191,9 +209,11 @@ class _ChangeDisplayNameDialogState
                     suffixIcon:
                         _controller.text.isNotEmpty
                             ? IconButton(
-                              icon: const Icon(
-                                Icons.clear,
-                                color: TrackletColors.secondaryText,
+                              icon: Icon(
+                                TrackletIcons.x,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                                 size: 20.0,
                               ),
                               onPressed: () {
@@ -225,7 +245,10 @@ class _ChangeDisplayNameDialogState
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
-                        backgroundColor: TrackletColors.alternate,
+                        backgroundColor:
+                            isDark
+                                ? TrackletColors.darkSurfaceContainerHighest
+                                : TrackletColors.alternate,
                         padding: const EdgeInsets.symmetric(
                           horizontal: TrackletSpacing.lg,
                           vertical: TrackletSpacing.md,
@@ -239,7 +262,7 @@ class _ChangeDisplayNameDialogState
                         style: TrackletFonts.outfit(
                           fontSize: 15.0,
                           fontWeight: FontWeight.w600,
-                          color: TrackletColors.textPrimary,
+                          color: TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
                     ),

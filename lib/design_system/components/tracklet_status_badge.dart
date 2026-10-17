@@ -22,26 +22,30 @@ class TrackletStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final (textColor, bgColor) = switch (status) {
       TrackletBadgeStatus.live => (
-        TrackletColors.busLive,
-        TrackletColors.busLiveBg,
+        isDark ? TrackletColors.busLiveTextDark : TrackletColors.busLive,
+        isDark ? TrackletColors.busLiveBgDark : TrackletColors.busLiveBg,
       ),
       TrackletBadgeStatus.delayed => (
-        TrackletColors.busDelayed,
-        TrackletColors.busDelayedBg,
+        isDark ? TrackletColors.busDelayedTextDark : TrackletColors.busDelayed,
+        isDark ? TrackletColors.busDelayedBgDark : TrackletColors.busDelayedBg,
       ),
       TrackletBadgeStatus.due => (
-        TrackletColors.busDue,
-        TrackletColors.busDueBg,
+        isDark ? TrackletColors.busDueTextDark : TrackletColors.busDue,
+        isDark ? TrackletColors.busDueBgDark : TrackletColors.busDueBg,
       ),
       TrackletBadgeStatus.offline => (
-        TrackletColors.busOffline,
-        TrackletColors.busOfflineBg,
+        isDark ? TrackletColors.busOfflineTextDark : TrackletColors.busOffline,
+        isDark ? TrackletColors.busOfflineBgDark : TrackletColors.busOfflineBg,
       ),
       TrackletBadgeStatus.info => (
         TrackletColors.primary,
-        TrackletColors.permissionBlueBg,
+        isDark
+            ? TrackletColors.permissionBlueBgDark
+            : TrackletColors.permissionBlueBg,
       ),
     };
 
@@ -59,8 +63,8 @@ class TrackletStatusBadge extends StatelessWidget {
         children: [
           if (showPulse || status == TrackletBadgeStatus.live) ...[
             Container(
-              width: 6,
-              height: 6,
+              width: TrackletSpacing.compact,
+              height: TrackletSpacing.compact,
               decoration: BoxDecoration(
                 color: textColor,
                 shape: BoxShape.circle,

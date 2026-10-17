@@ -8,6 +8,7 @@ import '../../../data/transit/bus_telemetry.dart';
 import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../home_transit_logic.dart';
 
 /// A compact stop-by-stop timeline for the selected bus route.
@@ -178,7 +179,7 @@ class LiveBusRoutePreview extends StatelessWidget {
                           color:
                               visitedStopIds.contains(nodes[index]?.id)
                                   ? TrackletColors.primary
-                                  : TrackletColors.border,
+                                  : TrackletColors.adaptiveBorder(context),
                         ),
                     ],
                   ],
@@ -191,6 +192,7 @@ class LiveBusRoutePreview extends StatelessWidget {
     }
 
     final routeTracker = timeline();
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
 
     return Semantics(
       container: true,
@@ -203,11 +205,11 @@ class LiveBusRoutePreview extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'ROUTE TRACKER',
                   style: TextStyle(
-                    color: TrackletColors.textSecondary,
+                    color: textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -233,8 +235,8 @@ class LiveBusRoutePreview extends StatelessWidget {
                   : 'Estimated closest route stop to ${searchedDestination.name}: ${highlightedDestination?.name ?? 'unavailable'}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: TrackletColors.textSecondary,
+              style: TextStyle(
+                color: textSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -301,6 +303,11 @@ class _RouteStopNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+    final textMuted = TrackletColors.adaptiveTextMuted(context);
+
     final accent =
         isBusStop
             ? TrackletColors.busLive
@@ -334,8 +341,10 @@ class _RouteStopNode extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isHighlighted
-                          ? TrackletColors.surface
-                          : TrackletColors.alternate,
+                          ? TrackletColors.adaptiveSurfaceElevated(context)
+                          : (isDark
+                              ? TrackletColors.darkSurfaceContainerHighest
+                              : TrackletColors.alternate),
                   shape: BoxShape.circle,
                   border:
                       isHighlighted
@@ -358,7 +367,7 @@ class _RouteStopNode extends StatelessWidget {
                 child:
                     isBusStop
                         ? const Icon(
-                          Icons.directions_bus_rounded,
+                          TrackletIcons.bus,
                           size: 12,
                           color: TrackletColors.busLive,
                         )
@@ -374,10 +383,7 @@ class _RouteStopNode extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color:
-                isHighlighted
-                    ? TrackletColors.textPrimary
-                    : TrackletColors.textSecondary,
+            color: isHighlighted ? textPrimary : textSecondary,
             fontSize: 11,
             height: 1.2,
             fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
@@ -390,10 +396,7 @@ class _RouteStopNode extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color:
-                isBoardingStop || isBusStop
-                    ? accent
-                    : TrackletColors.textTertiary,
+            color: isBoardingStop || isBusStop ? accent : textMuted,
             fontSize: 10,
             fontWeight:
                 isBoardingStop || isBusStop ? FontWeight.w700 : FontWeight.w500,

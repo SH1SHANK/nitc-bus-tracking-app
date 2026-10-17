@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -87,7 +88,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                 gradient: LinearGradient(
                   colors:
                       isDark
-                          ? const [Color(0xFF2C3258), TrackletColors.primary]
+                          ? const [
+                            TrackletColors.primaryContainerDark,
+                            TrackletColors.primary,
+                          ]
                           : const [
                             TrackletColors.permissionHeaderGradientStart,
                             TrackletColors.primary,
@@ -95,7 +99,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: TrackletRadii.roundedPill,
                 boxShadow: [
                   BoxShadow(
                     color: TrackletColors.primary.withValues(
@@ -128,7 +132,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.location_on_rounded,
+                      TrackletIcons.mapPin,
                       color: TrackletColors.pure,
                       size: 44,
                     ),
@@ -153,7 +157,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           ).enterOnboarding(context, delay: 50.ms),
           const SizedBox(height: 6),
           Text(
-            'Tracklet uses your location exclusively on campus to identify nearby stops and calculate walking times.',
+            'BusTracker uses your location exclusively on campus to identify nearby stops and calculate walking times.',
             style: TrackletTypography.bodyMedium.copyWith(
               color:
                   isDark
@@ -174,7 +178,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   isDark
                       ? TrackletColors.primary.withValues(alpha: 0.12)
                       : TrackletColors.permissionBlueBg,
-              borderRadius: BorderRadius.circular(TrackletRadii.md),
+              borderRadius: TrackletRadii.roundedCard,
               border: Border.all(
                 color:
                     isDark
@@ -188,7 +192,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  Icons.shield_outlined,
+                  TrackletIcons.shield,
                   size: 20,
                   color:
                       isDark
@@ -233,7 +237,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           // Location Permission Interactive Card
           _buildPermissionCard(
             context: context,
-            icon: Icons.location_on_rounded,
+            icon: TrackletIcons.mapPin,
             iconBg:
                 isDark
                     ? TrackletColors.darkSurfaceElevated
@@ -262,7 +266,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               alignment: Alignment.centerRight,
               child: TextButton.icon(
                 onPressed: widget.onOpenSettings,
-                icon: const Icon(Icons.settings_outlined, size: 16),
+                icon: const Icon(TrackletIcons.settings, size: 16),
                 label: const Text('Open App Settings'),
                 style: TextButton.styleFrom(
                   foregroundColor: TrackletColors.primary,
@@ -287,8 +291,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                 foregroundColor: TrackletColors.pure,
                 elevation: 3,
                 shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(TrackletRadii.card),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: TrackletRadii.roundedCard,
                 ),
               ),
               child:
@@ -367,7 +371,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
 
     return InkWell(
       onTap: isGranted ? null : () => onChanged?.call(!isSelected),
-      borderRadius: BorderRadius.circular(TrackletRadii.lg),
+      borderRadius: TrackletRadii.roundedLg,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -375,7 +379,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               isDark
                   ? TrackletColors.darkSurface
                   : TrackletColors.primaryBackground,
-          borderRadius: BorderRadius.circular(TrackletRadii.lg),
+          borderRadius: TrackletRadii.roundedLg,
           border: Border.all(
             color:
                 isSelected
@@ -394,7 +398,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               height: 44,
               decoration: BoxDecoration(
                 color: iconBg,
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
               ),
               child: Icon(icon, color: iconColor, size: 24),
             ),
@@ -424,9 +428,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             horizontal: 8,
                             vertical: 3,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: TrackletColors.permissionGreenBg,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: TrackletRadii.roundedCompact,
                           ),
                           child: const Text(
                             'Granted',
@@ -443,9 +447,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             horizontal: 8,
                             vertical: 3,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: TrackletColors.notificationYellowBg,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: TrackletRadii.roundedCompact,
                           ),
                           child: const Text(
                             'Blocked',
@@ -462,9 +466,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             horizontal: 8,
                             vertical: 3,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: TrackletColors.notificationYellowBg,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: TrackletRadii.roundedCompact,
                           ),
                           child: const Text(
                             'GPS Off',
@@ -478,14 +482,12 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       else
                         Theme(
                           data: ThemeData(
-                            checkboxTheme: CheckboxThemeData(
+                            checkboxTheme: const CheckboxThemeData(
                               visualDensity: VisualDensity.compact,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  TrackletRadii.xs,
-                                ),
+                                borderRadius: TrackletRadii.roundedXs,
                               ),
                             ),
                             unselectedWidgetColor:

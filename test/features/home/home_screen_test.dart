@@ -17,6 +17,8 @@ import 'package:tracklet/features/home/home_transit_logic.dart';
 import 'package:tracklet/features/home/widgets/live_bus_route_preview.dart';
 import 'package:tracklet/features/home/widgets/next_bus_card.dart';
 import 'package:tracklet/features/home/widgets/next_buses_card.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
+import 'package:tracklet/features/admin/providers/admin_provider.dart';
 import 'package:tracklet/services/location/location_service.dart';
 
 import '../../helpers/pump_app.dart';
@@ -29,7 +31,7 @@ void main() {
       await _pumpHome(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('Tracklet'), findsOneWidget);
+      expect(find.text('BusTracker'), findsOneWidget);
       expect(find.text('NIT Calicut'), findsOneWidget);
       expect(find.text('BOARDING STOP'), findsOneWidget);
       expect(find.text('Main Gate'), findsWidgets);
@@ -688,7 +690,7 @@ void main() {
       await _pumpHome(tester);
       await tester.pumpAndSettle();
 
-      final menuIcon = find.byIcon(Icons.menu_rounded);
+      final menuIcon = find.byIcon(TrackletIcons.menu);
       expect(menuIcon, findsOneWidget);
 
       await tester.tap(menuIcon);
@@ -698,6 +700,26 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Report Errors/Bugs'), findsOneWidget);
       expect(find.text('Log Out'), findsOneWidget);
+      // Non-admin does not see admin controls
+      expect(find.text('ADMIN CONTROLS'), findsNothing);
+      expect(find.text('Admin Control Panel'), findsNothing);
+    });
+
+    testWidgets('shows Admin Control Panel in drawer when user is admin', (
+      tester,
+    ) async {
+      await _pumpHome(
+        tester,
+        overrides: [isAdminProvider.overrideWith((ref) => Future.value(true))],
+      );
+      await tester.pumpAndSettle();
+
+      final menuIcon = find.byIcon(TrackletIcons.menu);
+      await tester.tap(menuIcon);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ADMIN CONTROLS'), findsOneWidget);
+      expect(find.text('Admin Control Panel'), findsOneWidget);
     });
   });
 }

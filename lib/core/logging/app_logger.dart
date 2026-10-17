@@ -12,7 +12,7 @@ class AppLogger {
   }) {
     developer.log(
       message,
-      name: tag ?? 'Tracklet',
+      name: tag ?? 'BusTracker',
       level: 800,
       error: error,
       stackTrace: stackTrace,
@@ -26,8 +26,8 @@ class AppLogger {
     StackTrace? stackTrace,
   }) {
     developer.log(
-      '⚠️ $message',
-      name: tag ?? 'Tracklet',
+      '[WARN] $message',
+      name: tag ?? 'BusTracker',
       level: 900,
       error: error,
       stackTrace: stackTrace,
@@ -41,8 +41,8 @@ class AppLogger {
     StackTrace? stackTrace,
   }) {
     developer.log(
-      '❌ $message',
-      name: tag ?? 'Tracklet',
+      '[ERROR] $message',
+      name: tag ?? 'BusTracker',
       level: 1000,
       error: error,
       stackTrace: stackTrace,
@@ -50,6 +50,6 @@ class AppLogger {
   }
 
   static void debug(String message, {String? tag}) {
-    developer.log('🔍 $message', name: tag ?? 'Tracklet', level: 500);
+    developer.log('[DEBUG] $message', name: tag ?? 'BusTracker', level: 500);
   }
 }

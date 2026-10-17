@@ -72,7 +72,6 @@ class SettingsChoiceChips<T> extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'Outfit',
                     fontSize: 13.0,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color:

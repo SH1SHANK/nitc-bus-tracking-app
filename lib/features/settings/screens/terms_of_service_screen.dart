@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -21,7 +22,7 @@ class TermsOfServiceScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(TrackletIcons.chevronLeft, size: 20),
           onPressed: () => Navigator.of(context).maybePop(),
           tooltip: 'Back',
         ),
@@ -48,7 +49,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               padding: const EdgeInsets.all(TrackletSpacing.lg),
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveSurface(context),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.adaptiveBorder(context),
                 ),
@@ -67,7 +68,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.gavel_rounded,
+                          TrackletIcons.scale,
                           color: TrackletColors.primary,
                           size: 22,
                         ),
@@ -78,7 +79,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tracklet Terms of Service',
+                              'BusTracker Terms of Service',
                               style: TrackletFonts.outfit(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
@@ -105,7 +106,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: TrackletSpacing.md),
                   Text(
-                    'Please review these terms governing the use of Tracklet, the dedicated campus bus tracking system for the National Institute of Technology Calicut community.',
+                    'Please review these terms governing the use of BusTracker, the dedicated campus bus tracking system for the National Institute of Technology Calicut community.',
                     style: TrackletFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -123,14 +124,14 @@ class TermsOfServiceScreen extends StatelessWidget {
               number: '1',
               title: 'Acceptance of Terms',
               content:
-                  'By accessing or using Tracklet ("the App"), you agree to be bound by these Terms of Service. If you do not agree to all terms, you may not access or use the application.',
+                  'By accessing or using BusTracker ("the App"), you agree to be bound by these Terms of Service. If you do not agree to all terms, you may not access or use the application.',
             ),
             _buildSection(
               context,
               number: '2',
               title: 'Campus Transit Services & Realtime Data',
               content:
-                  'Tracklet is an internal transit utility designed for students, faculty, staff, and visitors of NIT Calicut. Bus timings, live GPS positions, route progression, and arrival estimates are generated via onboard tracking hardware and predictive models. Transit data is subject to operational changes, weather conditions, campus roadworks, and driver schedules.',
+                  'BusTracker is an internal transit utility designed for students, faculty, staff, and visitors of NIT Calicut. Bus timings, live GPS positions, route progression, and arrival estimates are generated via onboard tracking hardware and predictive models. Transit data is subject to operational changes, weather conditions, campus roadworks, and driver schedules.',
             ),
             _buildSection(
               context,
@@ -158,7 +159,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               number: '6',
               title: 'Limitation of Liability',
               content:
-                  'Tracklet is provided on an "as-is" and "as-available" basis without warranties of any kind. Tracklet, NIT Calicut, and project contributors shall not be liable for missed classes, transit delays, or schedule discrepancies resulting from reliance on the application.',
+                  'BusTracker is provided on an "as-is" and "as-available" basis without warranties of any kind. BusTracker, NIT Calicut, and project contributors shall not be liable for missed classes, transit delays, or schedule discrepancies resulting from reliance on the application.',
             ),
             _buildSection(
               context,
@@ -187,7 +188,7 @@ class TermsOfServiceScreen extends StatelessWidget {
         padding: const EdgeInsets.all(TrackletSpacing.lg),
         decoration: BoxDecoration(
           color: TrackletColors.adaptiveSurface(context),
-          borderRadius: BorderRadius.circular(TrackletRadii.card),
+          borderRadius: TrackletRadii.roundedCard,
           border: Border.all(color: TrackletColors.adaptiveBorder(context)),
         ),
         child: Column(
@@ -201,7 +202,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: TrackletColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: TrackletRadii.roundedCompact,
                   ),
                   child: Text(
                     number,

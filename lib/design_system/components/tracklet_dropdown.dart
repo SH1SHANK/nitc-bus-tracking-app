@@ -1,5 +1,6 @@
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:flutter/material.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 
 import '../tokens/colors.dart';
 import '../tokens/radii.dart';
@@ -32,8 +33,8 @@ class TrackletDropdown extends StatelessWidget {
     final decoration = CustomDropdownDecoration(
       closedFillColor: TrackletColors.primaryBackground,
       expandedFillColor: TrackletColors.primaryBackground,
-      closedBorderRadius: BorderRadius.circular(TrackletRadii.card),
-      expandedBorderRadius: BorderRadius.circular(TrackletRadii.card),
+      closedBorderRadius: TrackletRadii.roundedCard,
+      expandedBorderRadius: TrackletRadii.roundedCard,
       closedBorder: Border.all(
         color:
             isValid == true
@@ -55,12 +56,12 @@ class TrackletDropdown extends StatelessWidget {
       ],
       prefixIcon: prefixIcon,
       closedSuffixIcon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
+        TrackletIcons.chevronDown,
         color: TrackletColors.secondaryText,
         size: 22,
       ),
       expandedSuffixIcon: const Icon(
-        Icons.keyboard_arrow_up_rounded,
+        TrackletIcons.chevronUp,
         color: TrackletColors.primary,
         size: 22,
       ),

@@ -20,6 +20,14 @@ class RouteProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final trackColor =
+        isDark
+            ? TrackletColors.darkSurfaceContainerHighest
+            : TrackletColors.border;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -30,14 +38,14 @@ class RouteProgressIndicator extends StatelessWidget {
               originName,
               style: TrackletTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w500,
-                color: TrackletColors.textSecondary,
+                color: textSecondary,
               ),
             ),
             Text(
               destinationName,
               style: TrackletTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w600,
-                color: TrackletColors.textPrimary,
+                color: textPrimary,
               ),
             ),
           ],
@@ -50,8 +58,8 @@ class RouteProgressIndicator extends StatelessWidget {
             Container(
               height: 6,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: TrackletColors.surface,
+              decoration: BoxDecoration(
+                color: trackColor,
                 borderRadius: TrackletRadii.roundedFull,
               ),
             ),

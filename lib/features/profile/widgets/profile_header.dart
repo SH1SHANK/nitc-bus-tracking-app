@@ -29,7 +29,13 @@ class ProfileHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(profile.name, style: TrackletTypography.titleLarge),
+                    Text(
+                      profile.name,
+                      style: TrackletTypography.adaptive(
+                        context,
+                        TrackletTypography.titleLarge,
+                      ),
+                    ),
                     if (profile.username != null) ...[
                       const SizedBox(height: 2),
                       Text(
@@ -41,14 +47,20 @@ class ProfileHeader extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 2),
-                    Text(profile.email, style: TrackletTypography.bodySmall),
+                    Text(
+                      profile.email,
+                      style: TrackletTypography.adaptiveSecondary(
+                        context,
+                        TrackletTypography.bodySmall,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: TrackletSpacing.md),
-          const Divider(),
+          Divider(color: TrackletColors.adaptiveDivider(context)),
           const SizedBox(height: TrackletSpacing.md),
 
           // Academic Tags
@@ -60,7 +72,7 @@ class ProfileHeader extends StatelessWidget {
               _ProfileBadge(label: profile.batch),
               _ProfileBadge(label: profile.semester),
               if (profile.hostel.isNotEmpty)
-                _ProfileBadge(label: '🏠 ${profile.hostel}'),
+                _ProfileBadge(label: profile.hostel),
             ],
           ),
         ],
@@ -82,14 +94,14 @@ class _ProfileBadge extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: TrackletColors.surface,
+        color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedFull,
-        border: Border.all(color: TrackletColors.border),
+        border: Border.all(color: TrackletColors.adaptiveBorder(context)),
       ),
       child: Text(
         label,
         style: TrackletTypography.labelSmall.copyWith(
-          color: TrackletColors.textSecondary,
+          color: TrackletColors.adaptiveTextSecondary(context),
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 import 'package:tracklet/features/auth/reset_password_screen.dart';
 
 import '../../helpers/pump_app.dart';
@@ -84,13 +85,13 @@ void main() {
       await tester.pumpTrackletWidget(const ResetPasswordScreen());
       await tester.pumpAndSettle();
 
-      final visibilityIcons = find.byIcon(Icons.visibility_off_outlined);
+      final visibilityIcons = find.byIcon(TrackletIcons.eyeOff);
       expect(visibilityIcons, findsNWidgets(2));
 
       await tester.tap(visibilityIcons.first);
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.byIcon(TrackletIcons.eye), findsOneWidget);
     });
   });
 }

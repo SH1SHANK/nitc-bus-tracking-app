@@ -140,16 +140,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       end: Alignment.bottomCenter,
                       colors:
                           isDark
-                              ? const [
-                                Color(0xFF161922),
-                                Color(0xFF1B1A33),
-                                Color(0xFF221F45),
-                              ]
-                              : const [
-                                Color(0xFFFAFBFF),
-                                Color(0xFFEAE8F9),
-                                Color(0xFFB5B1E7),
-                              ],
+                              ? TrackletColors.onboardingGradientDark
+                              : TrackletColors.onboardingGradientLight,
                       stops: const [0, 0.43, 1],
                     ),
                   )
@@ -192,7 +184,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             Text(
                               showBackButton
                                   ? 'Step ${state.currentStep + 1} of $kTotalSteps'
-                                  : 'Setting up Tracklet',
+                                  : 'Setting up BusTracker',
                               style: TrackletFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,

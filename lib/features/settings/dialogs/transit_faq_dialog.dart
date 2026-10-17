@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -49,12 +50,17 @@ class TransitFaqDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: TrackletRadii.roundedLg,
+        side: BorderSide(
+          color: TrackletColors.adaptiveCardBorder(context),
+          width: 1.0,
+        ),
       ),
-      backgroundColor: TrackletColors.textInverse,
+      backgroundColor: TrackletColors.adaptiveSurfaceElevated(context),
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
         vertical: TrackletSpacing.xl,
@@ -76,12 +82,18 @@ class TransitFaqDialog extends StatelessWidget {
                         width: TrackletSpacing.largeIcon,
                         height: TrackletSpacing.largeIcon,
                         decoration: BoxDecoration(
-                          color: TrackletColors.primary.withValues(alpha: 0.1),
+                          color: (isDark
+                                  ? TrackletColors.primaryDark
+                                  : TrackletColors.primary)
+                              .withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.help_outline_rounded,
-                          color: TrackletColors.primary,
+                        child: Icon(
+                          TrackletIcons.helpCircle,
+                          color:
+                              isDark
+                                  ? TrackletColors.primaryDark
+                                  : TrackletColors.primary,
                           size: 20.0,
                         ),
                       ),
@@ -91,15 +103,15 @@ class TransitFaqDialog extends StatelessWidget {
                         style: TrackletFonts.outfit(
                           fontSize: 20.0,
                           fontWeight: FontWeight.bold,
-                          color: TrackletColors.textPrimary,
+                          color: TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: TrackletColors.textSecondary,
+                    icon: Icon(
+                      TrackletIcons.x,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
@@ -109,20 +121,23 @@ class TransitFaqDialog extends StatelessWidget {
               Text(
                 'Frequently asked questions about NIT Calicut campus transit, schedules, and live tracking.',
                 style: TrackletTypography.bodySmall.copyWith(
-                  color: TrackletColors.textSecondary,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
               const SizedBox(height: TrackletSpacing.lg),
-              const Divider(height: 1, color: TrackletColors.cardBorder),
+              Divider(
+                height: 1,
+                color: TrackletColors.adaptiveDivider(context),
+              ),
               const SizedBox(height: TrackletSpacing.sm),
               Expanded(
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _faqItems.length,
                   separatorBuilder:
-                      (context, index) => const Divider(
+                      (context, index) => Divider(
                         height: 1,
-                        color: TrackletColors.background,
+                        color: TrackletColors.adaptiveDivider(context),
                       ),
                   itemBuilder: (context, index) {
                     final item = _faqItems[index];
@@ -136,8 +151,11 @@ class TransitFaqDialog extends StatelessWidget {
                         leading: Container(
                           width: TrackletSpacing.spacious,
                           height: TrackletSpacing.spacious,
-                          decoration: const BoxDecoration(
-                            color: TrackletColors.background,
+                          decoration: BoxDecoration(
+                            color:
+                                isDark
+                                    ? TrackletColors.primaryContainerDark
+                                    : TrackletColors.primaryBackground,
                             borderRadius: TrackletRadii.roundedSm,
                           ),
                           alignment: Alignment.center,
@@ -146,7 +164,10 @@ class TransitFaqDialog extends StatelessWidget {
                             style: TrackletFonts.outfit(
                               fontSize: 13.0,
                               fontWeight: FontWeight.w600,
-                              color: TrackletColors.primary,
+                              color:
+                                  isDark
+                                      ? TrackletColors.primaryDark
+                                      : TrackletColors.primary,
                             ),
                           ),
                         ),
@@ -155,7 +176,7 @@ class TransitFaqDialog extends StatelessWidget {
                           style: TrackletFonts.outfit(
                             fontSize: 14.0,
                             fontWeight: FontWeight.w600,
-                            color: TrackletColors.textPrimary,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                         children: [
@@ -171,7 +192,9 @@ class TransitFaqDialog extends StatelessWidget {
                               style: TrackletTypography.bodySmall.copyWith(
                                 fontSize: 13.0,
                                 height: 1.45,
-                                color: TrackletColors.textSecondary,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                               ),
                             ),
                           ),

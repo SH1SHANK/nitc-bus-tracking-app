@@ -4,6 +4,7 @@ import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/shadows.dart';
 
@@ -24,32 +25,47 @@ class AtAGlanceTransitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    final cardBg = TrackletColors.adaptiveSurfaceElevated(context);
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+    final border = TrackletColors.adaptiveBorder(context);
+
     final bus = nextBus;
     final isLive = bus?.isLive ?? false;
     final statusColor = switch (bus?.status) {
-      BusStatus.live => TrackletColors.busLive,
-      BusStatus.delayed => TrackletColors.busDelayed,
-      BusStatus.due => TrackletColors.busDue,
-      _ => TrackletColors.busOffline,
+      BusStatus.live =>
+        isDark ? TrackletColors.busLiveTextDark : TrackletColors.busLive,
+      BusStatus.delayed =>
+        isDark ? TrackletColors.busDelayedTextDark : TrackletColors.busDelayed,
+      BusStatus.due =>
+        isDark ? TrackletColors.busDueTextDark : TrackletColors.busDue,
+      _ =>
+        isDark ? TrackletColors.busOfflineTextDark : TrackletColors.busOffline,
     };
     final statusBackground = switch (bus?.status) {
-      BusStatus.live => TrackletColors.busLiveBg,
-      BusStatus.delayed => TrackletColors.busDelayedBg,
-      BusStatus.due => TrackletColors.busDueBg,
-      _ => TrackletColors.busOfflineBg,
+      BusStatus.live =>
+        isDark ? TrackletColors.busLiveBgDark : TrackletColors.busLiveBg,
+      BusStatus.delayed =>
+        isDark ? TrackletColors.busDelayedBgDark : TrackletColors.busDelayedBg,
+      BusStatus.due =>
+        isDark ? TrackletColors.busDueBgDark : TrackletColors.busDueBg,
+      _ =>
+        isDark ? TrackletColors.busOfflineBgDark : TrackletColors.busOfflineBg,
     };
 
     return Material(
-      color: TrackletColors.surface,
-      borderRadius: BorderRadius.circular(TrackletRadii.xl),
+      color: cardBg,
+      borderRadius: TrackletRadii.roundedXl,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TrackletRadii.xl),
+        borderRadius: TrackletRadii.roundedXl,
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(TrackletRadii.xl),
-            boxShadow: const [TrackletShadows.md],
+            borderRadius: TrackletRadii.roundedXl,
+            border: isDark ? Border.all(color: border) : null,
+            boxShadow: isDark ? null : const [TrackletShadows.md],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +73,7 @@ class AtAGlanceTransitCard extends StatelessWidget {
               Row(
                 children: [
                   const Icon(
-                    Icons.place_rounded,
+                    TrackletIcons.mapPin,
                     color: TrackletColors.primary,
                     size: 18,
                   ),
@@ -65,8 +81,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       selectedStop.name,
-                      style: const TextStyle(
-                        color: TrackletColors.textPrimary,
+                      style: TextStyle(
+                        color: textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -74,10 +90,10 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Boarding stop',
                     style: TextStyle(
-                      color: TrackletColors.textSecondary,
+                      color: textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -94,12 +110,12 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       width: 52,
                       height: 52,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: TrackletColors.primary,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: TrackletRadii.roundedLg,
                       ),
                       child: const Icon(
-                        Icons.directions_bus_rounded,
+                        TrackletIcons.bus,
                         color: Colors.white,
                         size: 27,
                       ),
@@ -111,8 +127,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                         children: [
                           Text(
                             route?.name ?? bus.name,
-                            style: const TextStyle(
-                              color: TrackletColors.textPrimary,
+                            style: TextStyle(
+                              color: textPrimary,
                               fontSize: 18,
                               height: 1.2,
                               fontWeight: FontWeight.w800,
@@ -124,8 +140,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             bus.numberPlate,
-                            style: const TextStyle(
-                              color: TrackletColors.textSecondary,
+                            style: TextStyle(
+                              color: textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -141,7 +157,7 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: statusBackground,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: TrackletRadii.roundedPill,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -169,18 +185,13 @@ class AtAGlanceTransitCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 18),
-                Container(height: 1, color: TrackletColors.border),
+                Container(height: 1, color: border),
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     Icon(
-                      isLive
-                          ? Icons.my_location_rounded
-                          : Icons.info_outline_rounded,
-                      color:
-                          isLive
-                              ? TrackletColors.busLive
-                              : TrackletColors.textSecondary,
+                      isLive ? TrackletIcons.locateFixed : TrackletIcons.info,
+                      color: isLive ? TrackletColors.busLive : textSecondary,
                       size: 17,
                     ),
                     const SizedBox(width: 7),
@@ -189,15 +200,15 @@ class AtAGlanceTransitCard extends StatelessWidget {
                         isLive
                             ? 'Live location is available'
                             : 'Live location is not available',
-                        style: const TextStyle(
-                          color: TrackletColors.textSecondary,
+                        style: TextStyle(
+                          color: textSecondary,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     const Icon(
-                      Icons.arrow_forward_rounded,
+                      TrackletIcons.arrowRight,
                       color: TrackletColors.primary,
                       size: 20,
                     ),
@@ -219,30 +230,29 @@ class _EmptyBusState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'No buses to show right now',
           style: TextStyle(
-            color: TrackletColors.textPrimary,
+            color: textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
+        Text(
           'Check the campus map for the latest bus activity.',
-          style: TextStyle(
-            color: TrackletColors.textSecondary,
-            fontSize: 14,
-            height: 1.4,
-          ),
+          style: TextStyle(color: textSecondary, fontSize: 14, height: 1.4),
         ),
         const SizedBox(height: 14),
         TextButton.icon(
           onPressed: onTap,
-          icon: const Icon(Icons.map_outlined, size: 18),
+          icon: const Icon(TrackletIcons.map, size: 18),
           label: const Text('Open campus map'),
           style: TextButton.styleFrom(
             foregroundColor: TrackletColors.primary,

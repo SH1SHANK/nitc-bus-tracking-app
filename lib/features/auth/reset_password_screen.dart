@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
+import '../../design_system/components/tracklet_brand_lockup.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -118,7 +119,21 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 48.0),
+                  const SizedBox(height: 28.0),
+
+                  // Brand Lockup
+                  const TrackletBrandLockup(
+                    logoSize: 42.0,
+                    wordmarkHeight: 24.0,
+                  )
+                      .animate()
+                      .fadeIn(duration: 350.ms)
+                      .scale(
+                        begin: const Offset(0.9, 0.9),
+                        end: const Offset(1.0, 1.0),
+                      ),
+
+                  const SizedBox(height: 18.0),
 
                   // Title
                   const Align(
@@ -182,7 +197,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         decoration: authInputDecoration(
                           label: 'New Password',
                           hint: 'abc123*',
-                          icon: Icons.lock_outline_rounded,
+                          icon: TrackletIcons.lock,
                           suffixIcon: IconButton(
                             tooltip:
                                 _passwordVisibility
@@ -195,8 +210,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             },
                             icon: Icon(
                               _passwordVisibility
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+                                  ? TrackletIcons.eye
+                                  : TrackletIcons.eyeOff,
                               color: TrackletColors.secondaryText,
                               size: 22,
                             ),
@@ -234,7 +249,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         decoration: authInputDecoration(
                           label: 'Confirm Password',
                           hint: 'abc123*',
-                          icon: Icons.lock_outline_rounded,
+                          icon: TrackletIcons.lock,
                           suffixIcon: IconButton(
                             tooltip:
                                 _confirmPasswordVisibility
@@ -248,8 +263,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             },
                             icon: Icon(
                               _confirmPasswordVisibility
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+                                  ? TrackletIcons.eye
+                                  : TrackletIcons.eyeOff,
                               color: TrackletColors.secondaryText,
                               size: 22,
                             ),
@@ -278,10 +293,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 foregroundColor:
                                     TrackletColors.primaryBackground,
                                 elevation: 3.0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    TrackletRadii.button,
-                                  ),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: TrackletRadii.roundedButton,
                                 ),
                                 padding: EdgeInsets.zero,
                               ),

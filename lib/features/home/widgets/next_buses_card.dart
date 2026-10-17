@@ -5,6 +5,7 @@ import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/scheduled_departure.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../home_transit_logic.dart';
 
@@ -40,6 +41,7 @@ class NextBusesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final hasEstimates = estimates.isNotEmpty;
     final hasBuses = buses.isNotEmpty;
     final displayDepartures = scheduledDepartures.take(maxItems).toList();
@@ -54,9 +56,12 @@ class NextBusesCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: TrackletColors.surface,
-        borderRadius: BorderRadius.circular(TrackletRadii.xl),
-        border: Border.all(color: TrackletColors.border, width: 1),
+        color: TrackletColors.adaptiveSurfaceElevated(context),
+        borderRadius: TrackletRadii.roundedXl,
+        border: Border.all(
+          color: TrackletColors.adaptiveCardBorder(context),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -73,8 +78,8 @@ class NextBusesCard extends StatelessWidget {
                   children: [
                     Text(
                       title ?? 'Scheduled departures',
-                      style: const TextStyle(
-                        color: TrackletColors.textPrimary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextPrimary(context),
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
@@ -85,8 +90,8 @@ class NextBusesCard extends StatelessWidget {
                       subtitle ?? '$stopName · Upcoming schedule',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -98,11 +103,14 @@ class NextBusesCard extends StatelessWidget {
               Flexible(
                 fit: FlexFit.loose,
                 child: Material(
-                  color: TrackletColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color:
+                      isDark
+                          ? TrackletColors.primary.withValues(alpha: 0.18)
+                          : TrackletColors.primary.withValues(alpha: 0.08),
+                  borderRadius: TrackletRadii.roundedInput,
                   child: InkWell(
                     onTap: onViewSchedule,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: TrackletRadii.roundedInput,
                     child: Container(
                       constraints: const BoxConstraints(
                         minHeight: 48,
@@ -113,7 +121,7 @@ class NextBusesCard extends StatelessWidget {
                         vertical: 7,
                       ),
                       alignment: Alignment.center,
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
@@ -122,16 +130,22 @@ class NextBusesCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: TrackletColors.primary,
+                                color:
+                                    isDark
+                                        ? TrackletColors.primaryDark
+                                        : TrackletColors.primary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Icon(
-                            Icons.arrow_outward_rounded,
-                            color: TrackletColors.primary,
+                            TrackletIcons.externalLink,
+                            color:
+                                isDark
+                                    ? TrackletColors.primaryDark
+                                    : TrackletColors.primary,
                             size: 14,
                           ),
                         ],
@@ -149,26 +163,43 @@ class NextBusesCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
+              color:
+                  isDark
+                      ? TrackletColors.warningContainerDark
+                      : TrackletColors.warningContainer,
+              borderRadius: TrackletRadii.roundedCard,
+              border: Border.all(
+                color:
+                    isDark
+                        ? TrackletColors.warningContainerDark.withValues(
+                          alpha: 0.3,
+                        )
+                        : TrackletColors.warning.withValues(alpha: 0.3),
+              ),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.info_outline_rounded,
+                      TrackletIcons.info,
                       size: 16,
-                      color: Color(0xFF92400E),
+                      color:
+                          isDark
+                              ? TrackletColors.onWarningContainerDark
+                              : TrackletColors.onWarningContainer,
                     ),
-                    SizedBox(width: 7),
+                    const SizedBox(width: 7),
                     Expanded(
                       child: Text(
                         'Institute timetable · Reference only',
                         style: TextStyle(
-                          color: Color(0xFF92400E),
+                          color:
+                              isDark
+                                  ? TrackletColors.onWarningContainerDark
+                                  : TrackletColors.onWarningContainer,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -176,11 +207,14 @@ class NextBusesCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Actual bus timings may vary. These times are not live arrival predictions.',
                   style: TextStyle(
-                    color: Color(0xFF92400E),
+                    color:
+                        isDark
+                            ? TrackletColors.onWarningContainerDark
+                            : TrackletColors.onWarningContainer,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -196,33 +230,39 @@ class NextBusesCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
-                color: TrackletColors.background2,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: TrackletColors.border, width: 1),
+                color:
+                    isDark
+                        ? TrackletColors.darkSurfaceContainer
+                        : TrackletColors.background2,
+                borderRadius: TrackletRadii.roundedBanner,
+                border: Border.all(
+                  color: TrackletColors.adaptiveCardBorder(context),
+                  width: 1,
+                ),
               ),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.event_busy_rounded,
-                    color: TrackletColors.textSecondary,
+                  Icon(
+                    TrackletIcons.calendarX,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                     size: 28,
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'No more scheduled departures for this service period.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: TrackletColors.textPrimary,
+                      color: TrackletColors.adaptiveTextPrimary(context),
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Check the full timetable for complete service hours and weekend schedules.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: TrackletColors.textSecondary,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                       fontSize: 12,
                       height: 1.35,
                     ),
@@ -231,9 +271,9 @@ class NextBusesCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     InkWell(
                       onTap: onViewSchedule,
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      borderRadius: TrackletRadii.roundedSm,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 6,
                         ),
@@ -242,18 +282,24 @@ class NextBusesCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.calendar_today_rounded,
+                              TrackletIcons.calendar,
                               size: 14,
-                              color: TrackletColors.primary,
+                              color:
+                                  isDark
+                                      ? TrackletColors.primaryDark
+                                      : TrackletColors.primary,
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Flexible(
                               child: Text(
                                 'View full timetable',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: TrackletColors.primary,
+                                  color:
+                                      isDark
+                                          ? TrackletColors.primaryDark
+                                          : TrackletColors.primary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -270,9 +316,12 @@ class NextBusesCard extends StatelessWidget {
           else
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: TrackletColors.border, width: 1),
+                color: TrackletColors.adaptiveSurfaceElevated(context),
+                borderRadius: TrackletRadii.roundedLg,
+                border: Border.all(
+                  color: TrackletColors.adaptiveCardBorder(context),
+                  width: 1,
+                ),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
@@ -280,8 +329,8 @@ class NextBusesCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 itemCount: displayDepartures.length,
                 separatorBuilder:
-                    (context, index) => const Divider(
-                      color: TrackletColors.border,
+                    (context, index) => Divider(
+                      color: TrackletColors.adaptiveDivider(context),
                       height: 1,
                       indent: 68,
                     ),
@@ -291,7 +340,8 @@ class NextBusesCard extends StatelessWidget {
                       routes
                           .where((r) => r.id == departure.routeId)
                           .firstOrNull;
-                  final routeColor = route?.color ?? const Color(0xFF64748B);
+                  final routeColor =
+                      route?.color ?? TrackletColors.routeDefault;
                   final isFirst = index == 0;
 
                   final busLabel = departure.busNumber;
@@ -316,10 +366,10 @@ class NextBusesCard extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: routeColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: TrackletRadii.roundedCard,
                           ),
                           child: Icon(
-                            Icons.directions_bus_rounded,
+                            TrackletIcons.bus,
                             color: routeColor,
                             size: 20,
                           ),
@@ -333,8 +383,10 @@ class NextBusesCard extends StatelessWidget {
                                 route?.name ?? 'Campus route',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: TrackletColors.textPrimary,
+                                style: TextStyle(
+                                  color: TrackletColors.adaptiveTextPrimary(
+                                    context,
+                                  ),
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -344,8 +396,10 @@ class NextBusesCard extends StatelessWidget {
                                 routeSubtitle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: TrackletColors.textSecondary,
+                                style: TextStyle(
+                                  color: TrackletColors.adaptiveTextSecondary(
+                                    context,
+                                  ),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -362,8 +416,12 @@ class NextBusesCard extends StatelessWidget {
                               style: TextStyle(
                                 color:
                                     isFirst
-                                        ? TrackletColors.primary
-                                        : TrackletColors.textPrimary,
+                                        ? (isDark
+                                            ? TrackletColors.primaryDark
+                                            : TrackletColors.primary)
+                                        : TrackletColors.adaptiveTextPrimary(
+                                          context,
+                                        ),
                                 fontSize: 14,
                                 fontWeight:
                                     isFirst ? FontWeight.w800 : FontWeight.w700,
@@ -381,17 +439,27 @@ class NextBusesCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color:
                                     departure.isSpecial
-                                        ? TrackletColors.busDelayedBg
-                                        : TrackletColors.background2,
-                                borderRadius: BorderRadius.circular(5),
+                                        ? (isDark
+                                            ? TrackletColors.busDelayedBgDark
+                                            : TrackletColors.busDelayedBg)
+                                        : (isDark
+                                            ? TrackletColors
+                                                .darkSurfaceContainerHighest
+                                            : TrackletColors.background2),
+                                borderRadius: TrackletRadii.roundedCompact,
                               ),
                               child: Text(
                                 departure.isSpecial ? 'Special' : 'Scheduled',
                                 style: TextStyle(
                                   color:
                                       departure.isSpecial
-                                          ? TrackletColors.busDelayed
-                                          : TrackletColors.textSecondary,
+                                          ? (isDark
+                                              ? TrackletColors
+                                                  .busDelayedTextDark
+                                              : TrackletColors.busDelayed)
+                                          : TrackletColors.adaptiveTextSecondary(
+                                            context,
+                                          ),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -424,8 +492,8 @@ class NextBusesCard extends StatelessWidget {
             Expanded(
               child: Text(
                 title ?? 'Other live buses',
-                style: const TextStyle(
-                  color: TrackletColors.textPrimary,
+                style: TextStyle(
+                  color: TrackletColors.adaptiveTextPrimary(context),
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.35,
@@ -438,8 +506,8 @@ class NextBusesCard extends StatelessWidget {
                 textAlign: TextAlign.end,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: TrackletColors.textSecondary,
+                style: TextStyle(
+                  color: TrackletColors.adaptiveTextSecondary(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -450,9 +518,12 @@ class NextBusesCard extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: TrackletColors.surface,
-            borderRadius: BorderRadius.circular(TrackletRadii.lg),
-            border: Border.all(color: TrackletColors.border, width: 1),
+            color: TrackletColors.adaptiveSurfaceElevated(context),
+            borderRadius: TrackletRadii.roundedLg,
+            border: Border.all(
+              color: TrackletColors.adaptiveCardBorder(context),
+              width: 1,
+            ),
           ),
           child: ListView.separated(
             shrinkWrap: true,
@@ -461,8 +532,8 @@ class NextBusesCard extends StatelessWidget {
             itemCount:
                 hasEstimates ? displayEstimates.length : displayBuses.length,
             separatorBuilder:
-                (context, index) => const Divider(
-                  color: TrackletColors.border,
+                (context, index) => Divider(
+                  color: TrackletColors.adaptiveDivider(context),
                   height: 1,
                   indent: 72,
                 ),
@@ -512,16 +583,27 @@ class _EstimateListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final bus = estimate.bus;
     final route = estimate.route;
     final statusColor =
         bus.isStale
-            ? TrackletColors.textSecondary
+            ? TrackletColors.adaptiveTextSecondary(context)
             : switch (bus.status) {
-              BusStatus.live => TrackletColors.busLive,
-              BusStatus.delayed => TrackletColors.busDelayed,
-              BusStatus.due => TrackletColors.busDue,
-              BusStatus.offline => TrackletColors.busOffline,
+              BusStatus.live =>
+                isDark
+                    ? TrackletColors.busLiveTextDark
+                    : TrackletColors.busLive,
+              BusStatus.delayed =>
+                isDark
+                    ? TrackletColors.busDelayedTextDark
+                    : TrackletColors.busDelayed,
+              BusStatus.due =>
+                isDark ? TrackletColors.busDueTextDark : TrackletColors.busDue,
+              BusStatus.offline =>
+                isDark
+                    ? TrackletColors.busOfflineTextDark
+                    : TrackletColors.busOffline,
             };
 
     final subtitle =
@@ -534,7 +616,7 @@ class _EstimateListItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TrackletRadii.lg),
+        borderRadius: TrackletRadii.roundedLg,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
@@ -544,12 +626,18 @@ class _EstimateListItem extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: TrackletColors.background2,
-                  borderRadius: BorderRadius.circular(13),
+                  color:
+                      isDark
+                          ? TrackletColors.primaryContainerDark
+                          : TrackletColors.background2,
+                  borderRadius: TrackletRadii.roundedButton,
                 ),
-                child: const Icon(
-                  Icons.directions_bus_rounded,
-                  color: TrackletColors.primary,
+                child: Icon(
+                  TrackletIcons.bus,
+                  color:
+                      isDark
+                          ? TrackletColors.primaryDark
+                          : TrackletColors.primary,
                   size: 22,
                 ),
               ),
@@ -562,8 +650,8 @@ class _EstimateListItem extends StatelessWidget {
                       '${bus.name} · ${route.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textPrimary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -573,8 +661,8 @@ class _EstimateListItem extends StatelessWidget {
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 12,
                       ),
                     ),
@@ -619,8 +707,10 @@ class _EstimateListItem extends StatelessWidget {
                     style: TextStyle(
                       color:
                           estimate.eta.isValid
-                              ? TrackletColors.primary
-                              : TrackletColors.textSecondary,
+                              ? (isDark
+                                  ? TrackletColors.primaryDark
+                                  : TrackletColors.primary)
+                              : TrackletColors.adaptiveTextSecondary(context),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -643,21 +733,32 @@ class _BusListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final statusColor =
         bus.isStale
-            ? TrackletColors.textSecondary
+            ? TrackletColors.adaptiveTextSecondary(context)
             : switch (bus.status) {
-              BusStatus.live => TrackletColors.busLive,
-              BusStatus.delayed => TrackletColors.busDelayed,
-              BusStatus.due => TrackletColors.busDue,
-              BusStatus.offline => TrackletColors.busOffline,
+              BusStatus.live =>
+                isDark
+                    ? TrackletColors.busLiveTextDark
+                    : TrackletColors.busLive,
+              BusStatus.delayed =>
+                isDark
+                    ? TrackletColors.busDelayedTextDark
+                    : TrackletColors.busDelayed,
+              BusStatus.due =>
+                isDark ? TrackletColors.busDueTextDark : TrackletColors.busDue,
+              BusStatus.offline =>
+                isDark
+                    ? TrackletColors.busOfflineTextDark
+                    : TrackletColors.busOffline,
             };
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(TrackletRadii.lg),
+        borderRadius: TrackletRadii.roundedLg,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
@@ -667,12 +768,18 @@ class _BusListItem extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: TrackletColors.background2,
-                  borderRadius: BorderRadius.circular(13),
+                  color:
+                      isDark
+                          ? TrackletColors.primaryContainerDark
+                          : TrackletColors.background2,
+                  borderRadius: TrackletRadii.roundedButton,
                 ),
-                child: const Icon(
-                  Icons.directions_bus_rounded,
-                  color: TrackletColors.primary,
+                child: Icon(
+                  TrackletIcons.bus,
+                  color:
+                      isDark
+                          ? TrackletColors.primaryDark
+                          : TrackletColors.primary,
                   size: 22,
                 ),
               ),
@@ -685,8 +792,8 @@ class _BusListItem extends StatelessWidget {
                       bus.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textPrimary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -696,8 +803,8 @@ class _BusListItem extends StatelessWidget {
                       '${bus.numberPlate} · ${TransitFormatter.formatLastUpdated(bus.lastUpdated)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 12,
                       ),
                     ),
@@ -731,10 +838,10 @@ class _BusListItem extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'View map',
                     style: TextStyle(
-                      color: TrackletColors.textSecondary,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),

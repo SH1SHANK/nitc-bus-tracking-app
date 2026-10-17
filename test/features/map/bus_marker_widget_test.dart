@@ -57,4 +57,62 @@ void main() {
     );
     expect(find.text('private-id-not-displayed'), findsNothing);
   });
+
+  testWidgets(
+    'stationary bus (speed < 2 km/h) stays upright with pause icon at 0 rotation',
+    (tester) async {
+      final now = DateTime.now();
+      final stationaryBus = Bus(
+        id: 'stationary-bus',
+        name: 'Campus Bus 2',
+        numberPlate: 'NITC-02',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: const GeoPoint(latitude: 11.32, longitude: 75.93),
+          heading: 120,
+          speedKmH: 0.5,
+          timestamp: now,
+        ),
+        lastUpdated: now,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: BusMarkerWidget(bus: stationaryBus))),
+      );
+      await tester.pumpAndSettle();
+
+      final transform = tester.widget<Transform>(find.byType(Transform).first);
+      // Identity rotation matrix for 0 degrees: storage[0] = 1, storage[1] = 0
+      expect(transform.transform.storage[0], closeTo(1.0, 1e-4));
+      expect(transform.transform.storage[1], closeTo(0.0, 1e-4));
+    },
+  );
+
+  testWidgets(
+    'bus without reliable hardware heading stays upright at 0 rotation',
+    (tester) async {
+      final now = DateTime.now();
+      final noHeadingBus = Bus(
+        id: 'no-heading-bus',
+        name: 'Campus Bus 3',
+        numberPlate: 'NITC-03',
+        status: BusStatus.live,
+        position: BusPosition(
+          point: const GeoPoint(latitude: 11.32, longitude: 75.93),
+          speedKmH: 25.0,
+          timestamp: now,
+        ),
+        lastUpdated: now,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: BusMarkerWidget(bus: noHeadingBus))),
+      );
+      await tester.pumpAndSettle();
+
+      final transform = tester.widget<Transform>(find.byType(Transform).first);
+      expect(transform.transform.storage[0], closeTo(1.0, 1e-4));
+      expect(transform.transform.storage[1], closeTo(0.0, 1e-4));
+    },
+  );
 }

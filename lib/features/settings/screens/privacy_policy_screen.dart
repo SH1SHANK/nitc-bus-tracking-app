@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -21,7 +22,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(TrackletIcons.chevronLeft, size: 20),
           onPressed: () => Navigator.of(context).maybePop(),
           tooltip: 'Back',
         ),
@@ -48,7 +49,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               padding: const EdgeInsets.all(TrackletSpacing.lg),
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveSurface(context),
-                borderRadius: BorderRadius.circular(TrackletRadii.card),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color: TrackletColors.adaptiveBorder(context),
                 ),
@@ -67,7 +68,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.privacy_tip_rounded,
+                          TrackletIcons.shield,
                           color: TrackletColors.secondary,
                           size: 22,
                         ),
@@ -78,7 +79,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tracklet Privacy Policy',
+                              'BusTracker Privacy Policy',
                               style: TrackletFonts.outfit(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
@@ -105,7 +106,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: TrackletSpacing.md),
                   Text(
-                    'Tracklet is designed with privacy-by-design principles for NIT Calicut campus transit. We do not sell personal information, and rider locations are processed exclusively on your device.',
+                    'BusTracker is designed with privacy-by-design principles for NIT Calicut campus transit. We do not sell personal information, and rider locations are processed exclusively on your device.',
                     style: TrackletFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -127,7 +128,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     isDark
                         ? TrackletColors.primary.withValues(alpha: 0.12)
                         : TrackletColors.permissionBlueBg,
-                borderRadius: BorderRadius.circular(TrackletRadii.md),
+                borderRadius: TrackletRadii.roundedCard,
                 border: Border.all(
                   color:
                       isDark
@@ -141,7 +142,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.shield_outlined,
+                    TrackletIcons.shield,
                     size: 22,
                     color:
                         isDark
@@ -207,7 +208,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               context,
               title: '4. Third Parties & Zero Commercial Tracking',
               content:
-                  'Tracklet is a free academic utility for the NIT Calicut community. We do not use third-party behavioral ad trackers, do not sell user data to data brokers, and do not track users outside the campus transit purview.',
+                  'BusTracker is a free academic utility for the NIT Calicut community. We do not use third-party behavioral ad trackers, do not sell user data to data brokers, and do not track users outside the campus transit purview.',
             ),
             _buildSection(
               context,
@@ -240,7 +241,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         padding: const EdgeInsets.all(TrackletSpacing.lg),
         decoration: BoxDecoration(
           color: TrackletColors.adaptiveSurface(context),
-          borderRadius: BorderRadius.circular(TrackletRadii.card),
+          borderRadius: TrackletRadii.roundedCard,
           border: Border.all(color: TrackletColors.adaptiveBorder(context)),
         ),
         child: Column(

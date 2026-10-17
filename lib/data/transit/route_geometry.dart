@@ -140,7 +140,10 @@ class RouteGeometry {
       final parsedPoints = <GeoPoint>[];
       for (final item in rawPath) {
         if (item is Map<String, dynamic>) {
-          parsedPoints.add(GeoPoint.fromJson(item));
+          final pt = GeoPoint.tryParse(item);
+          if (pt != null) {
+            parsedPoints.add(pt);
+          }
         } else if (item is List && item.length >= 2) {
           // Standard GeoJSON / PostGIS coordinates ordering: [longitude, latitude]
           final lon = (item[0] as num).toDouble();
@@ -180,13 +183,8 @@ class RouteGeometry {
     );
   }
 
-  static bool _isValidCoordinate(double lat, double lon) {
-    return lat >= -90 &&
-        lat <= 90 &&
-        lon >= -180 &&
-        lon <= 180 &&
-        (lat != 0.0 || lon != 0.0);
-  }
+  static bool _isValidCoordinate(double lat, double lon) =>
+      GeoPoint.isValidCoordinates(lat, lon);
 
   Map<String, dynamic> toJson() => {
     'status': status.name,

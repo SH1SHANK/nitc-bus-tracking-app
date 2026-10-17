@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 import 'package:tracklet/features/auth/login_screen.dart';
 
 import '../../helpers/pump_app.dart';
@@ -122,13 +123,13 @@ void main() {
       await tester.pumpTrackletWidget(const LoginScreen());
       await tester.pumpAndSettle();
 
-      final visibilityIcon = find.byIcon(Icons.visibility_off_outlined);
+      final visibilityIcon = find.byIcon(TrackletIcons.eyeOff);
       expect(visibilityIcon, findsOneWidget);
 
       await tester.tap(visibilityIcon);
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.byIcon(TrackletIcons.eye), findsOneWidget);
     });
 
     testWidgets(

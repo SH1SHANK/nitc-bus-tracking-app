@@ -12,22 +12,25 @@ class TrackletAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.subtitle,
     this.leading,
     this.actions,
-    this.backgroundColor = TrackletColors.background,
+    this.backgroundColor,
   });
 
   final String title;
   final String? subtitle;
   final Widget? leading;
   final List<Widget>? actions;
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   @override
   Size get preferredSize => Size.fromHeight(subtitle != null ? 68.0 : 56.0);
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBg =
+        backgroundColor ?? TrackletColors.adaptiveBackground(context);
+
     return AppBar(
-      backgroundColor: backgroundColor,
+      backgroundColor: effectiveBg,
       elevation: 0,
       scrolledUnderElevation: 0,
       leading: leading,
@@ -36,10 +39,22 @@ class TrackletAppBar extends StatelessWidget implements PreferredSizeWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(title, style: TrackletTypography.headlineMedium),
+          Text(
+            title,
+            style: TrackletTypography.adaptive(
+              context,
+              TrackletTypography.headlineMedium,
+            ),
+          ),
           if (subtitle != null) ...[
             const SizedBox(height: 2),
-            Text(subtitle!, style: TrackletTypography.bodySmall),
+            Text(
+              subtitle!,
+              style: TrackletTypography.adaptiveSecondary(
+                context,
+                TrackletTypography.bodySmall,
+              ),
+            ),
           ],
         ],
       ),

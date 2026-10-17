@@ -68,7 +68,7 @@ void main() {
 
       if (!_isIn(path, 'design_system') &&
           _containsAny(line, <String>[
-            'package:flutter_tabler_icons',
+            'package:lucide_icons',
             'package:phosphor_flutter',
             'package:google_fonts',
           ])) {

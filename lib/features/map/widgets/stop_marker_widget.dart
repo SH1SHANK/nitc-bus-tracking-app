@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/transit/stop.dart';
 import '../bus_stop_progress.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -84,7 +85,9 @@ class StopMarkerWidget extends StatelessWidget {
                         color:
                             isSelected
                                 ? effectiveAccent
-                                : TrackletColors.surfaceElevated,
+                                : TrackletColors.adaptiveSurfaceElevated(
+                                  context,
+                                ),
                         borderRadius: TrackletRadii.roundedSm,
                         border: Border.all(
                           color:
@@ -92,7 +95,7 @@ class StopMarkerWidget extends StatelessWidget {
                                   ? effectiveAccent
                                   : isRouteStop || isCurrent || isNext
                                   ? effectiveAccent
-                                  : TrackletColors.border,
+                                  : TrackletColors.adaptiveBorder(context),
                           width:
                               isRouteStop || isSelected || isCurrent || isNext
                                   ? 1.5
@@ -113,7 +116,7 @@ class StopMarkerWidget extends StatelessWidget {
                           color:
                               isSelected
                                   ? TrackletColors.textInverse
-                                  : TrackletColors.textPrimary,
+                                  : TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
                     ),
@@ -125,7 +128,7 @@ class StopMarkerWidget extends StatelessWidget {
                       color: markerColor,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: TrackletColors.surfaceElevated,
+                        color: TrackletColors.adaptiveSurfaceElevated(context),
                         width: 2,
                       ),
                       boxShadow: const [TrackletShadows.sm],
@@ -133,7 +136,7 @@ class StopMarkerWidget extends StatelessWidget {
                     child:
                         isSelected
                             ? const Icon(
-                              Icons.check,
+                              TrackletIcons.check,
                               size: 9,
                               color: TrackletColors.textInverse,
                             )

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/transit/bus_route.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 
 import '../../../design_system/tokens/spacing.dart';
@@ -34,11 +35,12 @@ class RouteSelectorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final route = selectedRoute;
     final routeColor =
         route != null
             ? _parseRouteColor(route.colorHex)
-            : TrackletColors.primary;
+            : (isDark ? TrackletColors.primaryDark : TrackletColors.primary);
 
     return Semantics(
       button: true,
@@ -47,14 +49,18 @@ class RouteSelectorCard extends StatelessWidget {
               ? 'Choose a campus bus route'
               : 'Selected route ${route.code}, ${route.name}, $stopCount stops. Change route',
       child: Material(
-        color: TrackletColors.surfaceElevated,
+        color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedLg,
         elevation: 3,
-        shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.12),
+        shadowColor: TrackletColors.adaptiveTextPrimary(
+          context,
+        ).withValues(alpha: isDark ? 0.28 : 0.12),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: TrackletRadii.roundedLg,
-            border: Border.all(color: TrackletColors.border),
+            border: Border.all(
+              color: TrackletColors.adaptiveCardBorder(context),
+            ),
           ),
           child: InkWell(
             onTap: onOpenRoutePicker,
@@ -75,13 +81,15 @@ class RouteSelectorCard extends StatelessWidget {
                       color:
                           route != null
                               ? routeColor.withValues(alpha: 0.12)
-                              : TrackletColors.background2,
+                              : (isDark
+                                  ? TrackletColors.darkSurfaceContainerHighest
+                                  : TrackletColors.background2),
                       borderRadius: TrackletRadii.roundedMd,
                       border: Border.all(
                         color:
                             route != null
                                 ? routeColor.withValues(alpha: 0.3)
-                                : TrackletColors.border,
+                                : TrackletColors.adaptiveBorder(context),
                       ),
                     ),
                     child: Text(
@@ -90,7 +98,11 @@ class RouteSelectorCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TrackletTypography.labelMedium.copyWith(
                         color:
-                            route != null ? routeColor : TrackletColors.primary,
+                            route != null
+                                ? routeColor
+                                : (isDark
+                                    ? TrackletColors.primaryDark
+                                    : TrackletColors.primary),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -107,7 +119,7 @@ class RouteSelectorCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.titleSmall.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: TrackletColors.textPrimary,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -118,7 +130,9 @@ class RouteSelectorCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.bodySmall.copyWith(
-                            color: TrackletColors.textSecondary,
+                            color: TrackletColors.adaptiveTextSecondary(
+                              context,
+                            ),
                           ),
                         ),
                       ],
@@ -133,8 +147,10 @@ class RouteSelectorCard extends StatelessWidget {
                             ? Padding(
                               padding: const EdgeInsets.only(right: 4),
                               child: IconButton(
-                                icon: const Icon(Icons.close_rounded, size: 18),
-                                color: TrackletColors.textSecondary,
+                                icon: const Icon(TrackletIcons.x, size: 18),
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                                 tooltip: 'Clear selected route',
                                 onPressed: onClearRoute,
                                 visualDensity: VisualDensity.compact,
@@ -147,9 +163,9 @@ class RouteSelectorCard extends StatelessWidget {
                             )
                             : const SizedBox.shrink(),
                   ),
-                  const Icon(
-                    Icons.unfold_more_rounded,
-                    color: TrackletColors.textSecondary,
+                  Icon(
+                    TrackletIcons.chevronsUpDown,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                     size: 20,
                   ),
                 ],

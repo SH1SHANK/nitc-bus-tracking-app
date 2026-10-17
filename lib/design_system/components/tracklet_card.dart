@@ -9,28 +9,36 @@ class TrackletCard extends StatelessWidget {
   const TrackletCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(TrackletSpacing.lg),
-    this.backgroundColor = TrackletColors.surfaceElevated,
-    this.borderColor = TrackletColors.border,
-    this.borderRadius = TrackletRadii.roundedLg,
+    this.padding = const EdgeInsets.all(TrackletSpacing.cardPadding),
+    this.backgroundColor,
+    this.borderColor,
+    this.borderRadius = TrackletRadii.roundedCard,
     this.onTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final Color backgroundColor;
-  final Color borderColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
   final BorderRadius borderRadius;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBg =
+        backgroundColor ??
+        Theme.of(context).cardTheme.color ??
+        TrackletColors.adaptiveSurfaceElevated(context);
+
+    final effectiveBorderColor =
+        borderColor ?? TrackletColors.adaptiveCardBorder(context);
+
     final cardContent = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: effectiveBg,
         borderRadius: borderRadius,
-        border: Border.all(color: borderColor, width: 1.0),
+        border: Border.all(color: effectiveBorderColor, width: 1.0),
       ),
       child: child,
     );

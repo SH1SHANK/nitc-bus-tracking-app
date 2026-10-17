@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/logging/app_logger.dart';
 import '../supabase/supabase_client_provider.dart';
+import '../transit/transit_cache_metrics.dart';
 import 'profile.dart';
 
 abstract class ProfileRepository {
@@ -19,6 +20,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
   final SupabaseClient? _supabase;
   Profile? _cachedProfile;
   String? _cachedUserId;
+  Future<Profile>? _inFlightProfile;
   final Set<String> _localTakenUsernames = {
     'admin',
     'root',
@@ -103,18 +105,24 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         return _cachedProfile!;
       }
 
-      try {
-        final data = await client.rpc<dynamic>('ensure_my_profile');
-        if (data is List && data.isNotEmpty) {
-          final row = Map<String, dynamic>.from(data.first as Map);
-          _cachedProfile = _mapRowToProfile(row, currentUser);
-          return _cachedProfile!;
-        }
-        throw StateError('Authenticated profile record was not returned.');
-      } catch (e) {
-        AppLogger.error('Error fetching profile from Supabase RPC: $e');
-        rethrow;
+      if (_cachedProfile != null) {
+        TransitCacheMetrics.instance.recordHit('profile');
+        return _cachedProfile!;
       }
+
+      final inFlight = _inFlightProfile;
+      if (inFlight != null) {
+        TransitCacheMetrics.instance.recordDeduplicated('profile');
+        return inFlight;
+      }
+
+      final future = _fetchProfile(client, currentUser);
+      _inFlightProfile = future;
+      return future.whenComplete(() {
+        if (identical(_inFlightProfile, future)) {
+          _inFlightProfile = null;
+        }
+      });
     }
     return _cachedProfile ??
         const Profile(
@@ -124,6 +132,30 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
           role: 'Student',
           hasCompletedOnboarding: false,
         );
+  }
+
+  Future<Profile> _fetchProfile(
+    SupabaseClient client,
+    User currentUser,
+  ) async {
+    TransitCacheMetrics.instance.recordMiss('profile');
+    try {
+      final data = await client.rpc<dynamic>('ensure_my_profile');
+      if (data is List && data.isNotEmpty) {
+        final row = Map<String, dynamic>.from(data.first as Map);
+        _cachedProfile = _mapRowToProfile(row, currentUser);
+        return _cachedProfile!;
+      }
+      throw StateError('Authenticated profile record was not returned.');
+    } catch (e) {
+      AppLogger.error('Error fetching profile from Supabase RPC: $e');
+      rethrow;
+    }
+  }
+
+  void invalidateCache() {
+    _cachedProfile = null;
+    _inFlightProfile = null;
   }
 
   @override

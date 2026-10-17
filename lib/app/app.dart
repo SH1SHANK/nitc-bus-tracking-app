@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -28,6 +29,13 @@ class TrackletApp extends ConsumerWidget {
       darkTheme: TrackletTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: TrackletTheme.systemUiOverlayStyle(isDark: isDark),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

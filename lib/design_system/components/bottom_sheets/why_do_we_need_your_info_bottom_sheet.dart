@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 
 import '../../tokens/colors.dart';
 import '../../tokens/radii.dart';
@@ -31,7 +32,7 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * 0.9,
         ),
-        color: TrackletColors.surface,
+        color: TrackletColors.adaptiveSurfaceElevated(context),
         child: SafeArea(
           top: false,
           child: Column(
@@ -46,8 +47,8 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                     top: TrackletSpacing.md,
                     bottom: TrackletSpacing.sm,
                   ),
-                  decoration: const BoxDecoration(
-                    color: TrackletColors.border,
+                  decoration: BoxDecoration(
+                    color: TrackletColors.adaptiveBorder(context),
                     borderRadius: TrackletRadii.roundedFull,
                   ),
                 ),
@@ -65,41 +66,44 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                     children: [
                       Text(
                         'Why we need your info',
-                        style: TrackletTypography.headlineSmall.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TrackletTypography.adaptive(
+                          context,
+                          TrackletTypography.headlineSmall,
+                        ).copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: TrackletSpacing.sm),
                       Text(
                         'A few details help tailor your campus transit experience.',
-                        style: TrackletTypography.bodyMedium.copyWith(
-                          color: TrackletColors.textSecondary,
+                        style: TrackletTypography.adaptiveSecondary(
+                          context,
+                          TrackletTypography.bodyMedium,
                         ),
                       ),
                       const SizedBox(height: TrackletSpacing.xl),
                       Text(
                         'How it helps',
-                        style: TrackletTypography.titleMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TrackletTypography.adaptive(
+                          context,
+                          TrackletTypography.titleMedium,
+                        ).copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
-                        icon: Icons.near_me_outlined,
+                        icon: TrackletIcons.navigation,
                         title: 'Stops that fit your day',
                         description:
                             'Prioritize shuttle stops near your hostel and department.',
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
-                        icon: Icons.directions_walk_outlined,
+                        icon: TrackletIcons.footprints,
                         title: 'Plan your walk',
                         description:
                             'Estimate the walk to your nearest stop when location is available.',
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
-                        icon: Icons.route_outlined,
+                        icon: TrackletIcons.gitCommit,
                         title: 'Relevant campus transit info',
                         description:
                             'Keep your campus profile and route information together.',
@@ -108,15 +112,17 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(TrackletSpacing.md),
                         decoration: BoxDecoration(
-                          color: TrackletColors.background,
+                          color: TrackletColors.adaptiveBackground(context),
                           borderRadius: TrackletRadii.roundedMd,
-                          border: Border.all(color: TrackletColors.border),
+                          border: Border.all(
+                            color: TrackletColors.adaptiveBorder(context),
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Icon(
-                              Icons.lock_outline_rounded,
+                              TrackletIcons.lock,
                               color: TrackletColors.primary,
                               size: 20,
                             ),
@@ -127,16 +133,18 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Your choice matters',
-                                    style: TrackletTypography.titleSmall
-                                        .copyWith(fontWeight: FontWeight.w700),
+                                    style: TrackletTypography.adaptive(
+                                      context,
+                                      TrackletTypography.titleSmall,
+                                    ).copyWith(fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: TrackletSpacing.xs),
                                   Text(
                                     'Location access is optional. You can change it anytime in your device settings.',
-                                    style: TrackletTypography.bodySmall
-                                        .copyWith(
-                                          color: TrackletColors.textSecondary,
-                                        ),
+                                    style: TrackletTypography.adaptiveSecondary(
+                                      context,
+                                      TrackletTypography.bodySmall,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -182,40 +190,53 @@ class _BenefitRow extends StatelessWidget {
   final String description;
 
   @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        width: 38,
-        height: 38,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: TrackletColors.background2,
-          borderRadius: TrackletRadii.roundedMd,
+  Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color:
+                isDark
+                    ? TrackletColors.primaryContainerDark
+                    : TrackletColors.background2,
+            borderRadius: TrackletRadii.roundedMd,
+          ),
+          child: Icon(
+            icon,
+            size: 19,
+            color: isDark ? TrackletColors.primaryDark : TrackletColors.primary,
+          ),
         ),
-        child: Icon(icon, size: 19, color: TrackletColors.primary),
-      ),
-      const SizedBox(width: TrackletSpacing.md),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TrackletTypography.titleSmall.copyWith(
-                fontWeight: FontWeight.w600,
+        const SizedBox(width: TrackletSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TrackletTypography.adaptive(
+                  context,
+                  TrackletTypography.titleSmall,
+                ).copyWith(fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: TrackletSpacing.xs),
-            Text(
-              description,
-              style: TrackletTypography.bodySmall.copyWith(
-                color: TrackletColors.textSecondary,
+              const SizedBox(height: TrackletSpacing.xs),
+              Text(
+                description,
+                style: TrackletTypography.adaptiveSecondary(
+                  context,
+                  TrackletTypography.bodySmall,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

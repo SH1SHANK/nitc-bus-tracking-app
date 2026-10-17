@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/transit_repository.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -29,6 +30,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transitRepo = ref.watch(transitRepositoryProvider);
+    final isDark = TrackletColors.isDark(context);
 
     return Dialog(
       elevation: 0,
@@ -41,14 +43,20 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 420.0, maxHeight: 480.0),
-        decoration: const BoxDecoration(
-          color: TrackletColors.secondaryBackground,
+        decoration: BoxDecoration(
+          color: TrackletColors.adaptiveSurfaceElevated(context),
           borderRadius: TrackletRadii.roundedLg,
+          border: Border.all(
+            color: TrackletColors.adaptiveCardBorder(context),
+            width: 1.0,
+          ),
           boxShadow: [
             BoxShadow(
               blurRadius: 18.0,
-              color: TrackletColors.scrim,
-              offset: Offset(0.0, 6.0),
+              color: TrackletColors.scrim.withValues(
+                alpha: isDark ? 0.3 : 0.08,
+              ),
+              offset: const Offset(0.0, 6.0),
             ),
           ],
         ),
@@ -67,14 +75,14 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                       style: TrackletFonts.outfit(
                         fontSize: 20.0,
                         fontWeight: FontWeight.w700,
-                        color: TrackletColors.textPrimary,
+                        color: TrackletColors.adaptiveTextPrimary(context),
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: TrackletColors.secondaryText,
+                    icon: Icon(
+                      TrackletIcons.x,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                       size: 22.0,
                     ),
                     onPressed: () => Navigator.pop(context),
@@ -86,11 +94,11 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                 'Default route highlighted on initial map load',
                 style: TrackletFonts.outfit(
                   fontSize: 12.0,
-                  color: TrackletColors.secondaryText,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
               const SizedBox(height: TrackletSpacing.md),
-              const Divider(color: TrackletColors.alternate),
+              Divider(color: TrackletColors.adaptiveDivider(context)),
               const SizedBox(height: TrackletSpacing.sm),
               Expanded(
                 child: FutureBuilder<List<BusRoute>>(
@@ -109,7 +117,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.error_outline_rounded,
+                              TrackletIcons.alertCircle,
                               color: TrackletColors.error,
                               size: 36.0,
                             ),
@@ -119,7 +127,9 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                               style: TrackletFonts.outfit(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,
-                                color: TrackletColors.textPrimary,
+                                color: TrackletColors.adaptiveTextPrimary(
+                                  context,
+                                ),
                               ),
                             ),
                             const SizedBox(height: TrackletSpacing.xs),
@@ -138,7 +148,9 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                           'No campus routes available',
                           style: TrackletFonts.outfit(
                             fontSize: 14.0,
-                            color: TrackletColors.secondaryText,
+                            color: TrackletColors.adaptiveTextSecondary(
+                              context,
+                            ),
                           ),
                         ),
                       );
@@ -146,8 +158,8 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                     return ListView.separated(
                       itemCount: routes.length,
                       separatorBuilder:
-                          (_, _) => const Divider(
-                            color: TrackletColors.alternate,
+                          (_, _) => Divider(
+                            color: TrackletColors.adaptiveDivider(context),
                             height: TrackletSpacing.hairline,
                           ),
                       itemBuilder: (context, index) {
@@ -172,7 +184,11 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                     color:
                                         isSelected
                                             ? TrackletColors.primary
-                                            : TrackletColors.primaryBackground,
+                                            : (isDark
+                                                ? TrackletColors
+                                                    .primaryContainerDark
+                                                : TrackletColors
+                                                    .primaryBackground),
                                     borderRadius: TrackletRadii.roundedSm,
                                   ),
                                   child: Text(
@@ -183,7 +199,9 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                       color:
                                           isSelected
                                               ? TrackletColors.textInverse
-                                              : TrackletColors.primary,
+                                              : (isDark
+                                                  ? TrackletColors.primaryDark
+                                                  : TrackletColors.primary),
                                     ),
                                   ),
                                 ),
@@ -203,8 +221,13 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                                   : FontWeight.w500,
                                           color:
                                               isSelected
-                                                  ? TrackletColors.primary
-                                                  : TrackletColors.textPrimary,
+                                                  ? (isDark
+                                                      ? TrackletColors
+                                                          .primaryDark
+                                                      : TrackletColors.primary)
+                                                  : TrackletColors.adaptiveTextPrimary(
+                                                    context,
+                                                  ),
                                         ),
                                       ),
                                       if (route.description != null) ...[
@@ -215,7 +238,10 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                           route.description!,
                                           style: TrackletFonts.outfit(
                                             fontSize: 11.0,
-                                            color: TrackletColors.secondaryText,
+                                            color:
+                                                TrackletColors.adaptiveTextSecondary(
+                                                  context,
+                                                ),
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -226,7 +252,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                 ),
                                 if (isSelected)
                                   const Icon(
-                                    Icons.check_circle_rounded,
+                                    TrackletIcons.checkCircle2,
                                     color: TrackletColors.primary,
                                     size: 22.0,
                                   ),

@@ -19,7 +19,7 @@ void main() {
         expect(find.text('Location & Permissions'), findsOneWidget);
         expect(find.text('Appearance & Display'), findsOneWidget);
         expect(find.text('Support & Feedback'), findsOneWidget);
-        expect(find.text('About Tracklet & Legal'), findsOneWidget);
+        expect(find.text('About BusTracker & Legal'), findsOneWidget);
         expect(find.text('Account Actions'), findsOneWidget);
         expect(find.text('Notifications'), findsNothing);
       },

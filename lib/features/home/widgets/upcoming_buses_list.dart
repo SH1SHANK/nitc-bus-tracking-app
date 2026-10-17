@@ -7,6 +7,7 @@ import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/tracklet_status_badge.dart';
 import '../../../design_system/tokens/colors.dart';
+import 'package:tracklet/design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 
@@ -23,10 +24,22 @@ class UpcomingBusesList extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final isDark = TrackletColors.isDark(context);
+    final iconBoxColor =
+        isDark
+            ? TrackletColors.darkSurfaceContainerHighest
+            : TrackletColors.background;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Upcoming Buses', style: TrackletTypography.headlineMedium),
+        Text(
+          'Upcoming Buses',
+          style: TrackletTypography.adaptive(
+            context,
+            TrackletTypography.headlineMedium,
+          ),
+        ),
         const SizedBox(height: TrackletSpacing.md),
         ListView.separated(
           shrinkWrap: true,
@@ -48,8 +61,8 @@ class UpcomingBusesList extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: TrackletColors.surface,
-                      borderRadius: BorderRadius.circular(8),
+                      color: iconBoxColor,
+                      borderRadius: TrackletRadii.roundedSm,
                     ),
                     child: const TrackletIcon(
                       TrackletIcons.bus,
@@ -62,11 +75,20 @@ class UpcomingBusesList extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(bus.name, style: TrackletTypography.titleMedium),
+                        Text(
+                          bus.name,
+                          style: TrackletTypography.adaptive(
+                            context,
+                            TrackletTypography.titleMedium,
+                          ),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           '${bus.numberPlate} • ${TransitFormatter.formatLastUpdated(bus.lastUpdated)}',
-                          style: TrackletTypography.bodySmall,
+                          style: TrackletTypography.adaptiveSecondary(
+                            context,
+                            TrackletTypography.bodySmall,
+                          ),
                         ),
                       ],
                     ),

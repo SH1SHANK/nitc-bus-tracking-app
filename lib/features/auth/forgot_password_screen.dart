@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/turnstile_service.dart';
 import '../../design_system/components/icons/tracklet_icon.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
+import '../../design_system/components/tracklet_brand_lockup.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -72,14 +73,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
+      final rawMsg = e
+          .toString()
+          .replaceAll('Exception: ', '')
+          .replaceAll('Error: ', '');
+      if (rawMsg.contains('Verification cancelled')) {
+        return;
+      }
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e
-                .toString()
-                .replaceAll('Exception: ', '')
-                .replaceAll('Error: ', ''),
+            rawMsg,
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -118,7 +123,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(height: 60.0),
+                const SizedBox(height: 36.0),
+
+                // Brand Lockup
+                const TrackletBrandLockup(
+                  logoSize: 42.0,
+                  wordmarkHeight: 24.0,
+                )
+                    .animate()
+                    .fadeIn(duration: 350.ms)
+                    .scale(
+                      begin: const Offset(0.9, 0.9),
+                      end: const Offset(1.0, 1.0),
+                    ),
+
+                const SizedBox(height: 18.0),
 
                 // Title
                 const Align(
@@ -187,41 +206,33 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           horizontal: TrackletSpacing.md,
                           vertical: TrackletSpacing.md,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
                             color: TrackletColors.inputBorder,
                             width: 2.0,
                           ),
-                          borderRadius: BorderRadius.circular(
-                            TrackletRadii.input,
-                          ),
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
                             color: TrackletColors.primary,
                             width: 2.0,
                           ),
-                          borderRadius: BorderRadius.circular(
-                            TrackletRadii.input,
-                          ),
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
                             color: TrackletColors.errorBorder,
                             width: 2.0,
                           ),
-                          borderRadius: BorderRadius.circular(
-                            TrackletRadii.input,
-                          ),
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
                             color: TrackletColors.errorBorder,
                             width: 2.0,
                           ),
-                          borderRadius: BorderRadius.circular(
-                            TrackletRadii.input,
-                          ),
+                          borderRadius: TrackletRadii.roundedInput,
                         ),
                       ),
                       onFieldSubmitted: (_) => _handleSendLink(),
@@ -246,10 +257,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               backgroundColor: TrackletColors.primaryText,
                               foregroundColor: TrackletColors.primaryBackground,
                               elevation: 3.0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  TrackletRadii.button,
-                                ),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: TrackletRadii.roundedButton,
                               ),
                               padding: EdgeInsets.zero,
                             ),

@@ -1,34 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head>
+<!DOCTYPE html><html><head>
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Tracklet - NITC Campus Bus Tracking Application">
+  <meta name="description" content="BusTracker - NITC Campus Bus Tracking Application">
 
   <!-- Mobile meta tags & icons -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Tracklet">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BusTracker">
+  <meta name="theme-color" content="#6F61EF">
+  <meta name="msapplication-TileColor" content="#6F61EF">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Favicons & Touch Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
-  <title>Tracklet • NITC Bus Tracking</title>
+  <!-- Open Graph / PWA Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BusTracker • NITC Bus Tracking">
+  <meta property="og:description" content="Live campus transit tracking for National Institute of Technology Calicut.">
+  <meta property="og:image" content="icons/Icon-512.png">
+
+  <title>BusTracker • NITC Bus Tracking</title>
   <link rel="manifest" href="manifest.json">
+  <!-- Mapbox GL JS Web Mapping -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+  <script src="mapbox_adapter.js"></script>
   <!-- Cloudflare Turnstile Bot Protection -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async="" defer=""></script>
   <script>
     window.requestTurnstileToken = function(sitekey, action) {
       return new Promise(function(resolve, reject) {
+        function ensureScriptLoaded() {
+          if (window.turnstile && typeof window.turnstile.render === 'function') return;
+          var script = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+          if (!script) {
+            script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+          }
+        }
+
         var attempts = 0;
+        ensureScriptLoaded();
+
         function pollTurnstile() {
           if (window.turnstile && typeof window.turnstile.render === 'function') {
             mountWidget();
-          } else if (attempts < 50) {
+          } else if (attempts < 150) {
             attempts++;
             setTimeout(pollTurnstile, 100);
           } else {
@@ -103,8 +129,15 @@
             reject(new Error('Verification cancelled.'));
           };
 
+          overlay.onclick = function(e) {
+            if (e.target === overlay) {
+              cleanup();
+              reject(new Error('Verification cancelled.'));
+            }
+          };
+
           try {
-            widgetId = window.turnstile.render('#turnstile-widget-mount', {
+            widgetId = window.turnstile.render(widgetContainer, {
               sitekey: sitekey,
               action: action || 'guest_login',
               theme: 'light',
@@ -115,7 +148,16 @@
               },
               'error-callback': function(code) {
                 cleanup();
-                reject(new Error('Turnstile verification failed (error: ' + code + ')'));
+                var msg = 'Turnstile verification failed (error: ' + code + ')';
+                var codeStr = String(code);
+                if (codeStr.indexOf('110200') !== -1) {
+                  msg = 'Turnstile verification failed: domain not allowed (' + window.location.hostname + ' is not registered in widget domain settings).';
+                } else if (codeStr.indexOf('110600') !== -1) {
+                  msg = 'Turnstile verification failed: invalid sitekey configured.';
+                } else if (codeStr.indexOf('300030') !== -1) {
+                  msg = 'Turnstile verification challenge timed out. Please try again.';
+                }
+                reject(new Error(msg));
               },
               'expired-callback': function() {
                 if (widgetId !== null && window.turnstile) {
@@ -133,8 +175,90 @@
       });
     };
   </script>
+  <style id="splash-screen-style">
+    html {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      background-color: #FAFBFF;
+          background-size: 100% 100%;
+    }
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    .contain {
+      display:block;
+      width:100%; height:100%;
+      object-fit: contain;
+    }
+
+    .stretch {
+      display:block;
+      width:100%; height:100%;
+    }
+
+    .cover {
+      display:block;
+      width:100%; height:100%;
+      object-fit: cover;
+    }
+
+    .bottom {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      -ms-transform: translate(-50%, 0);
+      transform: translate(-50%, 0);
+    }
+
+    .bottomLeft {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .bottomRight {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #0F1117;
+          }
+    }
+  </style>
+  <script id="splash-screen-script">
+    function removeSplashFromWeb() {
+      document.getElementById("splash")?.remove();
+      document.getElementById("splash-branding")?.remove();
+      document.body.style.background = "transparent";
+    }
+  </script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
-</body>
-</html>
+  <picture id="splash-branding">
+    <source srcset="splash/img/branding-1x.png 1x, splash/img/branding-2x.png 2x, splash/img/branding-3x.png 3x, splash/img/branding-4x.png 4x" media="(prefers-color-scheme: light)">
+    <source srcset="splash/img/branding-dark-1x.png 1x, splash/img/branding-dark-2x.png 2x, splash/img/branding-dark-3x.png 3x, splash/img/branding-dark-4x.png 4x" media="(prefers-color-scheme: dark)">
+    <img class="bottom" aria-hidden="true" src="splash/img/branding-1x.png" alt="">
+  </picture>
+  <picture id="splash">
+      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
+      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
+      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
+  </picture>
+  <script src="flutter_bootstrap.js" async=""></script>
+
+
+</body></html>

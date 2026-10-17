@@ -12,6 +12,7 @@ import 'bus_route.dart';
 import 'route_stop_occurrence.dart';
 import 'scheduled_departure.dart';
 import 'stop.dart';
+import 'transit_cache_metrics.dart';
 
 /// Repository interface for database-backed transit operations.
 abstract class TransitRepository {
@@ -38,16 +39,78 @@ class SupabaseTransitRepository implements TransitRepository {
   final DateTime Function() _clock;
   final Future<List<BusStopEvent>> Function(String tripId)? _stopEventLoader;
   List<Bus> _lastKnownBuses = const [];
+  DateTime? _lastSuccessfulBusFetch;
   final Map<String, ({List<BusStopEvent> events, DateTime expiresAt})>
   _stopEventCache = {};
   final Map<String, Future<List<BusStopEvent>>> _stopEventRequests = {};
   final Map<String, int> _stopEventGenerations = {};
+
+  static const Duration _referenceDataTtl = Duration(minutes: 10);
+  ({List<Stop> stops, DateTime expiresAt})? _stopsCache;
+  ({List<BusRoute> routes, DateTime expiresAt})? _routesCache;
+  final Map<
+    String,
+    ({List<RouteStopOccurrence> occurrences, DateTime expiresAt})
+  >
+  _routeStopsCache = {};
+  ({List<ScheduledDeparture> departures, DateTime expiresAt})?
+  _scheduledDeparturesCache;
+
+  // In-flight request deduplication futures
+  Future<List<Bus>>? _inFlightActiveBuses;
+  Future<List<Stop>>? _inFlightStops;
+  Future<List<BusRoute>>? _inFlightRoutes;
+  final Map<String, Future<List<RouteStopOccurrence>>> _inFlightRouteStops = {};
+  Future<List<ScheduledDeparture>>? _inFlightScheduledDepartures;
+
+  // Unified active buses stream management
+  StreamController<List<Bus>>? _activeBusesController;
+  RealtimeChannel? _activeBusesChannel;
+  Timer? _activeBusesFallbackTimer;
+  DateTime _lastBroadcastReceived = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _isRefreshingActiveBuses = false;
+  bool _pendingRefreshActiveBuses = false;
+
+  DateTime? get lastSuccessfulBusFetch => _lastSuccessfulBusFetch;
+  List<Bus> get lastKnownBuses => _lastKnownBuses;
 
   @override
   Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async {
     final client = _supabase;
     if (client == null) return const [];
 
+    final now = _clock();
+    if (knownStops == null &&
+        _routesCache != null &&
+        _routesCache!.expiresAt.isAfter(now)) {
+      TransitCacheMetrics.instance.recordHit('routes');
+      return _routesCache!.routes;
+    }
+
+    if (knownStops == null) {
+      final inFlight = _inFlightRoutes;
+      if (inFlight != null) {
+        TransitCacheMetrics.instance.recordDeduplicated('routes');
+        return inFlight;
+      }
+      final future = _doGetRoutes(client, null);
+      _inFlightRoutes = future;
+      return future.whenComplete(() {
+        if (identical(_inFlightRoutes, future)) {
+          _inFlightRoutes = null;
+        }
+      });
+    }
+
+    return _doGetRoutes(client, knownStops);
+  }
+
+  Future<List<BusRoute>> _doGetRoutes(
+    SupabaseClient client,
+    List<Stop>? knownStops,
+  ) async {
+    TransitCacheMetrics.instance.recordMiss('routes');
+    final now = _clock();
     try {
       final stops = knownStops ?? await getStops();
       final stopMap = {for (final stop in stops) stop.id: stop};
@@ -78,15 +141,24 @@ class SupabaseTransitRepository implements TransitRepository {
         (occurrencesByRoute[occurrence.routeId] ??= []).add(occurrence);
       }
 
-      return routeRows.map((rawRoute) {
-        final route = Map<String, dynamic>.from(rawRoute);
-        final routeId = route['id']?.toString() ?? '';
-        return BusRoute.fromJson(
-          route,
-          stops: stops,
-          stopOccurrences: occurrencesByRoute[routeId] ?? const [],
+      final routes =
+          routeRows.map((rawRoute) {
+            final route = Map<String, dynamic>.from(rawRoute);
+            final routeId = route['id']?.toString() ?? '';
+            return BusRoute.fromJson(
+              route,
+              stops: stops,
+              stopOccurrences: occurrencesByRoute[routeId] ?? const [],
+            );
+          }).toList();
+
+      if (knownStops == null) {
+        _routesCache = (
+          routes: List.unmodifiable(routes),
+          expiresAt: now.add(_referenceDataTtl),
         );
-      }).toList();
+      }
+      return routes;
     } catch (error, stackTrace) {
       AppLogger.error(
         'Failed to fetch routes from Supabase',
@@ -102,15 +174,45 @@ class SupabaseTransitRepository implements TransitRepository {
     final client = _supabase;
     if (client == null) return const [];
 
+    final now = _clock();
+    if (_stopsCache != null && _stopsCache!.expiresAt.isAfter(now)) {
+      TransitCacheMetrics.instance.recordHit('stops');
+      return _stopsCache!.stops;
+    }
+
+    final inFlight = _inFlightStops;
+    if (inFlight != null) {
+      TransitCacheMetrics.instance.recordDeduplicated('stops');
+      return inFlight;
+    }
+
+    final future = _doGetStops(client);
+    _inFlightStops = future;
+    return future.whenComplete(() {
+      if (identical(_inFlightStops, future)) {
+        _inFlightStops = null;
+      }
+    });
+  }
+
+  Future<List<Stop>> _doGetStops(SupabaseClient client) async {
+    TransitCacheMetrics.instance.recordMiss('stops');
+    final now = _clock();
     try {
       final response = await client
           .from('stops')
           .select()
           .eq('is_active', true)
           .order('name', ascending: true);
-      return response
-          .map((row) => Stop.fromJson(Map<String, dynamic>.from(row)))
-          .toList();
+      final stops =
+          response
+              .map((row) => Stop.fromJson(Map<String, dynamic>.from(row)))
+              .toList();
+      _stopsCache = (
+        stops: List.unmodifiable(stops),
+        expiresAt: now.add(_referenceDataTtl),
+      );
+      return stops;
     } catch (error, stackTrace) {
       AppLogger.error(
         'Failed to fetch stops from Supabase',
@@ -126,6 +228,34 @@ class SupabaseTransitRepository implements TransitRepository {
     final client = _supabase;
     if (client == null) return const [];
 
+    final now = _clock();
+    final cached = _routeStopsCache[routeId];
+    if (cached != null && cached.expiresAt.isAfter(now)) {
+      TransitCacheMetrics.instance.recordHit('route_stops');
+      return cached.occurrences;
+    }
+
+    final inFlight = _inFlightRouteStops[routeId];
+    if (inFlight != null) {
+      TransitCacheMetrics.instance.recordDeduplicated('route_stops');
+      return inFlight;
+    }
+
+    final future = _doGetRouteStops(client, routeId);
+    _inFlightRouteStops[routeId] = future;
+    return future.whenComplete(() {
+      if (identical(_inFlightRouteStops[routeId], future)) {
+        _inFlightRouteStops.remove(routeId);
+      }
+    });
+  }
+
+  Future<List<RouteStopOccurrence>> _doGetRouteStops(
+    SupabaseClient client,
+    String routeId,
+  ) async {
+    TransitCacheMetrics.instance.recordMiss('route_stops');
+    final now = _clock();
     try {
       final stops = await getStops();
       final stopMap = {for (final stop in stops) stop.id: stop};
@@ -143,7 +273,14 @@ class SupabaseTransitRepository implements TransitRepository {
             final stopId = row['stop_id']?.toString() ?? '';
             return RouteStopOccurrence.fromJson(row, stop: stopMap[stopId]);
           }).toList();
-      return RouteStopOccurrence.normalizeOutAndBack(rawOccurrences);
+      final occurrences = RouteStopOccurrence.normalizeOutAndBack(
+        rawOccurrences,
+      );
+      _routeStopsCache[routeId] = (
+        occurrences: List.unmodifiable(occurrences),
+        expiresAt: now.add(_referenceDataTtl),
+      );
+      return occurrences;
     } catch (error, stackTrace) {
       AppLogger.error(
         'Failed to fetch route stops from Supabase',
@@ -159,9 +296,42 @@ class SupabaseTransitRepository implements TransitRepository {
     final client = _supabase;
     if (client == null) return const [];
 
+    final now = _clock();
+    if (_scheduledDeparturesCache != null &&
+        _scheduledDeparturesCache!.expiresAt.isAfter(now)) {
+      TransitCacheMetrics.instance.recordHit('departures');
+      return _scheduledDeparturesCache!.departures;
+    }
+
+    final inFlight = _inFlightScheduledDepartures;
+    if (inFlight != null) {
+      TransitCacheMetrics.instance.recordDeduplicated('departures');
+      return inFlight;
+    }
+
+    final future = _doGetScheduledDepartures(client);
+    _inFlightScheduledDepartures = future;
+    return future.whenComplete(() {
+      if (identical(_inFlightScheduledDepartures, future)) {
+        _inFlightScheduledDepartures = null;
+      }
+    });
+  }
+
+  Future<List<ScheduledDeparture>> _doGetScheduledDepartures(
+    SupabaseClient client,
+  ) async {
+    TransitCacheMetrics.instance.recordMiss('departures');
+    final now = _clock();
     try {
       final response = await client.from('bus_timings').select();
-      return response.map((row) => ScheduledDeparture.fromJson(row)).toList();
+      final departures =
+          response.map((row) => ScheduledDeparture.fromJson(row)).toList();
+      _scheduledDeparturesCache = (
+        departures: List.unmodifiable(departures),
+        expiresAt: now.add(_referenceDataTtl),
+      );
+      return departures;
     } catch (error, stackTrace) {
       AppLogger.error(
         'Failed to fetch scheduled bus departures from Supabase',
@@ -172,6 +342,17 @@ class SupabaseTransitRepository implements TransitRepository {
     }
   }
 
+  void invalidateStaticCaches() {
+    _stopsCache = null;
+    _routesCache = null;
+    _routeStopsCache.clear();
+    _scheduledDeparturesCache = null;
+    _inFlightStops = null;
+    _inFlightRoutes = null;
+    _inFlightRouteStops.clear();
+    _inFlightScheduledDepartures = null;
+  }
+
   @override
   Future<List<Bus>> getActiveBuses() async {
     final client = _supabase;
@@ -179,7 +360,23 @@ class SupabaseTransitRepository implements TransitRepository {
     return _fetchActiveBuses(client);
   }
 
-  Future<List<Bus>> _fetchActiveBuses(SupabaseClient client) async {
+  Future<List<Bus>> _fetchActiveBuses(SupabaseClient client) {
+    final inFlight = _inFlightActiveBuses;
+    if (inFlight != null) {
+      TransitCacheMetrics.instance.recordDeduplicated('active_buses');
+      return inFlight;
+    }
+    final future = _doFetchActiveBuses(client);
+    _inFlightActiveBuses = future;
+    return future.whenComplete(() {
+      if (identical(_inFlightActiveBuses, future)) {
+        _inFlightActiveBuses = null;
+      }
+    });
+  }
+
+  Future<List<Bus>> _doFetchActiveBuses(SupabaseClient client) async {
+    TransitCacheMetrics.instance.recordMiss('active_buses');
     try {
       final response = await client.rpc<List<dynamic>>(
         'get_active_bus_positions_v2',
@@ -202,6 +399,7 @@ class SupabaseTransitRepository implements TransitRepository {
         }
       }
       _lastKnownBuses = buses;
+      _lastSuccessfulBusFetch = _clock();
       return _lastKnownBuses;
     } catch (error, stackTrace) {
       AppLogger.error(
@@ -218,58 +416,113 @@ class SupabaseTransitRepository implements TransitRepository {
     final client = _supabase;
     if (client == null) return Stream.value(const []);
 
-    late final RealtimeChannel channel;
-    late final StreamController<List<Bus>> controller;
-    Timer? pollTimer;
-    var refreshInProgress = false;
-    var refreshPending = false;
+    _ensureActiveBusesStreamInitialized(client);
+    return _buildActiveBusesStream();
+  }
 
-    Future<void> refresh() async {
-      if (refreshInProgress) {
-        refreshPending = true;
-        return;
-      }
-
-      refreshInProgress = true;
-      try {
-        do {
-          refreshPending = false;
-          try {
-            final buses = await _fetchActiveBuses(client);
-            if (!controller.isClosed) controller.add(buses);
-          } catch (error, stackTrace) {
-            if (!controller.isClosed) controller.addError(error, stackTrace);
-          }
-        } while (refreshPending && !controller.isClosed);
-      } finally {
-        refreshInProgress = false;
-      }
+  void _ensureActiveBusesStreamInitialized(SupabaseClient client) {
+    if (_activeBusesController != null && !_activeBusesController!.isClosed) {
+      return;
     }
 
-    controller = StreamController<List<Bus>>(
-      onListen: () {
-        channel =
-            client
-                .channel('active-bus-positions')
-                .onBroadcast(
-                  event: 'bus_state_updated',
-                  callback: (_) => unawaited(refresh()),
-                )
-                .subscribe();
-        // Fallback polling retains bounded refresh resilience (every 15s)
-        // alongside instant Realtime Broadcast wake-ups.
-        pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-          unawaited(refresh());
-        });
-        unawaited(refresh());
-      },
-      onCancel: () async {
-        pollTimer?.cancel();
-        await client.removeChannel(channel);
-        await controller.close();
+    _activeBusesController = StreamController<List<Bus>>.broadcast(
+      onListen: () => _startActiveBusesSubscription(client),
+      onCancel: () => _stopActiveBusesSubscription(client),
+    );
+  }
+
+  void _startActiveBusesSubscription(SupabaseClient client) {
+    _activeBusesChannel = client
+        .channel('active-bus-positions')
+        .onBroadcast(
+          event: 'bus_state_updated',
+          callback: (_) {
+            _lastBroadcastReceived = _clock();
+            TransitCacheMetrics.instance.recordRealtimeBroadcast();
+            unawaited(_triggerActiveBusesStreamRefresh(client));
+          },
+        )
+        .subscribe();
+
+    _activeBusesFallbackTimer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) {
+        final timeSinceBroadcast = _clock().difference(_lastBroadcastReceived);
+        if (timeSinceBroadcast >= const Duration(seconds: 18)) {
+          TransitCacheMetrics.instance.recordFallbackPoll();
+          unawaited(_triggerActiveBusesStreamRefresh(client));
+        }
       },
     );
-    return controller.stream;
+
+    unawaited(_triggerActiveBusesStreamRefresh(client));
+  }
+
+  void _stopActiveBusesSubscription(SupabaseClient client) {
+    _activeBusesFallbackTimer?.cancel();
+    _activeBusesFallbackTimer = null;
+    if (_activeBusesChannel != null) {
+      final ch = _activeBusesChannel!;
+      _activeBusesChannel = null;
+      unawaited(client.removeChannel(ch));
+    }
+  }
+
+  Future<void> _triggerActiveBusesStreamRefresh(SupabaseClient client) async {
+    if (_isRefreshingActiveBuses) {
+      _pendingRefreshActiveBuses = true;
+      return;
+    }
+
+    _isRefreshingActiveBuses = true;
+    try {
+      do {
+        _pendingRefreshActiveBuses = false;
+        try {
+          final buses = await _fetchActiveBuses(client);
+          if (_activeBusesController != null &&
+              !_activeBusesController!.isClosed) {
+            _activeBusesController!.add(buses);
+          }
+        } catch (error, stackTrace) {
+          if (_activeBusesController != null &&
+              !_activeBusesController!.isClosed) {
+            _activeBusesController!.addError(error, stackTrace);
+          }
+        }
+      } while (_pendingRefreshActiveBuses &&
+          _activeBusesController != null &&
+          !_activeBusesController!.isClosed);
+    } finally {
+      _isRefreshingActiveBuses = false;
+    }
+  }
+
+  Stream<List<Bus>> _buildActiveBusesStream() {
+    return Stream<List<Bus>>.multi((controller) {
+      if (_lastKnownBuses.isNotEmpty) {
+        controller.add(_lastKnownBuses);
+      }
+      final subscription = _activeBusesController!.stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close,
+      );
+      controller.onCancel = () {
+        subscription.cancel();
+      };
+    });
+  }
+
+  void dispose() {
+    _activeBusesFallbackTimer?.cancel();
+    _activeBusesFallbackTimer = null;
+    if (_supabase != null && _activeBusesChannel != null) {
+      unawaited(_supabase.removeChannel(_activeBusesChannel!));
+      _activeBusesChannel = null;
+    }
+    _activeBusesController?.close();
+    _activeBusesController = null;
   }
 
   @override

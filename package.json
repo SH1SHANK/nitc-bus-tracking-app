@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo 'Direct Vercel container builds are disabled. Tracklet uses GitHub Actions prebuilt deployment.' && exit 1"
+    "build": "echo 'Direct Vercel container builds are disabled. BusTracker uses GitHub Actions prebuilt deployment.' && exit 1"
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -56,7 +57,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
     } catch (_) {
       // Fallback to core libraries if registry stream encounters an error
       packageMap['tracklet'] = [
-        'Copyright (c) 2026 Shashank Mergu & NITC Tracklet Contributors\nReleased under MIT License.',
+        'Copyright (c) 2026 Shashank Mergu & NITC BusTracker Contributors\nReleased under MIT License.',
       ];
     }
 
@@ -98,7 +99,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(TrackletIcons.chevronLeft, size: 20),
           onPressed: () => Navigator.of(context).maybePop(),
           tooltip: 'Back',
         ),
@@ -133,14 +134,14 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
                 prefixIcon: Icon(
-                  Icons.search_rounded,
+                  TrackletIcons.search,
                   size: 20,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
                 suffixIcon:
                     _searchQuery.isNotEmpty
                         ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          icon: const Icon(TrackletIcons.x, size: 18),
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -154,14 +155,14 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                   vertical: 12,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TrackletRadii.md),
+                  borderRadius: TrackletRadii.roundedCard,
                   borderSide: BorderSide(
                     color: TrackletColors.adaptiveBorder(context),
                   ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TrackletRadii.md),
-                  borderSide: const BorderSide(
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: TrackletRadii.roundedCard,
+                  borderSide: BorderSide(
                     color: TrackletColors.primary,
                     width: 1.5,
                   ),
@@ -218,7 +219,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
       margin: const EdgeInsets.only(bottom: TrackletSpacing.md),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurface(context),
-        borderRadius: BorderRadius.circular(TrackletRadii.card),
+        borderRadius: TrackletRadii.roundedCard,
         border: Border.all(color: TrackletColors.adaptiveBorder(context)),
       ),
       child: Theme(
@@ -238,10 +239,10 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
               color: TrackletColors.primary.withValues(
                 alpha: isDark ? 0.2 : 0.08,
               ),
-              borderRadius: BorderRadius.circular(TrackletRadii.xs),
+              borderRadius: TrackletRadii.roundedXs,
             ),
             child: const Icon(
-              Icons.extension_outlined,
+              TrackletIcons.puzzle,
               size: 20,
               color: TrackletColors.primary,
             ),
@@ -277,7 +278,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                     isDark
                         ? TrackletColors.darkSurfaceElevated
                         : TrackletColors.background,
-                borderRadius: BorderRadius.circular(TrackletRadii.xs),
+                borderRadius: TrackletRadii.roundedXs,
                 border: Border.all(
                   color:
                       isDark
@@ -287,10 +288,11 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
               ),
               child: SelectableText(
                 pkg.paragraphs.join('\n\n---\n\n'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11.5,
                   height: 1.45,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
             ),

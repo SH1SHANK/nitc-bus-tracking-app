@@ -8,6 +8,7 @@ import 'package:tracklet/data/profile/profile.dart';
 import 'package:tracklet/data/profile/profile_repository.dart';
 import 'package:tracklet/features/settings/dialogs/transit_faq_dialog.dart';
 import 'package:tracklet/features/settings/settings_screen.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 import 'package:tracklet/services/location/location_service.dart';
 
 import '../../helpers/pump_app.dart';
@@ -115,7 +116,7 @@ void main() {
       expect(find.text('New Password'), findsOneWidget);
 
       // Cancel dialog via close icon
-      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.tap(find.byIcon(TrackletIcons.close));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChangePasswordDialog), findsNothing);
@@ -138,7 +139,7 @@ void main() {
       expect(find.text('Change Username'), findsWidgets);
 
       // Cancel dialog via close icon
-      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.tap(find.byIcon(TrackletIcons.close));
       await tester.pumpAndSettle();
 
       expect(find.byType(ChangeUsernameDialog), findsNothing);
@@ -170,7 +171,7 @@ void main() {
 
       expect(
         find.text(
-          'Are you sure you want to log out of Tracklet on this device?',
+          'Are you sure you want to log out of BusTracker on this device?',
         ),
         findsOneWidget,
       );
@@ -180,7 +181,7 @@ void main() {
 
       expect(
         find.text(
-          'Are you sure you want to log out of Tracklet on this device?',
+          'Are you sure you want to log out of BusTracker on this device?',
         ),
         findsNothing,
       );
@@ -205,13 +206,13 @@ void main() {
       expect(find.byType(TransitFaqDialog), findsNothing);
     });
 
-    testWidgets('renders About Tracklet and Legal rows in settings list', (
+    testWidgets('renders About BusTracker and Legal rows in settings list', (
       tester,
     ) async {
       await tester.pumpTrackletWidget(const SettingsScreen());
       await tester.pumpAndSettle();
 
-      final aboutItem = find.text('About Tracklet');
+      final aboutItem = find.text('About BusTracker');
       await tester.scrollUntilVisible(aboutItem, 200);
       expect(aboutItem, findsOneWidget);
 

@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/validation/username_validator.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
+import 'package:tracklet/design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import 'onboarding_entrance.dart';
@@ -83,12 +85,12 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           isDark
               ? TrackletColors.darkTextSecondary
               : TrackletColors.textSecondary;
-      icon = Icons.info_outline_rounded;
+      icon = TrackletIcons.info;
       trailing = null;
     } else if (!localValidation.isValid) {
       message = localValidation.errorMessage ?? 'Invalid username format';
       color = TrackletColors.errorBorder;
-      icon = Icons.info_outline_rounded;
+      icon = TrackletIcons.info;
       trailing = null;
     } else if (widget.isCheckingUsername) {
       message = 'Checking username availability...';
@@ -96,7 +98,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           isDark
               ? TrackletColors.darkTextSecondary
               : TrackletColors.textSecondary;
-      icon = Icons.circle_outlined;
+      icon = TrackletIcons.circle;
       trailing = const SizedBox(
         width: 14,
         height: 14,
@@ -108,17 +110,17 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
     } else if (widget.validationError != null) {
       message = widget.validationError!;
       color = TrackletColors.errorBorder;
-      icon = Icons.warning_amber_rounded;
+      icon = TrackletIcons.alertTriangle;
       trailing = null;
     } else if (widget.isAvailable == true) {
       message = 'Username available';
       color = TrackletColors.success;
-      icon = Icons.verified_outlined;
+      icon = TrackletIcons.checkCircle2;
       trailing = null;
     } else if (widget.isAvailable == false) {
       message = 'Sorry, username already taken';
       color = TrackletColors.errorBorder;
-      icon = Icons.warning_amber_rounded;
+      icon = TrackletIcons.alertTriangle;
       trailing = null;
     } else {
       message = 'Availability has not been checked yet';
@@ -126,7 +128,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
           isDark
               ? TrackletColors.darkTextSecondary
               : TrackletColors.textSecondary;
-      icon = Icons.info_outline_rounded;
+      icon = TrackletIcons.info;
       trailing = null;
     }
 
@@ -242,7 +244,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               children: [
                 const TextSpan(
                   text:
-                      "This is how you'll be known across Tracklet. Craft something uniquely yours, or tap the ",
+                      "This is how you'll be known across BusTracker. Craft something uniquely yours, or tap the ",
                 ),
                 TextSpan(
                   text: 'magic wand',
@@ -302,14 +304,14 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                                 : TrackletColors.alternate,
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: TrackletRadii.roundedBanner,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(
                         color: TrackletColors.primary,
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: TrackletRadii.roundedBanner,
                     ),
                     filled: true,
                     fillColor:
@@ -344,15 +346,15 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 message: 'Generate a username',
                 child: Material(
                   color: TrackletColors.primary,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: TrackletRadii.roundedBanner,
                   child: InkWell(
                     onTap: widget.onMagicWandPressed,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: TrackletRadii.roundedBanner,
                     child: const SizedBox(
                       width: 50,
                       height: 50,
                       child: Icon(
-                        Icons.auto_awesome_rounded,
+                        TrackletIcons.sparkles,
                         color: Colors.white,
                         size: 24,
                       ),
@@ -378,7 +380,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 onPressed: canContinue ? widget.onContinue : null,
                 iconAlignment: IconAlignment.end,
                 icon: const Icon(
-                  Icons.arrow_forward_rounded,
+                  TrackletIcons.arrowRight,
                   size: 19,
                   color: Colors.white,
                 ),
@@ -398,8 +400,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   ),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: TrackletRadii.roundedCard,
                   ),
                 ),
               ),

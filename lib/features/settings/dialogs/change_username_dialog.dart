@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/validation/username_validator.dart';
 import '../../../data/profile/profile_repository.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
@@ -200,7 +201,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
         constraints: const BoxConstraints(maxWidth: 400.0),
         decoration: BoxDecoration(
           color: TrackletColors.adaptiveSurface(context),
-          borderRadius: BorderRadius.circular(TrackletRadii.card),
+          borderRadius: TrackletRadii.roundedCard,
           border: Border.all(color: TrackletColors.adaptiveBorder(context)),
           boxShadow: const [
             BoxShadow(
@@ -232,7 +233,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                   ),
                   IconButton(
                     icon: const Icon(
-                      Icons.close_rounded,
+                      TrackletIcons.x,
                       color: TrackletColors.textTertiary,
                       size: 22.0,
                     ),
@@ -287,7 +288,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                     vertical: 14,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TrackletRadii.input),
+                    borderRadius: TrackletRadii.roundedInput,
                     borderSide: BorderSide(
                       color:
                           _errorMessage != null
@@ -297,7 +298,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(TrackletRadii.input),
+                    borderRadius: TrackletRadii.roundedInput,
                     borderSide: BorderSide(
                       color:
                           _errorMessage != null
@@ -324,13 +325,13 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                           )
                           : _isAvailable == true && !isUnchanged
                           ? const Icon(
-                            Icons.check_circle_rounded,
+                            TrackletIcons.checkCircle2,
                             color: TrackletColors.success,
                             size: 20,
                           )
                           : _errorMessage != null
                           ? const Icon(
-                            Icons.error_outline_rounded,
+                            TrackletIcons.alertCircle,
                             color: TrackletColors.errorBorder,
                             size: 20,
                           )

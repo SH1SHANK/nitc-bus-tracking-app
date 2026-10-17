@@ -80,13 +80,15 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
             .where((item) => item.toLowerCase().contains(_query.toLowerCase()))
             .toList();
 
+    final isDark = TrackletColors.isDark(context);
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.75,
       ),
-      decoration: const BoxDecoration(
-        color: TrackletColors.surfaceElevated,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: TrackletColors.adaptiveSurfaceElevated(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.only(
         top: TrackletSpacing.lg,
@@ -103,8 +105,8 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
             child: Container(
               width: 36,
               height: 4,
-              decoration: const BoxDecoration(
-                color: TrackletColors.border,
+              decoration: BoxDecoration(
+                color: TrackletColors.adaptiveBorder(context),
                 borderRadius: TrackletRadii.roundedFull,
               ),
             ),
@@ -119,14 +121,30 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title, style: TrackletTypography.headlineLarge),
+                    Text(
+                      widget.title,
+                      style: TrackletTypography.adaptive(
+                        context,
+                        TrackletTypography.headlineLarge,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(widget.subtitle, style: TrackletTypography.bodySmall),
+                    Text(
+                      widget.subtitle,
+                      style: TrackletTypography.adaptiveSecondary(
+                        context,
+                        TrackletTypography.bodySmall,
+                      ),
+                    ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const TrackletIcon(TrackletIcons.close, size: 20),
+                icon: TrackletIcon(
+                  TrackletIcons.close,
+                  size: 20,
+                  color: TrackletColors.adaptiveTextSecondary(context),
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -137,31 +155,43 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
           if (widget.showSearch) ...[
             Container(
               decoration: BoxDecoration(
-                color: TrackletColors.surface,
+                color:
+                    isDark
+                        ? TrackletColors.darkSurfaceContainerHighest
+                        : TrackletColors.surface,
                 borderRadius: TrackletRadii.roundedMd,
-                border: Border.all(color: TrackletColors.border),
+                border: Border.all(
+                  color: TrackletColors.adaptiveBorder(context),
+                ),
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: TrackletSpacing.md,
               ),
               child: Row(
                 children: [
-                  const TrackletIcon(
+                  TrackletIcon(
                     TrackletIcons.search,
                     size: 18,
-                    color: TrackletColors.textSecondary,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                   const SizedBox(width: TrackletSpacing.sm),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Search...',
+                        hintStyle: TextStyle(
+                          color: TrackletColors.adaptiveTextMuted(context),
+                        ),
                         border: InputBorder.none,
                         isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
                       ),
-                      style: TrackletTypography.bodyMedium,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextPrimary(context),
+                      ),
                       onChanged: (val) => setState(() => _query = val),
                     ),
                   ),
@@ -196,7 +226,9 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                     decoration: BoxDecoration(
                       color:
                           isSelected
-                              ? TrackletColors.primary.withValues(alpha: 0.08)
+                              ? TrackletColors.primary.withValues(
+                                alpha: isDark ? 0.2 : 0.08,
+                              )
                               : Colors.transparent,
                       borderRadius: TrackletRadii.roundedMd,
                       border:
@@ -212,11 +244,16 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                         Expanded(
                           child: Text(
                             item,
-                            style: TrackletTypography.titleMedium.copyWith(
+                            style: TrackletTypography.adaptive(
+                              context,
+                              TrackletTypography.titleMedium,
+                            ).copyWith(
                               color:
                                   isSelected
                                       ? TrackletColors.primary
-                                      : TrackletColors.textPrimary,
+                                      : TrackletColors.adaptiveTextPrimary(
+                                        context,
+                                      ),
                               fontWeight:
                                   isSelected
                                       ? FontWeight.w700

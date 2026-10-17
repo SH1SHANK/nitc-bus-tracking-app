@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 
 import '../../core/geo/geo_point.dart';
+import '../../data/transit/bus_telemetry.dart';
 import '../../design_system/tokens/colors.dart';
 
 /// Style-independent label data sent through the map adapter.
@@ -123,13 +124,7 @@ abstract final class TrackletMapCartography {
     return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 
-  static bool isValidPoint(GeoPoint point) =>
-      point.latitude.isFinite &&
-      point.longitude.isFinite &&
-      point.latitude >= -90 &&
-      point.latitude <= 90 &&
-      point.longitude >= -180 &&
-      point.longitude <= 180;
+  static bool isValidPoint(GeoPoint point) => BusTelemetry.isValidPoint(point);
 
   /// Stop layers follow building labels and are split by interaction priority.
   /// Selected labels allow overlap; ordinary labels yield through standard

@@ -76,7 +76,7 @@ class OnboardingStepSetup extends StatelessWidget {
             initialItem: selectedHostel.isNotEmpty ? selectedHostel : null,
             hintText: 'Select Hostel',
             prefixIcon: const Icon(
-              Icons.home_work_outlined,
+              TrackletIcons.building2,
               color: TrackletColors.secondaryText,
               size: 20,
             ),
@@ -98,7 +98,7 @@ class OnboardingStepSetup extends StatelessWidget {
             initialItem: selectedStop.isNotEmpty ? selectedStop : null,
             hintText: 'Select Primary Stop',
             prefixIcon: const Icon(
-              Icons.directions_bus_outlined,
+              TrackletIcons.bus,
               color: TrackletColors.secondaryText,
               size: 20,
             ),
@@ -119,8 +119,8 @@ class OnboardingStepSetup extends StatelessWidget {
                   Checkbox(
                     value: agreedToTerms,
                     activeColor: TrackletColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: TrackletRadii.roundedXs,
                     ),
                     onChanged: (val) => onToggleTerms(val ?? false),
                   ),
@@ -152,7 +152,7 @@ class OnboardingStepSetup extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            TextSpan(text: ' of Tracklet.'),
+                            TextSpan(text: ' of BusTracker.'),
                           ],
                         ),
                       ),

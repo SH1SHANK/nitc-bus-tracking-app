@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 
@@ -32,15 +33,17 @@ class SettingsStepper extends StatelessWidget {
     final canDecrement = value - step >= min;
     final canIncrement = value + step <= max;
 
+    final isDark = TrackletColors.isDark(context);
+
     return Container(
       width: width,
       height: TrackletSpacing.icon,
       padding: const EdgeInsets.symmetric(horizontal: TrackletSpacing.xxs),
       decoration: BoxDecoration(
-        color: TrackletColors.background,
+        color: TrackletColors.adaptiveBackground(context),
         borderRadius: TrackletRadii.roundedSm,
         border: Border.all(
-          color: TrackletColors.cardBorder,
+          color: TrackletColors.adaptiveCardBorder(context),
           width: TrackletSpacing.hairline,
         ),
       ),
@@ -55,10 +58,10 @@ class SettingsStepper extends StatelessWidget {
               width: TrackletSpacing.spacious,
               height: TrackletSpacing.control,
               child: Icon(
-                Icons.remove_rounded,
+                TrackletIcons.minus,
                 color:
                     canDecrement
-                        ? TrackletColors.textSecondary
+                        ? TrackletColors.adaptiveTextSecondary(context)
                         : TrackletColors.disabled,
                 size: 16.0,
               ),
@@ -68,11 +71,10 @@ class SettingsStepper extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: TrackletSpacing.xs),
             child: Text(
               '$value $displayUnit',
-              style: const TextStyle(
-                fontFamily: 'Outfit',
+              style: TextStyle(
                 fontSize: 13.0,
                 fontWeight: FontWeight.w700,
-                color: TrackletColors.textPrimary,
+                color: TrackletColors.adaptiveTextPrimary(context),
               ),
             ),
           ),
@@ -83,10 +85,12 @@ class SettingsStepper extends StatelessWidget {
               width: TrackletSpacing.spacious,
               height: TrackletSpacing.control,
               child: Icon(
-                Icons.add_rounded,
+                TrackletIcons.plus,
                 color:
                     canIncrement
-                        ? TrackletColors.primary
+                        ? (isDark
+                            ? TrackletColors.primaryDark
+                            : TrackletColors.primary)
                         : TrackletColors.disabled,
                 size: 16.0,
               ),

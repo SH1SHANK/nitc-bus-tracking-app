@@ -34,8 +34,8 @@ class OnboardingStepLocation extends StatelessWidget {
           Container(
             height: 200,
             width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 colors: [
                   TrackletColors.locationBlueBg,
                   TrackletColors.permissionBlueBg,
@@ -43,7 +43,7 @@ class OnboardingStepLocation extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: TrackletRadii.roundedPill,
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -54,7 +54,7 @@ class OnboardingStepLocation extends StatelessWidget {
                   fit: BoxFit.contain,
                   errorBuilder:
                       (_, _, _) => const Icon(
-                        Icons.location_on_rounded,
+                        TrackletIcons.mapPin,
                         size: 80,
                         color: TrackletColors.primary,
                       ),
@@ -75,7 +75,7 @@ class OnboardingStepLocation extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.sm),
           Text(
-            'Tracklet calculates live walking times to your nearest bus stop (MBH, Main Gate, ELHC) and shows live shuttles around you.',
+            'BusTracker calculates live walking times to your nearest bus stop (MBH, Main Gate, ELHC) and shows live shuttles around you.',
             style: TrackletTypography.bodyLarge.copyWith(
               color: TrackletColors.textSecondary,
               height: 1.45,

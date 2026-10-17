@@ -8,6 +8,8 @@ import '../../../data/transit/bus_stop_progress.dart';
 import '../../../data/transit/scheduled_departure.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../home_transit_logic.dart';
 
 /// A compact, map-oriented live bus card designed for rapid campus rider scanning.
@@ -54,9 +56,9 @@ class NextBusCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: TrackletColors.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: TrackletColors.cardBorder),
+        color: TrackletColors.adaptiveSurfaceElevated(context),
+        borderRadius: TrackletRadii.roundedCardXl,
+        border: Border.all(color: TrackletColors.adaptiveCardBorder(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -77,7 +79,7 @@ class NextBusCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, color: TrackletColors.border),
+          Divider(height: 1, color: TrackletColors.adaptiveDivider(context)),
           const SizedBox(height: 14),
 
           // 2. Main Content Body
@@ -126,7 +128,7 @@ class NextBusCard extends StatelessWidget {
           ],
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: TrackletColors.border),
+          Divider(height: 1, color: TrackletColors.adaptiveDivider(context)),
           const SizedBox(height: 14),
 
           // 4. Footer: Compact Freshness & Secondary ETA (Left) + Primary Track Action (Right)
@@ -194,6 +196,8 @@ class _HeaderRow extends StatelessWidget {
       statusTag = 'NEXT SCHEDULED BUS';
     } else if (bus == null) {
       statusTag = 'NEXT BUS';
+    } else if (!bus!.hasValidLocation) {
+      statusTag = 'NO GPS FIX';
     } else if (bus!.isStale || bus!.status == BusStatus.offline) {
       statusTag = 'LAST KNOWN BUS';
     } else if (arrival?.isAtStop == true) {
@@ -204,18 +208,22 @@ class _HeaderRow extends StatelessWidget {
       statusTag = 'BUS ON ROUTE';
     }
 
+    final isDark = TrackletColors.isDark(context);
     return Row(
       children: [
         Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: TrackletColors.background2,
-            borderRadius: BorderRadius.circular(13),
+            color:
+                isDark
+                    ? TrackletColors.primaryContainerDark
+                    : TrackletColors.background2,
+            borderRadius: TrackletRadii.roundedButton,
           ),
           child: const Center(
             child: Icon(
-              Icons.directions_bus_rounded,
+              TrackletIcons.bus,
               color: TrackletColors.primary,
               size: 22,
             ),
@@ -230,8 +238,8 @@ class _HeaderRow extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: TrackletColors.textPrimary,
+                style: TextStyle(
+                  color: TrackletColors.adaptiveTextPrimary(context),
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.3,
@@ -243,8 +251,8 @@ class _HeaderRow extends StatelessWidget {
                   if (routeCode != null && routeCode.isNotEmpty)
                     Text(
                       '$routeCode · ',
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -254,8 +262,8 @@ class _HeaderRow extends StatelessWidget {
                       statusTag,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4,
@@ -272,6 +280,7 @@ class _HeaderRow extends StatelessWidget {
           _StatusPill(
             status: bus!.status,
             isStale: bus!.isStale,
+            hasLocation: bus!.hasValidLocation,
             isRouteUncertain: arrival?.isRouteUncertain ?? false,
           ),
       ],
@@ -319,6 +328,8 @@ class _CurrentLocationSection extends StatelessWidget {
     if (arrival.currentPositionText != null &&
         arrival.currentPositionText!.isNotEmpty) {
       locationTitle = arrival.currentPositionText!;
+    } else if (!bus.hasValidLocation) {
+      locationTitle = 'GPS location unavailable';
     } else if (bus.isStale) {
       final near = details.currentStop ?? details.previousStop;
       locationTitle =
@@ -349,6 +360,8 @@ class _CurrentLocationSection extends StatelessWidget {
     if (arrival.locationSubtitle != null &&
         arrival.locationSubtitle!.isNotEmpty) {
       locationSubtitle = arrival.locationSubtitle!;
+    } else if (!bus.hasValidLocation) {
+      locationSubtitle = 'Awaiting recent satellite fix from tracker';
     } else if (isAtBoarding) {
       locationSubtitle = 'Bus is at your boarding stop';
     } else if (bus.isStale) {
@@ -374,13 +387,19 @@ class _CurrentLocationSection extends StatelessWidget {
       locationSubtitle = 'Actual bus position from live GPS';
     }
 
+    final isDark = TrackletColors.isDark(context);
+    final liveColor =
+        isDark ? TrackletColors.busLiveTextDark : TrackletColors.busLive;
+    final liveBg =
+        isDark ? TrackletColors.busLiveBgDark : TrackletColors.busLiveBg;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'CURRENT LOCATION',
           style: TextStyle(
-            color: TrackletColors.textSecondary,
+            color: TrackletColors.adaptiveTextSecondary(context),
             fontSize: 11,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.8,
@@ -398,7 +417,7 @@ class _CurrentLocationSection extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.location_on_rounded,
+                TrackletIcons.mapPin,
                 color: TrackletColors.primary,
                 size: 19,
               ),
@@ -412,8 +431,8 @@ class _CurrentLocationSection extends StatelessWidget {
                     locationTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: TrackletColors.textPrimary,
+                    style: TextStyle(
+                      color: TrackletColors.adaptiveTextPrimary(context),
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.2,
@@ -424,8 +443,8 @@ class _CurrentLocationSection extends StatelessWidget {
                     locationSubtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: TrackletColors.textSecondary,
+                    style: TextStyle(
+                      color: TrackletColors.adaptiveTextSecondary(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -438,25 +457,23 @@ class _CurrentLocationSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color: TrackletColors.busLiveBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: TrackletColors.busLive.withValues(alpha: 0.3),
-                  ),
+                  color: liveBg,
+                  borderRadius: TrackletRadii.roundedInput,
+                  border: Border.all(color: liveColor.withValues(alpha: 0.3)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.check_circle_outline_rounded,
+                      TrackletIcons.checkCircle2,
                       size: 14,
-                      color: TrackletColors.busLive,
+                      color: liveColor,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       'Board here',
                       style: TextStyle(
-                        color: TrackletColors.busLive,
+                        color: liveColor,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -553,11 +570,20 @@ class _TripProgressSection extends StatelessWidget {
 
     final displayStops = orderedStops.sublist(startIdx, startIdx + count);
 
+    final isDark = TrackletColors.isDark(context);
     return Container(
       decoration: BoxDecoration(
-        color: TrackletColors.background.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: TrackletColors.border.withValues(alpha: 0.8)),
+        color:
+            isDark
+                ? TrackletColors.darkSurfaceContainer
+                : TrackletColors.background.withValues(alpha: 0.6),
+        borderRadius: TrackletRadii.roundedLg,
+        border: Border.all(
+          color:
+              isDark
+                  ? TrackletColors.darkBorder
+                  : TrackletColors.border.withValues(alpha: 0.8),
+        ),
       ),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       child: Column(
@@ -566,10 +592,10 @@ class _TripProgressSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'TRIP PROGRESS',
                 style: TextStyle(
-                  color: TrackletColors.textSecondary,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
@@ -578,7 +604,7 @@ class _TripProgressSection extends StatelessWidget {
               if (onViewFullRoute != null)
                 InkWell(
                   onTap: onViewFullRoute,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: TrackletRadii.roundedCompact,
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: Text(
@@ -668,8 +694,8 @@ class _TimelineRow extends StatelessWidget {
                     child: Container(
                       height: 3,
                       decoration: BoxDecoration(
-                        color: TrackletColors.border,
-                        borderRadius: BorderRadius.circular(1.5),
+                        color: TrackletColors.adaptiveBorder(context),
+                        borderRadius: TrackletRadii.roundedXs,
                       ),
                     ),
                   ),
@@ -685,9 +711,9 @@ class _TimelineRow extends StatelessWidget {
                       top: 12.5,
                       child: Container(
                         height: 3,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: TrackletColors.primary,
-                          borderRadius: BorderRadius.circular(1.5),
+                          borderRadius: TrackletRadii.roundedXs,
                         ),
                       ),
                     ),
@@ -698,6 +724,7 @@ class _TimelineRow extends StatelessWidget {
                       left: nodeCenterX(i) - (nodeSize / 2),
                       top: 7,
                       child: _buildStopNodeCircle(
+                        context,
                         isPassed: i < relativeBus - 0.15,
                         isNearBus: (i - relativeBus).abs() <= 0.15,
                       ),
@@ -707,7 +734,7 @@ class _TimelineRow extends StatelessWidget {
                   Positioned(
                     left: busLeft,
                     top: 0,
-                    child: _buildBusIcon(isAtStop: isAtStop),
+                    child: _buildBusIcon(context, isAtStop: isAtStop),
                   ),
                 ],
               ),
@@ -721,6 +748,7 @@ class _TimelineRow extends StatelessWidget {
                 for (var i = 0; i < count; i++) ...[
                   Expanded(
                     child: _buildStopLabel(
+                      context,
                       stop: stops[i],
                       absoluteIndex: startIndex + i,
                       relativeIndex: i,
@@ -738,7 +766,8 @@ class _TimelineRow extends StatelessWidget {
     );
   }
 
-  Widget _buildStopNodeCircle({
+  Widget _buildStopNodeCircle(
+    BuildContext context, {
     required bool isPassed,
     required bool isNearBus,
   }) {
@@ -747,10 +776,16 @@ class _TimelineRow extends StatelessWidget {
         width: 14,
         height: 14,
         decoration: BoxDecoration(
-          color: isPassed ? TrackletColors.primary : TrackletColors.surface,
+          color:
+              isPassed
+                  ? TrackletColors.primary
+                  : TrackletColors.adaptiveSurface(context),
           shape: BoxShape.circle,
           border: Border.all(
-            color: isPassed ? TrackletColors.primary : TrackletColors.border,
+            color:
+                isPassed
+                    ? TrackletColors.primary
+                    : TrackletColors.adaptiveBorder(context),
             width: 2.2,
           ),
         ),
@@ -772,19 +807,26 @@ class _TimelineRow extends StatelessWidget {
       width: 14,
       height: 14,
       decoration: BoxDecoration(
-        color: TrackletColors.surface,
+        color: TrackletColors.adaptiveSurface(context),
         shape: BoxShape.circle,
-        border: Border.all(color: TrackletColors.border, width: 2.5),
+        border: Border.all(
+          color: TrackletColors.adaptiveBorder(context),
+          width: 2.5,
+        ),
       ),
     );
   }
 
-  Widget _buildBusIcon({required bool isAtStop}) {
+  Widget _buildBusIcon(BuildContext context, {required bool isAtStop}) {
+    final isDark = TrackletColors.isDark(context);
     return Container(
       width: 28,
       height: 28,
       decoration: BoxDecoration(
-        color: TrackletColors.background2,
+        color:
+            isDark
+                ? TrackletColors.primaryContainerDark
+                : TrackletColors.background2,
         shape: BoxShape.circle,
         border: Border.all(color: TrackletColors.primary, width: 2.2),
         boxShadow: [
@@ -796,16 +838,13 @@ class _TimelineRow extends StatelessWidget {
         ],
       ),
       child: const Center(
-        child: Icon(
-          Icons.directions_bus_rounded,
-          size: 15,
-          color: TrackletColors.primary,
-        ),
+        child: Icon(TrackletIcons.bus, size: 15, color: TrackletColors.primary),
       ),
     );
   }
 
-  Widget _buildStopLabel({
+  Widget _buildStopLabel(
+    BuildContext context, {
     required Stop stop,
     required int absoluteIndex,
     required int relativeIndex,
@@ -820,34 +859,40 @@ class _TimelineRow extends StatelessWidget {
     final isPassed = !isCurrent && diff < -1.15;
     final isNext = !isCurrent && diff > 0 && diff < 1.15;
 
+    final isDark = TrackletColors.isDark(context);
     final String statusText;
     final Color statusColor;
 
     if (isCurrent && isAtStop) {
       statusText = isBoarding ? 'Board here' : 'Current';
       statusColor =
-          isBoarding ? TrackletColors.busLive : TrackletColors.primary;
+          isBoarding
+              ? (isDark
+                  ? TrackletColors.busLiveTextDark
+                  : TrackletColors.busLive)
+              : TrackletColors.primary;
     } else if (isBoarding && (isPassed || isPrevious)) {
       statusText = 'Passed';
-      statusColor = TrackletColors.textTertiary;
+      statusColor = TrackletColors.adaptiveTextMuted(context);
     } else if (isBoarding) {
       statusText = 'Your stop';
-      statusColor = TrackletColors.busLive;
+      statusColor =
+          isDark ? TrackletColors.busLiveTextDark : TrackletColors.busLive;
     } else if (isCurrent) {
       statusText = 'Current';
       statusColor = TrackletColors.primary;
     } else if (isPrevious) {
       statusText = 'Previous';
-      statusColor = TrackletColors.textSecondary;
+      statusColor = TrackletColors.adaptiveTextSecondary(context);
     } else if (isPassed) {
       statusText = 'Passed';
-      statusColor = TrackletColors.textTertiary;
+      statusColor = TrackletColors.adaptiveTextMuted(context);
     } else if (isNext) {
       statusText = 'Upcoming';
-      statusColor = TrackletColors.textSecondary;
+      statusColor = TrackletColors.adaptiveTextSecondary(context);
     } else {
       statusText = 'Upcoming';
-      statusColor = TrackletColors.textSecondary;
+      statusColor = TrackletColors.adaptiveTextSecondary(context);
     }
 
     final isHighlighted = isCurrent || (isBoarding && isAtStop);
@@ -864,8 +909,8 @@ class _TimelineRow extends StatelessWidget {
             style: TextStyle(
               color:
                   isHighlighted
-                      ? TrackletColors.textPrimary
-                      : TrackletColors.textSecondary,
+                      ? TrackletColors.adaptiveTextPrimary(context)
+                      : TrackletColors.adaptiveTextSecondary(context),
               fontSize: 11,
               fontWeight: isHighlighted ? FontWeight.w800 : FontWeight.w600,
             ),
@@ -915,6 +960,8 @@ class _FooterRow extends StatelessWidget {
             ? 'Scheduled departure · live location unavailable'
             : bus == null
             ? 'Live bus location unavailable'
+            : !bus!.hasValidLocation
+            ? 'No GPS fix · Location unavailable'
             : 'Updated ${TransitFormatter.formatLastUpdated(bus!.lastUpdated)}';
 
     final hasValidEta = arrival?.eta.isValid == true;
@@ -930,10 +977,10 @@ class _FooterRow extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.access_time_rounded,
+                  Icon(
+                    TrackletIcons.clock,
                     size: 14,
-                    color: TrackletColors.textSecondary,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                   const SizedBox(width: 5),
                   Flexible(
@@ -941,8 +988,8 @@ class _FooterRow extends StatelessWidget {
                       freshnessText,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -977,8 +1024,8 @@ class _FooterRow extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '(~${arrival!.eta.minutes} min away)',
-                      style: const TextStyle(
-                        color: TrackletColors.textSecondary,
+                      style: TextStyle(
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -995,22 +1042,22 @@ class _FooterRow extends StatelessWidget {
                   ),
                 ),
               ] else ...[
-                const Row(
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'ETA',
                       style: TextStyle(
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       'Unavailable',
                       style: TextStyle(
-                        color: TrackletColors.textSecondary,
+                        color: TrackletColors.adaptiveTextSecondary(context),
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1035,32 +1082,36 @@ class _FooterRow extends StatelessWidget {
                   },
           style: ElevatedButton.styleFrom(
             backgroundColor: TrackletColors.primary,
-            foregroundColor: Colors.white,
+            foregroundColor: TrackletColors.pure,
             elevation: 0,
             minimumSize: const Size(48, 48),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13),
+            shape: const RoundedRectangleBorder(
+              borderRadius: TrackletRadii.roundedButton,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.map_outlined, size: 16, color: Colors.white),
+              const Icon(
+                TrackletIcons.map,
+                size: 16,
+                color: TrackletColors.pure,
+              ),
               const SizedBox(width: 6),
               Text(
                 bus == null ? 'Open map' : 'Track bus',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: TrackletColors.pure,
                 ),
               ),
               const SizedBox(width: 3),
               const Icon(
-                Icons.north_east_rounded,
+                TrackletIcons.externalLink,
                 size: 13,
-                color: Colors.white,
+                color: TrackletColors.pure,
               ),
             ],
           ),
@@ -1078,55 +1129,97 @@ class _StatusPill extends StatelessWidget {
   const _StatusPill({
     required this.status,
     required this.isStale,
+    this.hasLocation = true,
     this.isRouteUncertain = false,
   });
 
   final BusStatus status;
   final bool isStale;
+  final bool hasLocation;
   final bool isRouteUncertain;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final String label;
     final Color color;
     final Color background;
     final IconData icon;
 
-    if (isStale) {
+    if (!hasLocation) {
+      label = 'No GPS fix';
+      color =
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.textSecondary;
+      background =
+          isDark
+              ? TrackletColors.darkSurfaceContainerHigh
+              : TrackletColors.alternate;
+      icon = TrackletIcons.cloudOff;
+    } else if (isStale) {
       label = 'Stale';
-      color = TrackletColors.textSecondary;
-      background = TrackletColors.alternate;
-      icon = Icons.history_rounded;
+      color =
+          isDark
+              ? TrackletColors.darkTextSecondary
+              : TrackletColors.textSecondary;
+      background =
+          isDark
+              ? TrackletColors.darkSurfaceContainerHigh
+              : TrackletColors.alternate;
+      icon = TrackletIcons.history;
     } else if (isRouteUncertain) {
       label = 'Route uncertain';
-      color = TrackletColors.warningStrong;
-      background = TrackletColors.notificationYellowBg;
-      icon = Icons.help_outline_rounded;
+      color =
+          isDark
+              ? TrackletColors.onWarningContainerDark
+              : TrackletColors.warningStrong;
+      background =
+          isDark
+              ? TrackletColors.warningContainerDark
+              : TrackletColors.notificationYellowBg;
+      icon = TrackletIcons.helpCircle;
     } else {
       switch (status) {
         case BusStatus.live:
           label = 'Live';
-          color = TrackletColors.busLive;
-          background = TrackletColors.busLiveBg;
-          icon = Icons.sensors_rounded;
+          color =
+              isDark ? TrackletColors.busLiveTextDark : TrackletColors.busLive;
+          background =
+              isDark ? TrackletColors.busLiveBgDark : TrackletColors.busLiveBg;
+          icon = TrackletIcons.activity;
           break;
         case BusStatus.delayed:
           label = 'Delayed';
-          color = TrackletColors.busDelayed;
-          background = TrackletColors.busDelayedBg;
-          icon = Icons.warning_amber_rounded;
+          color =
+              isDark
+                  ? TrackletColors.busDelayedTextDark
+                  : TrackletColors.busDelayed;
+          background =
+              isDark
+                  ? TrackletColors.busDelayedBgDark
+                  : TrackletColors.busDelayedBg;
+          icon = TrackletIcons.alertTriangle;
           break;
         case BusStatus.due:
           label = 'At stop';
-          color = TrackletColors.busDue;
-          background = TrackletColors.busDueBg;
-          icon = Icons.directions_bus_rounded;
+          color =
+              isDark ? TrackletColors.busDueTextDark : TrackletColors.busDue;
+          background =
+              isDark ? TrackletColors.busDueBgDark : TrackletColors.busDueBg;
+          icon = TrackletIcons.bus;
           break;
         case BusStatus.offline:
           label = 'Offline';
-          color = TrackletColors.busOffline;
-          background = TrackletColors.busOfflineBg;
-          icon = Icons.cloud_off_rounded;
+          color =
+              isDark
+                  ? TrackletColors.busOfflineTextDark
+                  : TrackletColors.busOffline;
+          background =
+              isDark
+                  ? TrackletColors.busOfflineBgDark
+                  : TrackletColors.busOfflineBg;
+          icon = TrackletIcons.cloudOff;
           break;
       }
     }
@@ -1135,7 +1228,7 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: TrackletRadii.roundedCard,
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
@@ -1193,13 +1286,14 @@ class _FullRouteSheet extends StatelessWidget {
       }
     }
 
+    final isDark = TrackletColors.isDark(context);
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
-      decoration: const BoxDecoration(
-        color: TrackletColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: TrackletColors.adaptiveSurfaceElevated(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1209,8 +1303,8 @@ class _FullRouteSheet extends StatelessWidget {
             width: 38,
             height: 4,
             decoration: BoxDecoration(
-              color: TrackletColors.border,
-              borderRadius: BorderRadius.circular(2),
+              color: TrackletColors.adaptiveBorder(context),
+              borderRadius: TrackletRadii.roundedXs,
             ),
           ),
           Padding(
@@ -1223,8 +1317,8 @@ class _FullRouteSheet extends StatelessWidget {
                     children: [
                       Text(
                         route.name,
-                        style: const TextStyle(
-                          color: TrackletColors.textPrimary,
+                        style: TextStyle(
+                          color: TrackletColors.adaptiveTextPrimary(context),
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                         ),
@@ -1232,8 +1326,8 @@ class _FullRouteSheet extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${route.code} · ${orderedStops.length} campus stops',
-                        style: const TextStyle(
-                          color: TrackletColors.textSecondary,
+                        style: TextStyle(
+                          color: TrackletColors.adaptiveTextSecondary(context),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1243,21 +1337,24 @@ class _FullRouteSheet extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: Icon(
+                    TrackletIcons.x,
+                    color: TrackletColors.adaptiveTextSecondary(context),
+                  ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, color: TrackletColors.border),
+          Divider(height: 1, color: TrackletColors.adaptiveDivider(context)),
           Flexible(
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               itemCount: orderedStops.length,
               separatorBuilder:
-                  (context, index) => const Divider(
+                  (context, index) => Divider(
                     height: 1,
                     indent: 36,
-                    color: TrackletColors.border,
+                    color: TrackletColors.adaptiveDivider(context),
                   ),
               itemBuilder: (context, index) {
                 final s = orderedStops[index];
@@ -1301,19 +1398,28 @@ class _FullRouteSheet extends StatelessWidget {
                         decoration: BoxDecoration(
                           color:
                               isCurrent
-                                  ? TrackletColors.primary
+                                  ? (isDark
+                                      ? TrackletColors.primaryDark
+                                      : TrackletColors.primary)
                                   : isBoarding
-                                  ? TrackletColors.busLive
+                                  ? (isDark
+                                      ? TrackletColors.busLiveTextDark
+                                      : TrackletColors.busLive)
                                   : isPassed
-                                  ? TrackletColors.textTertiary
-                                  : TrackletColors.border,
+                                  ? (isDark
+                                      ? TrackletColors
+                                          .darkSurfaceContainerHighest
+                                      : TrackletColors.textTertiary)
+                                  : (isDark
+                                      ? TrackletColors.darkBorder
+                                      : TrackletColors.border),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Text(
                             '${index + 1}',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: TrackletColors.pure,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1327,8 +1433,12 @@ class _FullRouteSheet extends StatelessWidget {
                           style: TextStyle(
                             color:
                                 isCurrent || isBoarding
-                                    ? TrackletColors.textPrimary
-                                    : TrackletColors.textSecondary,
+                                    ? TrackletColors.adaptiveTextPrimary(
+                                      context,
+                                    )
+                                    : TrackletColors.adaptiveTextSecondary(
+                                      context,
+                                    ),
                             fontSize: 15,
                             fontWeight:
                                 isCurrent || isBoarding
@@ -1344,13 +1454,19 @@ class _FullRouteSheet extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: TrackletColors.background2,
-                            borderRadius: BorderRadius.circular(8),
+                            color:
+                                isDark
+                                    ? TrackletColors.primaryContainerDark
+                                    : TrackletColors.background2,
+                            borderRadius: TrackletRadii.roundedSm,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Bus location',
                             style: TextStyle(
-                              color: TrackletColors.primary,
+                              color:
+                                  isDark
+                                      ? TrackletColors.primaryDark
+                                      : TrackletColors.primary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1363,13 +1479,19 @@ class _FullRouteSheet extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: TrackletColors.busLiveBg,
-                            borderRadius: BorderRadius.circular(8),
+                            color:
+                                isDark
+                                    ? TrackletColors.busLiveBgDark
+                                    : TrackletColors.busLiveBg,
+                            borderRadius: TrackletRadii.roundedSm,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Your stop',
                             style: TextStyle(
-                              color: TrackletColors.busLive,
+                              color:
+                                  isDark
+                                      ? TrackletColors.busLiveTextDark
+                                      : TrackletColors.busLive,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1402,56 +1524,63 @@ class _ScheduledDepartureSummary extends StatelessWidget {
   final BusRoute route;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              route.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: TrackletColors.textPrimary,
-                fontSize: 16,
-                height: 1.2,
-                fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                route.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: TrackletColors.adaptiveTextPrimary(context),
+                  fontSize: 16,
+                  height: 1.2,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              departure.isSpecial
-                  ? 'Special scheduled departure'
-                  : 'Scheduled route departure',
-              style: const TextStyle(
-                color: TrackletColors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+              const SizedBox(height: 5),
+              Text(
+                departure.isSpecial
+                    ? 'Special scheduled departure'
+                    : 'Scheduled route departure',
+                style: TextStyle(
+                  color: TrackletColors.adaptiveTextSecondary(context),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(width: 12),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: TrackletColors.busDueBg,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          departure.formattedTime,
-          style: const TextStyle(
-            color: TrackletColors.primary,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            fontFeatures: [FontFeature.tabularFigures()],
+            ],
           ),
         ),
-      ),
-    ],
-  );
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color:
+                isDark
+                    ? TrackletColors.primaryContainerDark
+                    : TrackletColors.busDueBg,
+            borderRadius: TrackletRadii.roundedBanner,
+          ),
+          child: Text(
+            departure.formattedTime,
+            style: TextStyle(
+              color:
+                  isDark ? TrackletColors.primaryDark : TrackletColors.primary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _NoArrival extends StatelessWidget {
@@ -1462,17 +1591,20 @@ class _NoArrival extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      const Icon(
-        Icons.schedule_rounded,
-        color: TrackletColors.primary,
+      Icon(
+        TrackletIcons.clock,
+        color:
+            TrackletColors.isDark(context)
+                ? TrackletColors.primaryDark
+                : TrackletColors.primary,
         size: 23,
       ),
       const SizedBox(width: 11),
       Expanded(
         child: Text(
           'No active buses are serving ${stop.name} right now.',
-          style: const TextStyle(
-            color: TrackletColors.textSecondary,
+          style: TextStyle(
+            color: TrackletColors.adaptiveTextSecondary(context),
             fontSize: 14,
             height: 1.35,
             fontWeight: FontWeight.w600,

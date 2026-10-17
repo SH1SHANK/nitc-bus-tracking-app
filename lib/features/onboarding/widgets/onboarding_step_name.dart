@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/radii.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -43,6 +44,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
   @override
   Widget build(BuildContext context) {
     final isValid = _currentName.trim().length >= 2;
+    final isDark = TrackletColors.isDark(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
@@ -59,7 +61,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
             style: TrackletTypography.displayLarge.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: TrackletColors.textPrimary,
+              color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
           const SizedBox(height: 6),
@@ -68,7 +70,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
           RichText(
             text: TextSpan(
               style: TrackletTypography.bodySmall.copyWith(
-                color: TrackletColors.textSecondary,
+                color: TrackletColors.adaptiveTextSecondary(context),
                 fontSize: 12,
                 height: 1.4,
               ),
@@ -105,7 +107,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
           Text(
             'What is your full name?',
             style: TrackletTypography.titleSmall.copyWith(
-              color: TrackletColors.textSecondary,
+              color: TrackletColors.adaptiveTextSecondary(context),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -115,15 +117,23 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
           Container(
             height: 54,
             decoration: BoxDecoration(
-              color: TrackletColors.background,
-              borderRadius: BorderRadius.circular(12),
+              color:
+                  isDark
+                      ? TrackletColors.darkSurfaceContainerHighest
+                      : TrackletColors.background,
+              borderRadius: TrackletRadii.roundedCard,
               border: Border.all(
-                color: isValid ? TrackletColors.primary : TrackletColors.border,
+                color:
+                    isValid
+                        ? TrackletColors.primary
+                        : (isDark
+                            ? TrackletColors.darkBorder
+                            : TrackletColors.border),
                 width: 2.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -132,9 +142,9 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
               children: [
-                const TrackletIcon(
+                TrackletIcon(
                   TrackletIcons.profile,
-                  color: TrackletColors.textSecondary,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -142,10 +152,10 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                   child: TextField(
                     controller: _controller,
                     textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'e.g. Shashank Mergu',
                       hintStyle: TextStyle(
-                        color: TrackletColors.textTertiary,
+                        color: TrackletColors.adaptiveTextMuted(context),
                         fontSize: 16,
                       ),
                       border: InputBorder.none,
@@ -153,7 +163,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     style: TrackletTypography.titleMedium.copyWith(
-                      color: TrackletColors.textPrimary,
+                      color: TrackletColors.adaptiveTextPrimary(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -162,10 +172,10 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                 ),
                 if (_currentName.isNotEmpty)
                   IconButton(
-                    icon: const TrackletIcon(
+                    icon: TrackletIcon(
                       TrackletIcons.close,
                       size: 16,
-                      color: TrackletColors.textSecondary,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                     onPressed: () {
                       _controller.clear();

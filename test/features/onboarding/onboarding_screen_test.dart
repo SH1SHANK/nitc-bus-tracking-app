@@ -46,7 +46,7 @@ class TestHostelRepo implements HostelRepository {
 
 void main() {
   group('OnboardingScreen Widget Tests', () {
-    testWidgets('welcome state shows Tracklet copy and setup progress', (
+    testWidgets('welcome state shows BusTracker copy and setup progress', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -63,7 +63,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Welcome to Tracklet'), findsOneWidget);
+      expect(find.text('Welcome to BusTracker'), findsOneWidget);
       expect(
         find.text('Campus transit, made simple.', findRichText: true),
         findsOneWidget,

@@ -27,4 +27,18 @@ class MapConfig {
   static const double maxLat = 11.3280;
   static const double minLng = 75.9220;
   static const double maxLng = 75.9460;
+
+  /// Zoom level thresholds for progressive detail filtering.
+  static const double zoomBucketDetailed = 18.5;
+  static const double zoomBucketMedium = 16.5;
+
+  /// Marker dimensions for consistent map styling.
+  static const double busMarkerSize = 48.0;
+  static const double selectedBusMarkerSize = 44.0;
+  static const double unselectedBusMarkerSize = 40.0;
+  static const double userMarkerSize = 32.0;
+  static const double stopMarkerSizeCompact = 48.0;
+  static const double stopMarkerWidthExpanded = 112.0;
+  static const double stopMarkerHeightExpanded = 60.0;
+  static const double routeArrowDistanceMeters = 180.0;
 }

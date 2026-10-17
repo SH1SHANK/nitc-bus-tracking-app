@@ -1,4 +1,5 @@
 import 'bus_position.dart';
+import 'bus_telemetry.dart';
 
 enum BusStatus {
   live,
@@ -20,6 +21,23 @@ enum BusStatus {
     BusStatus.delayed => 'Delayed',
     BusStatus.due => 'Due',
     BusStatus.offline => 'Offline',
+  };
+}
+
+/// Unified tracking and movement state for consistent presentation across map and home surfaces.
+enum BusTrackingState {
+  liveMoving,
+  liveStationary,
+  stale,
+  noLocation,
+  offline;
+
+  String get displayName => switch (this) {
+    BusTrackingState.liveMoving => 'Moving',
+    BusTrackingState.liveStationary => 'Stationary',
+    BusTrackingState.stale => 'Stale location',
+    BusTrackingState.noLocation => 'Location unavailable',
+    BusTrackingState.offline => 'Offline',
   };
 }
 
@@ -49,7 +67,30 @@ class Bus {
   final DateTime lastUpdated;
   final bool isStale;
 
-  bool get isLive => status == BusStatus.live;
+  bool get hasValidLocation => position.isValid;
+
+  bool get isLive => status == BusStatus.live && !isStale && hasValidLocation;
+
+  /// Resolves the unified tracking and freshness state for this bus.
+  BusTrackingState trackingState({DateTime Function()? clock}) {
+    if (status == BusStatus.offline) return BusTrackingState.offline;
+    if (!hasValidLocation) return BusTrackingState.noLocation;
+
+    final now = (clock ?? DateTime.now)();
+    final telemetryAge = now.difference(lastUpdated);
+    final isSkewAnomalous =
+        telemetryAge.isNegative &&
+        telemetryAge.inSeconds < -BusTelemetry.clockSkewTolerance.inSeconds;
+
+    if (isStale || telemetryAge > BusTelemetry.staleAfter || isSkewAnomalous) {
+      return BusTrackingState.stale;
+    }
+    if (position.hasSpeed &&
+        position.speedKmH < BusTelemetry.stationarySpeedThresholdKmH) {
+      return BusTrackingState.liveStationary;
+    }
+    return BusTrackingState.liveMoving;
+  }
 
   Bus copyWith({
     String? id,

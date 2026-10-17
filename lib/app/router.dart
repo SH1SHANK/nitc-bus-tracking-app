@@ -1,3 +1,4 @@
+import '../features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,8 @@ import '../data/auth/auth_state.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/reset_password_screen.dart';
 import '../features/auth/reset_password_sent_screen.dart';
+import '../features/admin/admin_dashboard_screen.dart';
+import '../features/admin/providers/admin_provider.dart';
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -71,7 +74,7 @@ CustomTransitionPage<T> _buildSmoothPage<T>({
 
 /// Creates a GoRouter instance with protected route guards and auth redirect logic.
 GoRouter createRouter({
-  String initialLocation = '/login',
+  String initialLocation = '/splash',
   Ref? ref,
   Listenable? refreshListenable,
 }) {
@@ -108,6 +111,11 @@ GoRouter createRouter({
           loc == '/create-account' ||
           loc == '/forgot-password' ||
           loc == '/reset-password-sent';
+
+      // Allow the animated splash screen to run its entrance sequence
+      if (loc == '/splash') {
+        return null;
+      }
 
       // While initializing, let splash/login load
       if (authState.status == AuthStatus.uninitialized) {
@@ -166,9 +174,35 @@ GoRouter createRouter({
         return '/';
       }
 
+      // Restrict /admin to authenticated non-guest administrators
+      if (loc.startsWith('/admin')) {
+        if (!authState.isAuthenticated) {
+          return '/login';
+        }
+        if (isGuest) {
+          return '/';
+        }
+        final adminAsync = ref.read(isAdminProvider);
+        if (adminAsync.hasValue && adminAsync.value == false) {
+          return '/';
+        }
+      }
+
       return null;
     },
     routes: [
+      // Animated Splash Route
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/splash',
+        name: 'splash',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const BusTrackerSplashScreen(),
+              beginOffset: Offset.zero,
+            ),
+      ),
       // Fullscreen Onboarding Flow
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
@@ -287,6 +321,16 @@ GoRouter createRouter({
               child: const AboutScreen(),
             ),
       ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/admin',
+        name: 'admin',
+        pageBuilder:
+            (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const AdminDashboardScreen(),
+            ),
+      ),
 
       // Main Navigation Shell (Home, Map, Profile, Settings)
       StatefulShellRoute.indexedStack(
@@ -346,6 +390,7 @@ class _RouterRefreshNotifier extends ChangeNotifier {
   _RouterRefreshNotifier(Ref ref) {
     ref.listen(authNotifierProvider, (previous, next) => notifyListeners());
     ref.listen(profileStateProvider, (previous, next) => notifyListeners());
+    ref.listen(isAdminProvider, (previous, next) => notifyListeners());
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -30,12 +31,25 @@ class OnboardingStepLoading extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxHeight < 620;
+        final isDark = TrackletColors.isDark(context);
+        final textPrimary = TrackletColors.adaptiveTextPrimary(context);
 
         return Container(
           width: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.white, Color(0xFFFAF9FF), Color(0xFFF3F7FF)],
+              colors:
+                  isDark
+                      ? const [
+                        TrackletColors.darkSurface,
+                        TrackletColors.darkBackground,
+                        TrackletColors.darkSurfaceContainerLowest,
+                      ]
+                      : const [
+                        TrackletColors.pure,
+                        TrackletColors.background2,
+                        TrackletColors.background,
+                      ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -48,9 +62,12 @@ class OnboardingStepLoading extends StatelessWidget {
               children: [
                 SizedBox(height: isCompact ? 16 : 28),
                 Text(
-                  'Welcome to Tracklet',
+                  'Welcome to BusTracker',
                   textAlign: TextAlign.center,
-                  style: TrackletTypography.displaySmall.copyWith(
+                  style: TrackletTypography.adaptive(
+                    context,
+                    TrackletTypography.displaySmall,
+                  ).copyWith(
                     fontSize: isCompact ? 28 : 32,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.7,
@@ -61,7 +78,10 @@ class OnboardingStepLoading extends StatelessWidget {
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
-                    style: TrackletTypography.headlineLarge.copyWith(
+                    style: TrackletTypography.adaptive(
+                      context,
+                      TrackletTypography.headlineLarge,
+                    ).copyWith(
                       fontSize: isCompact ? 21 : 24,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
@@ -82,11 +102,10 @@ class OnboardingStepLoading extends StatelessWidget {
                 Text(
                   'Find campus buses and keep your next ride in reach.',
                   textAlign: TextAlign.center,
-                  style: TrackletTypography.bodyMedium.copyWith(
-                    color: TrackletColors.textSecondary,
-                    fontSize: 14,
-                    height: 1.45,
-                  ),
+                  style: TrackletTypography.adaptiveSecondary(
+                    context,
+                    TrackletTypography.bodyMedium,
+                  ).copyWith(fontSize: 14, height: 1.45),
                 ).enterOnboarding(context, delay: 150.ms),
                 Expanded(
                   child: ClipRect(
@@ -124,7 +143,7 @@ class OnboardingStepLoading extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
-                        Icons.directions_bus_rounded,
+                        TrackletIcons.bus,
                         color: TrackletColors.primary,
                         size: 18,
                       ),
@@ -135,7 +154,7 @@ class OnboardingStepLoading extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TrackletTypography.titleSmall.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: TrackletColors.textPrimary,
+                            color: textPrimary,
                             fontSize: 14,
                           ),
                         ),
@@ -156,13 +175,13 @@ class OnboardingStepLoading extends StatelessWidget {
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: const Icon(TrackletIcons.refreshCw),
                     label: const Text('Try again'),
                   ),
                   const SizedBox(height: 10),
                 ],
                 Semantics(
-                  label: 'Tracklet setup progress',
+                  label: 'BusTracker setup progress',
                   value: '${(normalizedProgress * 100).round()} percent',
                   child: ClipRRect(
                     borderRadius: TrackletRadii.roundedFull,

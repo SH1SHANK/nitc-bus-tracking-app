@@ -396,7 +396,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       if (!ref.mounted) return;
       state = state.copyWith(
         loadingProgress: 1.0,
-        loadingStatus: 'You’re all set. Welcome to Tracklet.',
+        loadingStatus: 'You’re all set. Welcome to BusTracker.',
       );
       _isInitializing = false;
       if (!ref.mounted) return;

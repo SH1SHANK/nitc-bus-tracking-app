@@ -4,6 +4,8 @@ import '../../../core/formatting/transit_formatter.dart';
 import '../../../core/geo/geo_point.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
+import 'package:tracklet/design_system/tokens/radii.dart';
 import '../home_transit_logic.dart';
 
 /// Searchable bottom sheet allowing students to pick any campus stop as boarding point.
@@ -78,13 +80,23 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
 
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.75;
+    final isDark = TrackletColors.isDark(context);
+    final sheetBg = TrackletColors.adaptiveSurfaceElevated(context);
+    final border = TrackletColors.adaptiveBorder(context);
+    final textPrimary = TrackletColors.adaptiveTextPrimary(context);
+    final textSecondary = TrackletColors.adaptiveTextSecondary(context);
+    final textMuted = TrackletColors.adaptiveTextMuted(context);
+    final searchBg =
+        isDark
+            ? TrackletColors.darkSurfaceContainerHighest
+            : TrackletColors.background;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),
       margin: EdgeInsets.only(bottom: keyboardInset),
-      decoration: const BoxDecoration(
-        color: TrackletColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
@@ -97,8 +109,8 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: TrackletColors.border,
-                borderRadius: BorderRadius.circular(2),
+                color: border,
+                borderRadius: TrackletRadii.roundedXs,
               ),
             ),
             const SizedBox(height: 14),
@@ -108,11 +120,11 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Select Boarding Stop',
                       style: TextStyle(
-                        color: TrackletColors.textPrimary,
+                        color: textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -125,10 +137,7 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                       minWidth: 48,
                       minHeight: 48,
                     ),
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: TrackletColors.textSecondary,
-                    ),
+                    icon: Icon(TrackletIcons.x, color: textSecondary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -142,32 +151,28 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: TrackletColors.background,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: TrackletColors.border),
+                  color: searchBg,
+                  borderRadius: TrackletRadii.roundedBanner,
+                  border: Border.all(color: border),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    const Icon(
-                      Icons.search_rounded,
-                      color: TrackletColors.textSecondary,
-                      size: 20,
-                    ),
+                    Icon(TrackletIcons.search, color: textSecondary, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) => setState(() => _query = val),
-                        style: const TextStyle(
-                          color: TrackletColors.textPrimary,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Search campus stops…',
                           hintStyle: TextStyle(
-                            color: TrackletColors.textSecondary,
+                            color: textSecondary,
                             fontSize: 15,
                           ),
                           border: InputBorder.none,
@@ -183,9 +188,9 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                           minWidth: 44,
                           minHeight: 44,
                         ),
-                        icon: const Icon(
-                          Icons.clear_rounded,
-                          color: TrackletColors.textSecondary,
+                        icon: Icon(
+                          TrackletIcons.x,
+                          color: textSecondary,
                           size: 18,
                         ),
                         onPressed: () {
@@ -198,7 +203,7 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
               ),
             ),
             const SizedBox(height: 12),
-            const Divider(height: 1, color: TrackletColors.border),
+            Divider(height: 1, color: border),
 
             // Stop List
             Flexible(
@@ -209,8 +214,8 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                         child: Center(
                           child: Text(
                             'No stops match "$_query"',
-                            style: const TextStyle(
-                              color: TrackletColors.textSecondary,
+                            style: TextStyle(
+                              color: textSecondary,
                               fontSize: 14,
                             ),
                           ),
@@ -221,11 +226,8 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         itemCount: filteredStops.length,
                         separatorBuilder:
-                            (_, _) => const Divider(
-                              height: 1,
-                              indent: 56,
-                              color: TrackletColors.border,
-                            ),
+                            (_, _) =>
+                                Divider(height: 1, indent: 56, color: border),
                         itemBuilder: (context, index) {
                           final stop = filteredStops[index];
                           final isSelected = stop.id == widget.currentStop.id;
@@ -236,10 +238,21 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                   ? estimateWalkMinutes(distanceMeters)
                                   : null;
 
+                          final selectedTileBg =
+                              isDark
+                                  ? TrackletColors.primary.withValues(
+                                    alpha: 0.15,
+                                  )
+                                  : TrackletColors.background2;
+                          final unselectedBoxBg =
+                              isDark
+                                  ? TrackletColors.darkSurfaceContainerHighest
+                                  : TrackletColors.background;
+
                           return Material(
                             color:
                                 isSelected
-                                    ? TrackletColors.background2
+                                    ? selectedTileBg
                                     : Colors.transparent,
                             child: InkWell(
                               onTap: () {
@@ -261,15 +274,16 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                             isSelected
                                                 ? TrackletColors.primary
                                                     .withValues(alpha: 0.12)
-                                                : TrackletColors.background,
-                                        borderRadius: BorderRadius.circular(10),
+                                                : unselectedBoxBg,
+                                        borderRadius:
+                                            TrackletRadii.roundedInput,
                                       ),
                                       child: Icon(
-                                        Icons.location_on_outlined,
+                                        TrackletIcons.mapPin,
                                         color:
                                             isSelected
                                                 ? TrackletColors.primary
-                                                : TrackletColors.textSecondary,
+                                                : textSecondary,
                                         size: 20,
                                       ),
                                     ),
@@ -285,8 +299,7 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                               color:
                                                   isSelected
                                                       ? TrackletColors.primary
-                                                      : TrackletColors
-                                                          .textPrimary,
+                                                      : textPrimary,
                                               fontSize: 15,
                                               fontWeight:
                                                   isSelected
@@ -299,10 +312,8 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                             const SizedBox(height: 2),
                                             Text(
                                               '~${TransitFormatter.formatDistance(distanceMeters)} · ~$walkMinutes min walk',
-                                              style: const TextStyle(
-                                                color:
-                                                    TrackletColors
-                                                        .textSecondary,
+                                              style: TextStyle(
+                                                color: textSecondary,
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -313,15 +324,15 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                     const SizedBox(width: 10),
                                     if (isSelected)
                                       const Icon(
-                                        Icons.check_circle_rounded,
+                                        TrackletIcons.checkCircle2,
                                         color: TrackletColors.primary,
                                         size: 20,
                                       )
                                     else
                                       Text(
                                         stop.code,
-                                        style: const TextStyle(
-                                          color: TrackletColors.textTertiary,
+                                        style: TextStyle(
+                                          color: textMuted,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
                                         ),

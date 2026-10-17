@@ -6,6 +6,7 @@ import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -37,6 +38,7 @@ class StopDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final servingRoutes =
         routes.where((route) {
           if (route.stopOccurrences.isNotEmpty) {
@@ -55,23 +57,25 @@ class StopDetailSheet extends StatelessWidget {
         final minutes = TransitFormatter.estimateWalkMinutes(distance);
         walkTimeText =
             '${TransitFormatter.formatDistance(distance)} · ~${TransitFormatter.formatWalkingTime(minutes)}';
-        walkIcon = Icons.directions_walk_rounded;
+        walkIcon = TrackletIcons.footprints;
       } else {
         walkTimeText = '${TransitFormatter.formatDistance(distance)} away';
-        walkIcon = Icons.straighten_rounded;
+        walkIcon = TrackletIcons.ruler;
       }
     } else if (stop.walkingTimeMinutes > 0) {
       walkTimeText = 'About ${stop.walkingTimeMinutes} min walk';
-      walkIcon = Icons.directions_walk_rounded;
+      walkIcon = TrackletIcons.footprints;
     } else {
       walkTimeText = 'Campus stop';
-      walkIcon = Icons.place_outlined;
+      walkIcon = TrackletIcons.mapPin;
     }
 
     return Material(
-      color: TrackletColors.surfaceElevated,
+      color: TrackletColors.adaptiveSurfaceElevated(context),
       elevation: 4,
-      shadowColor: TrackletColors.textPrimary.withValues(alpha: 0.16),
+      shadowColor: TrackletColors.adaptiveTextPrimary(
+        context,
+      ).withValues(alpha: isDark ? 0.28 : 0.16),
       borderRadius: TrackletRadii.roundedLg,
       child: Container(
         constraints: BoxConstraints(
@@ -80,7 +84,7 @@ class StopDetailSheet extends StatelessWidget {
         padding: const EdgeInsets.all(TrackletSpacing.md),
         decoration: BoxDecoration(
           borderRadius: TrackletRadii.roundedLg,
-          border: Border.all(color: TrackletColors.border),
+          border: Border.all(color: TrackletColors.adaptiveCardBorder(context)),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -95,13 +99,24 @@ class StopDetailSheet extends StatelessWidget {
                     height: 42,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: TrackletColors.background2,
+                      color:
+                          isDark
+                              ? TrackletColors.primaryContainerDark
+                              : TrackletColors.background2,
                       borderRadius: TrackletRadii.roundedMd,
-                      border: Border.all(color: TrackletColors.border),
+                      border: Border.all(
+                        color:
+                            isDark
+                                ? TrackletColors.darkBorder
+                                : TrackletColors.border,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.place_rounded,
-                      color: TrackletColors.primary,
+                    child: Icon(
+                      TrackletIcons.mapPin,
+                      color:
+                          isDark
+                              ? TrackletColors.primaryDark
+                              : TrackletColors.primary,
                       size: 22,
                     ),
                   ),
@@ -116,7 +131,7 @@ class StopDetailSheet extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.titleSmall.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: TrackletColors.textPrimary,
+                            color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                         if (stop.code.isNotEmpty)
@@ -127,7 +142,9 @@ class StopDetailSheet extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TrackletTypography.caption.copyWith(
-                                color: TrackletColors.textSecondary,
+                                color: TrackletColors.adaptiveTextSecondary(
+                                  context,
+                                ),
                               ),
                             ),
                           ),
@@ -137,8 +154,8 @@ class StopDetailSheet extends StatelessWidget {
                   IconButton(
                     onPressed: onClose,
                     tooltip: 'Close stop details',
-                    icon: const Icon(Icons.close_rounded),
-                    color: TrackletColors.textSecondary,
+                    icon: const Icon(TrackletIcons.x),
+                    color: TrackletColors.adaptiveTextSecondary(context),
                     constraints: const BoxConstraints(
                       minWidth: TrackletSpacing.minTouchTarget,
                       minHeight: TrackletSpacing.minTouchTarget,
@@ -154,7 +171,7 @@ class StopDetailSheet extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TrackletTypography.bodySmall.copyWith(
-                    color: TrackletColors.textSecondary,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                 ),
               ],
@@ -164,8 +181,8 @@ class StopDetailSheet extends StatelessWidget {
                   horizontal: 10,
                   vertical: 6,
                 ),
-                decoration: const BoxDecoration(
-                  color: TrackletColors.background,
+                decoration: BoxDecoration(
+                  color: TrackletColors.adaptiveSurfaceContainer(context),
                   borderRadius: TrackletRadii.roundedSm,
                 ),
                 child: Row(
@@ -173,7 +190,7 @@ class StopDetailSheet extends StatelessWidget {
                     Icon(
                       walkIcon,
                       size: 16,
-                      color: TrackletColors.textSecondary,
+                      color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                     const SizedBox(width: TrackletSpacing.xs),
                     Expanded(
@@ -182,7 +199,7 @@ class StopDetailSheet extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TrackletTypography.bodySmall.copyWith(
-                          color: TrackletColors.textSecondary,
+                          color: TrackletColors.adaptiveTextSecondary(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -191,7 +208,7 @@ class StopDetailSheet extends StatelessWidget {
                     Text(
                       '${servingRoutes.length} ${servingRoutes.length == 1 ? 'route' : 'routes'}',
                       style: TrackletTypography.labelSmall.copyWith(
-                        color: TrackletColors.textPrimary,
+                        color: TrackletColors.adaptiveTextPrimary(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -214,17 +231,25 @@ class StopDetailSheet extends StatelessWidget {
                                 ? null
                                 : () => onSelectRoute!(route),
                         visualDensity: VisualDensity.compact,
-                        avatar: const Icon(
-                          Icons.directions_bus_rounded,
+                        avatar: Icon(
+                          TrackletIcons.bus,
                           size: 15,
-                          color: TrackletColors.primary,
+                          color:
+                              isDark
+                                  ? TrackletColors.primaryDark
+                                  : TrackletColors.primary,
                         ),
                         labelStyle: TrackletTypography.labelSmall.copyWith(
-                          color: TrackletColors.textPrimary,
+                          color: TrackletColors.adaptiveTextPrimary(context),
                           fontWeight: FontWeight.w600,
                         ),
-                        backgroundColor: TrackletColors.surfaceElevated,
-                        side: const BorderSide(color: TrackletColors.border),
+                        backgroundColor:
+                            isDark
+                                ? TrackletColors.darkSurfaceContainerHighest
+                                : TrackletColors.surfaceElevated,
+                        side: BorderSide(
+                          color: TrackletColors.adaptiveBorder(context),
+                        ),
                         shape: const StadiumBorder(),
                       ),
                   ],
@@ -247,7 +272,7 @@ class StopDetailSheet extends StatelessWidget {
                       Text(
                         'Live Buses',
                         style: TrackletTypography.labelSmall.copyWith(
-                          color: TrackletColors.textSecondary,
+                          color: TrackletColors.adaptiveTextSecondary(context),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -266,19 +291,28 @@ class StopDetailSheet extends StatelessWidget {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: TrackletColors.background2,
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkSurfaceContainer
+                                      : TrackletColors.background2,
                               borderRadius: TrackletRadii.roundedMd,
-                              border: Border.all(color: TrackletColors.border),
+                              border: Border.all(
+                                color: TrackletColors.adaptiveBorder(context),
+                              ),
                             ),
                             child: Row(
                               children: [
                                 Icon(
-                                  Icons.directions_bus_rounded,
+                                  TrackletIcons.bus,
                                   size: 18,
                                   color:
                                       bus.isStale
-                                          ? TrackletColors.textSecondary
-                                          : TrackletColors.busLive,
+                                          ? TrackletColors.adaptiveTextSecondary(
+                                            context,
+                                          )
+                                          : (isDark
+                                              ? TrackletColors.busLiveTextDark
+                                              : TrackletColors.busLive),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -293,7 +327,10 @@ class StopDetailSheet extends StatelessWidget {
                                         style: TrackletTypography.bodySmall
                                             .copyWith(
                                               fontWeight: FontWeight.w700,
-                                              color: TrackletColors.textPrimary,
+                                              color:
+                                                  TrackletColors.adaptiveTextPrimary(
+                                                    context,
+                                                  ),
                                             ),
                                       ),
                                       Text(
@@ -302,11 +339,12 @@ class StopDetailSheet extends StatelessWidget {
                                             : (bus.position.speedKmH > 1
                                                 ? '${bus.position.speedKmH.toStringAsFixed(0)} km/h • In transit'
                                                 : 'At stop / Dwelling'),
-                                        style: TrackletTypography.caption
-                                            .copyWith(
-                                              color:
-                                                  TrackletColors.textSecondary,
-                                            ),
+                                        style: TrackletTypography.caption.copyWith(
+                                          color:
+                                              TrackletColors.adaptiveTextSecondary(
+                                                context,
+                                              ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -319,9 +357,14 @@ class StopDetailSheet extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color:
                                         bus.isStale
-                                            ? TrackletColors.alternate
-                                            : TrackletColors.busLiveBg,
-                                    borderRadius: BorderRadius.circular(10),
+                                            ? (isDark
+                                                ? TrackletColors
+                                                    .darkSurfaceContainerHigh
+                                                : TrackletColors.alternate)
+                                            : (isDark
+                                                ? TrackletColors.busLiveBgDark
+                                                : TrackletColors.busLiveBg),
+                                    borderRadius: TrackletRadii.roundedInput,
                                   ),
                                   child: Text(
                                     bus.isStale ? 'Stale' : 'LIVE',
@@ -330,8 +373,13 @@ class StopDetailSheet extends StatelessWidget {
                                       fontWeight: FontWeight.w800,
                                       color:
                                           bus.isStale
-                                              ? TrackletColors.textSecondary
-                                              : TrackletColors.busLive,
+                                              ? TrackletColors.adaptiveTextSecondary(
+                                                context,
+                                              )
+                                              : (isDark
+                                                  ? TrackletColors
+                                                      .busLiveTextDark
+                                                  : TrackletColors.busLive),
                                     ),
                                   ),
                                 ),
@@ -352,25 +400,39 @@ class StopDetailSheet extends StatelessWidget {
                     horizontal: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: TrackletColors.primary.withValues(alpha: 0.08),
+                    color:
+                        isDark
+                            ? TrackletColors.primaryContainerDark
+                            : TrackletColors.primary.withValues(alpha: 0.08),
                     borderRadius: TrackletRadii.roundedMd,
                     border: Border.all(
-                      color: TrackletColors.primary.withValues(alpha: 0.25),
+                      color:
+                          isDark
+                              ? TrackletColors.primaryDark.withValues(
+                                alpha: 0.3,
+                              )
+                              : TrackletColors.primary.withValues(alpha: 0.25),
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.check_circle_rounded,
+                      Icon(
+                        TrackletIcons.checkCircle2,
                         size: 16,
-                        color: TrackletColors.primary,
+                        color:
+                            isDark
+                                ? TrackletColors.primaryDark
+                                : TrackletColors.primary,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'Your selected boarding stop',
                         style: TrackletTypography.bodySmall.copyWith(
-                          color: TrackletColors.primary,
+                          color:
+                              isDark
+                                  ? TrackletColors.primaryDark
+                                  : TrackletColors.primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -383,11 +445,19 @@ class StopDetailSheet extends StatelessWidget {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: onSetAsDefaultStop,
-                    icon: const Icon(Icons.star_outline_rounded, size: 16),
+                    icon: const Icon(TrackletIcons.star, size: 16),
                     label: const Text('Set as Boarding Stop'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: TrackletColors.primary,
-                      side: const BorderSide(color: TrackletColors.primary),
+                      foregroundColor:
+                          isDark
+                              ? TrackletColors.primaryDark
+                              : TrackletColors.primary,
+                      side: BorderSide(
+                        color:
+                            isDark
+                                ? TrackletColors.primaryDark
+                                : TrackletColors.primary,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: const RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedMd,

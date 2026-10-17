@@ -1,10 +1,12 @@
+import '../../tokens/radii.dart';
 import 'package:flutter/material.dart';
+import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 
 import '../../tokens/colors.dart';
 import '../../tokens/typography.dart';
 import '../tracklet_button.dart';
 
-/// Authentic Attendrix Bottom Sheet: "How Tracklet Calculates Bus Departures".
+/// Authentic Attendrix Bottom Sheet: "How BusTracker Calculates Bus Departures".
 class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
   const HowTrackletShowsBusTimingsBottomSheet({super.key});
 
@@ -20,6 +22,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
+
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(28.0),
@@ -27,7 +31,7 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        color: TrackletColors.surface,
+        color: TrackletColors.adaptiveSurfaceElevated(context),
         padding: const EdgeInsets.fromLTRB(24.0, 12.0, 24.0, 24.0),
         child: SafeArea(
           top: false,
@@ -42,26 +46,26 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
                   height: 5.0,
                   margin: const EdgeInsets.only(bottom: 16.0),
                   decoration: BoxDecoration(
-                    color: TrackletColors.border,
-                    borderRadius: BorderRadius.circular(999.0),
+                    color: TrackletColors.adaptiveBorder(context),
+                    borderRadius: TrackletRadii.roundedFull,
                   ),
                 ),
               ),
 
               // Title
               Text(
-                'How Tracklet Shows Bus Timings',
+                'How BusTracker Shows Bus Timings',
                 style: TrackletTypography.displaySmall.copyWith(
                   fontSize: 22.0,
                   fontWeight: FontWeight.w700,
-                  color: TrackletColors.textPrimary,
+                  color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
               const SizedBox(height: 6.0),
               Text(
-                'Tracklet uses official NIT Calicut transit timetables along with your walking distance to help you decide whether to walk to the stop.',
+                'BusTracker uses official NIT Calicut transit timetables along with your walking distance to help you decide whether to walk to the stop.',
                 style: TrackletTypography.bodySmall.copyWith(
-                  color: TrackletColors.textSecondary,
+                  color: TrackletColors.adaptiveTextSecondary(context),
                   fontSize: 13.0,
                   height: 1.4,
                 ),
@@ -70,30 +74,48 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
 
               // Recommendation explanations
               _buildStatusCard(
-                icon: '🟢',
+                context,
+                icon: TrackletIcons.checkCircle2,
+                iconColor: TrackletColors.success,
                 title: 'Worth Waiting',
                 description:
                     'The bus is scheduled soon and you have comfortable time to walk to the nearest stop.',
-                color: TrackletColors.success.withValues(alpha: 0.1),
-                borderColor: TrackletColors.success.withValues(alpha: 0.3),
+                color: TrackletColors.success.withValues(
+                  alpha: isDark ? 0.2 : 0.1,
+                ),
+                borderColor: TrackletColors.success.withValues(
+                  alpha: isDark ? 0.4 : 0.3,
+                ),
               ),
               const SizedBox(height: 10.0),
               _buildStatusCard(
-                icon: '⚠️',
+                context,
+                icon: TrackletIcons.alertTriangle,
+                iconColor: TrackletColors.warning,
                 title: 'Hurry',
                 description:
                     'Departure is approaching! Walk briskly to make sure you catch this shuttle.',
-                color: TrackletColors.warning.withValues(alpha: 0.1),
-                borderColor: TrackletColors.warning.withValues(alpha: 0.3),
+                color: TrackletColors.warning.withValues(
+                  alpha: isDark ? 0.2 : 0.1,
+                ),
+                borderColor: TrackletColors.warning.withValues(
+                  alpha: isDark ? 0.4 : 0.3,
+                ),
               ),
               const SizedBox(height: 10.0),
               _buildStatusCard(
-                icon: '🚶',
+                context,
+                icon: TrackletIcons.footprints,
+                iconColor: TrackletColors.tertiary,
                 title: 'Skip This Bus',
                 description:
                     'Walking to the stop will take longer than remaining departure time. Consider catching the next shuttle.',
-                color: TrackletColors.tertiary.withValues(alpha: 0.1),
-                borderColor: TrackletColors.tertiary.withValues(alpha: 0.3),
+                color: TrackletColors.tertiary.withValues(
+                  alpha: isDark ? 0.2 : 0.1,
+                ),
+                borderColor: TrackletColors.tertiary.withValues(
+                  alpha: isDark ? 0.4 : 0.3,
+                ),
               ),
               const SizedBox(height: 24.0),
 
@@ -111,8 +133,10 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard({
-    required String icon,
+  Widget _buildStatusCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
     required String title,
     required String description,
     required Color color,
@@ -122,13 +146,13 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(14.0),
+        borderRadius: TrackletRadii.roundedBanner,
         border: Border.all(color: borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(icon, style: const TextStyle(fontSize: 18.0)),
+          Icon(icon, size: 20.0, color: iconColor),
           const SizedBox(width: 10.0),
           Expanded(
             child: Column(
@@ -136,18 +160,18 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.0,
                     fontWeight: FontWeight.bold,
-                    color: TrackletColors.textPrimary,
+                    color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 2.0),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.0,
-                    color: TrackletColors.textSecondary,
+                    color: TrackletColors.adaptiveTextSecondary(context),
                     height: 1.3,
                   ),
                 ),
