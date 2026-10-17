@@ -111,21 +111,24 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
     // Stage B: Suspension settling with damped pneumatic rebound (32% -> 48%)
     _busBounceY = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: -5.0).chain(
-          CurveTween(curve: Curves.easeOutQuad),
-        ),
+        tween: Tween<double>(
+          begin: 0.0,
+          end: -5.0,
+        ).chain(CurveTween(curve: Curves.easeOutQuad)),
         weight: 38,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: -5.0, end: 2.5).chain(
-          CurveTween(curve: Curves.easeInOutQuad),
-        ),
+        tween: Tween<double>(
+          begin: -5.0,
+          end: 2.5,
+        ).chain(CurveTween(curve: Curves.easeInOutQuad)),
         weight: 34,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 2.5, end: 0.0).chain(
-          CurveTween(curve: Curves.easeInQuad),
-        ),
+        tween: Tween<double>(
+          begin: 2.5,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeInQuad)),
         weight: 28,
       ),
     ]).animate(
@@ -292,9 +295,8 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
       });
     }
 
-    final brandPrimary = isDark
-        ? TrackletColors.primaryDark
-        : TrackletColors.primary;
+    final brandPrimary =
+        isDark ? TrackletColors.primaryDark : TrackletColors.primary;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -308,9 +310,10 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isDark
-                        ? TrackletColors.onboardingGradientDark
-                        : TrackletColors.onboardingGradientLight,
+                    colors:
+                        isDark
+                            ? TrackletColors.onboardingGradientDark
+                            : TrackletColors.onboardingGradientLight,
                   ),
                 ),
               ),
@@ -371,7 +374,9 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                                         borderRadius: BorderRadius.circular(18),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: brandPrimary.withValues(alpha: isDark ? 0.35 : 0.22),
+                                            color: brandPrimary.withValues(
+                                              alpha: isDark ? 0.35 : 0.22,
+                                            ),
                                             blurRadius: 20,
                                             offset: const Offset(0, 8),
                                             spreadRadius: 1,
@@ -439,9 +444,10 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 3.2,
-                                color: isDark
-                                    ? TrackletColors.darkTextSecondary
-                                    : TrackletColors.textSecondary,
+                                color:
+                                    isDark
+                                        ? TrackletColors.darkTextSecondary
+                                        : TrackletColors.textSecondary,
                               ),
                             ),
                           ),
@@ -459,7 +465,10 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
               right: 0,
               bottom: 38,
               child: AnimatedBuilder(
-                animation: Listenable.merge([_timelineController, _ambientController]),
+                animation: Listenable.merge([
+                  _timelineController,
+                  _ambientController,
+                ]),
                 builder: (context, _) {
                   return SlideTransition(
                     position: _statusSlide,
@@ -474,17 +483,23 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? TrackletColors.darkSurfaceContainer.withValues(alpha: 0.75)
-                                  : Colors.white.withValues(alpha: 0.85),
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkSurfaceContainer
+                                          .withValues(alpha: 0.75)
+                                      : Colors.white.withValues(alpha: 0.85),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: brandPrimary.withValues(alpha: isDark ? 0.30 : 0.18),
+                                color: brandPrimary.withValues(
+                                  alpha: isDark ? 0.30 : 0.18,
+                                ),
                                 width: 1.0,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.25 : 0.05,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -500,11 +515,21 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: TrackletColors.success.withValues(
-                                      alpha: 0.5 + 0.5 * math.sin(_ambientController.value * 2 * math.pi).abs(),
+                                      alpha:
+                                          0.5 +
+                                          0.5 *
+                                              math
+                                                  .sin(
+                                                    _ambientController.value *
+                                                        2 *
+                                                        math.pi,
+                                                  )
+                                                  .abs(),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: TrackletColors.success.withValues(alpha: 0.6),
+                                        color: TrackletColors.success
+                                            .withValues(alpha: 0.6),
                                         blurRadius: 6,
                                         spreadRadius: 1,
                                       ),
@@ -518,9 +543,10 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                                     fontFamily: 'Satoshi',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? TrackletColors.darkTextPrimary
-                                        : TrackletColors.textPrimary,
+                                    color:
+                                        isDark
+                                            ? TrackletColors.darkTextPrimary
+                                            : TrackletColors.textPrimary,
                                     letterSpacing: 0.2,
                                   ),
                                 ),
@@ -534,9 +560,10 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                               fontFamily: 'Satoshi',
                               fontSize: 10.5,
                               fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? TrackletColors.darkTextMuted
-                                  : TrackletColors.textTertiary,
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkTextMuted
+                                      : TrackletColors.textTertiary,
                               letterSpacing: 0.4,
                             ),
                           ),
@@ -572,35 +599,40 @@ class _AmbientAuraPainter extends CustomPainter {
 
     // 1. Breathing central radial aura
     final auraRadius = 140.0 + 20.0 * math.sin(progress * 2 * math.pi);
-    final auraPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          primaryColor.withValues(alpha: isDark ? 0.22 : 0.14),
-          primaryColor.withValues(alpha: isDark ? 0.08 : 0.05),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.55, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: auraRadius));
+    final auraPaint =
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              primaryColor.withValues(alpha: isDark ? 0.22 : 0.14),
+              primaryColor.withValues(alpha: isDark ? 0.08 : 0.05),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.55, 1.0],
+          ).createShader(Rect.fromCircle(center: center, radius: auraRadius));
     canvas.drawCircle(center, auraRadius, auraPaint);
 
     // 2. Outward expanding radar ripple 1
     final ring1Progress = progress;
     final ring1Radius = 50.0 + ring1Progress * 110.0;
-    final ring1Alpha = (1.0 - ring1Progress).clamp(0.0, 1.0) * (isDark ? 0.18 : 0.12);
-    final ring1Paint = Paint()
-      ..color = primaryColor.withValues(alpha: ring1Alpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+    final ring1Alpha =
+        (1.0 - ring1Progress).clamp(0.0, 1.0) * (isDark ? 0.18 : 0.12);
+    final ring1Paint =
+        Paint()
+          ..color = primaryColor.withValues(alpha: ring1Alpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2;
     canvas.drawCircle(center, ring1Radius, ring1Paint);
 
     // 3. Outward expanding radar ripple 2 (delayed phase)
     final ring2Progress = (progress + 0.5) % 1.0;
     final ring2Radius = 50.0 + ring2Progress * 110.0;
-    final ring2Alpha = (1.0 - ring2Progress).clamp(0.0, 1.0) * (isDark ? 0.15 : 0.10);
-    final ring2Paint = Paint()
-      ..color = primaryColor.withValues(alpha: ring2Alpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+    final ring2Alpha =
+        (1.0 - ring2Progress).clamp(0.0, 1.0) * (isDark ? 0.15 : 0.10);
+    final ring2Paint =
+        Paint()
+          ..color = primaryColor.withValues(alpha: ring2Alpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0;
     canvas.drawCircle(center, ring2Radius, ring2Paint);
   }
 
@@ -635,43 +667,49 @@ class _TransitRouteTracePainter extends CustomPainter {
     final currentX = startX + totalWidth * progress;
 
     // Background track line (faint)
-    final trackPaint = Paint()
-      ..color = color.withValues(alpha: isDark ? 0.15 : 0.10)
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
+    final trackPaint =
+        Paint()
+          ..color = color.withValues(alpha: isDark ? 0.15 : 0.10)
+          ..strokeWidth = 2.0
+          ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(startX, centerY), Offset(endX, centerY), trackPaint);
 
     // Active progressive trace line
-    final activePaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          color.withValues(alpha: 0.3),
-          color,
-        ],
-      ).createShader(Rect.fromLTRB(startX, 0, currentX, size.height))
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(startX, centerY), Offset(currentX, centerY), activePaint);
+    final activePaint =
+        Paint()
+          ..shader = LinearGradient(
+            colors: [color.withValues(alpha: 0.3), color],
+          ).createShader(Rect.fromLTRB(startX, 0, currentX, size.height))
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(startX, centerY),
+      Offset(currentX, centerY),
+      activePaint,
+    );
 
     // Origin Stop Beacon (Stationary)
-    final originPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    final originPaint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(startX, centerY), 3.0, originPaint);
 
     // Moving Bus / Route Head Beacon
-    final headGlowPaint = Paint()
-      ..color = color.withValues(alpha: 0.45)
-      ..style = PaintingStyle.fill;
+    final headGlowPaint =
+        Paint()
+          ..color = color.withValues(alpha: 0.45)
+          ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(currentX, centerY), 5.5, headGlowPaint);
     canvas.drawCircle(Offset(currentX, centerY), 3.2, originPaint);
 
     // Terminal Stop Beacon (lights up as progress nears end)
     if (progress > 0.85) {
       final terminalAlpha = ((progress - 0.85) / 0.15).clamp(0.0, 1.0);
-      final terminalPaint = Paint()
-        ..color = color.withValues(alpha: terminalAlpha)
-        ..style = PaintingStyle.fill;
+      final terminalPaint =
+          Paint()
+            ..color = color.withValues(alpha: terminalAlpha)
+            ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(endX, centerY), 3.0, terminalPaint);
     }
   }

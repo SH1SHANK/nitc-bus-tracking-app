@@ -20,10 +20,7 @@ class AppInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const TrackletBrandLockup(
-                logoSize: 32.0,
-                wordmarkHeight: 18.0,
-              ),
+              const TrackletBrandLockup(logoSize: 32.0, wordmarkHeight: 18.0),
               const Spacer(),
               Text(
                 'About BusTracker',

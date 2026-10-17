@@ -57,7 +57,8 @@ class _MockTransitRepository implements TransitRepository {
   Future<List<BusStopEvent>> getBusStopEvents(String tripId) async => const [];
 
   @override
-  Future<Stop?> getNearestStop(GeoPoint userLocation) async => stops.firstOrNull;
+  Future<Stop?> getNearestStop(GeoPoint userLocation) async =>
+      stops.firstOrNull;
 
   @override
   Future<List<BusRoute>> getRoutes({List<Stop>? knownStops}) async => routes;
@@ -79,47 +80,53 @@ void main() {
   });
 
   group('TransitCacheMetrics', () {
-    test('accurately increments hits, misses, dedups, broadcasts, and polls', () {
-      final metrics = TransitCacheMetrics.instance;
-      expect(metrics.totalCacheHits, 0);
-      expect(metrics.totalCacheMisses, 0);
-      expect(metrics.totalDeduplicatedRequests, 0);
+    test(
+      'accurately increments hits, misses, dedups, broadcasts, and polls',
+      () {
+        final metrics = TransitCacheMetrics.instance;
+        expect(metrics.totalCacheHits, 0);
+        expect(metrics.totalCacheMisses, 0);
+        expect(metrics.totalDeduplicatedRequests, 0);
 
-      metrics.recordHit('stops');
-      metrics.recordHit('stops');
-      metrics.recordMiss('stops');
-      metrics.recordDeduplicated('stops');
-      metrics.recordRealtimeBroadcast();
-      metrics.recordFallbackPoll();
+        metrics.recordHit('stops');
+        metrics.recordHit('stops');
+        metrics.recordMiss('stops');
+        metrics.recordDeduplicated('stops');
+        metrics.recordRealtimeBroadcast();
+        metrics.recordFallbackPoll();
 
-      expect(metrics.totalCacheHits, 2);
-      expect(metrics.totalCacheMisses, 1);
-      expect(metrics.totalDeduplicatedRequests, 1);
-      expect(metrics.totalRealtimeBroadcasts, 1);
-      expect(metrics.totalFallbackPolls, 1);
-      expect(metrics.getHits('stops'), 2);
-      expect(metrics.getMisses('stops'), 1);
-      expect(metrics.getDeduplications('stops'), 1);
+        expect(metrics.totalCacheHits, 2);
+        expect(metrics.totalCacheMisses, 1);
+        expect(metrics.totalDeduplicatedRequests, 1);
+        expect(metrics.totalRealtimeBroadcasts, 1);
+        expect(metrics.totalFallbackPolls, 1);
+        expect(metrics.getHits('stops'), 2);
+        expect(metrics.getMisses('stops'), 1);
+        expect(metrics.getDeduplications('stops'), 1);
 
-      final snapshot = metrics.snapshot();
-      expect(snapshot['totalCacheHits'], 2);
-      expect(snapshot['totalCacheMisses'], 1);
-      expect(snapshot['totalRealtimeBroadcasts'], 1);
-      expect(snapshot['totalFallbackPolls'], 1);
-    });
+        final snapshot = metrics.snapshot();
+        expect(snapshot['totalCacheHits'], 2);
+        expect(snapshot['totalCacheMisses'], 1);
+        expect(snapshot['totalRealtimeBroadcasts'], 1);
+        expect(snapshot['totalFallbackPolls'], 1);
+      },
+    );
   });
 
   group('SupabaseTransitRepository In-Flight Coalescing & Cache Behavior', () {
-    test('returns empty without making network calls when client is null', () async {
-      final repo = SupabaseTransitRepository(null);
-      expect(await repo.getStops(), isEmpty);
-      expect(await repo.getRoutes(), isEmpty);
-      expect(await repo.getRouteStops('r1'), isEmpty);
-      expect(await repo.getScheduledDepartures(), isEmpty);
-      expect(await repo.getActiveBuses(), isEmpty);
-      expect(await repo.watchActiveBuses().first, isEmpty);
-      repo.dispose();
-    });
+    test(
+      'returns empty without making network calls when client is null',
+      () async {
+        final repo = SupabaseTransitRepository(null);
+        expect(await repo.getStops(), isEmpty);
+        expect(await repo.getRoutes(), isEmpty);
+        expect(await repo.getRouteStops('r1'), isEmpty);
+        expect(await repo.getScheduledDepartures(), isEmpty);
+        expect(await repo.getActiveBuses(), isEmpty);
+        expect(await repo.watchActiveBuses().first, isEmpty);
+        repo.dispose();
+      },
+    );
 
     test('static cache invalidation clears cached reference data', () async {
       final repo = SupabaseTransitRepository(null);
@@ -150,115 +157,129 @@ void main() {
   });
 
   group('Live Transit Stream Single Source of Truth', () {
-    test('LiveTransitPollingNotifier receives live stream events without periodic polling timer', () async {
-      final mockRepo = _MockTransitRepository();
-      final container = ProviderContainer(
-        overrides: [
-          transitRepositoryProvider.overrideWithValue(mockRepo),
-        ],
-      );
-      addTearDown(container.dispose);
-      final sub = container.listen(liveTransitPollingProvider, (_, _) {});
-      addTearDown(sub.close);
+    test(
+      'LiveTransitPollingNotifier receives live stream events without periodic polling timer',
+      () async {
+        final mockRepo = _MockTransitRepository();
+        final container = ProviderContainer(
+          overrides: [transitRepositoryProvider.overrideWithValue(mockRepo)],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(liveTransitPollingProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      final notifier = container.read(liveTransitPollingProvider.notifier);
-      final initial = container.read(liveTransitPollingProvider);
-      expect(initial.buses, isEmpty);
+        final notifier = container.read(liveTransitPollingProvider.notifier);
+        final initial = container.read(liveTransitPollingProvider);
+        expect(initial.buses, isEmpty);
 
-      // Verify watchActiveBuses was called to subscribe to live stream
-      expect(mockRepo.watchActiveBusesCount, 1);
-      expect(mockRepo.getActiveBusesCount, 0);
+        // Verify watchActiveBuses was called to subscribe to live stream
+        expect(mockRepo.watchActiveBusesCount, 1);
+        expect(mockRepo.getActiveBusesCount, 0);
 
-      // Emit live bus update via broadcast stream
-      final testBus = Bus(
-        id: 'bus-1',
-        name: 'Campus Shuttle',
-        numberPlate: 'KL-11-TEST',
-        status: BusStatus.live,
-        position: BusPosition(
-          point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
-          timestamp: DateTime.now(),
-        ),
-        lastUpdated: DateTime.now(),
-      );
+        // Emit live bus update via broadcast stream
+        final testBus = Bus(
+          id: 'bus-1',
+          name: 'Campus Shuttle',
+          numberPlate: 'KL-11-TEST',
+          status: BusStatus.live,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
+            timestamp: DateTime.now(),
+          ),
+          lastUpdated: DateTime.now(),
+        );
 
-      mockRepo.emitBuses([testBus]);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        mockRepo.emitBuses([testBus]);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      final updated = container.read(liveTransitPollingProvider);
-      expect(updated.buses, hasLength(1));
-      expect(updated.buses.first.id, 'bus-1');
-      expect(updated.lastSuccessfulUpdate, isNotNull);
+        final updated = container.read(liveTransitPollingProvider);
+        expect(updated.buses, hasLength(1));
+        expect(updated.buses.first.id, 'bus-1');
+        expect(updated.lastSuccessfulUpdate, isNotNull);
 
-      // Manual refresh still invokes getActiveBuses on demand
-      await notifier.refresh(force: true);
-      expect(mockRepo.getActiveBusesCount, 1);
-    });
+        // Manual refresh still invokes getActiveBuses on demand
+        await notifier.refresh(force: true);
+        expect(mockRepo.getActiveBusesCount, 1);
+      },
+    );
 
-    test('pause and resume correctly pause and resume live stream subscription', () async {
-      final mockRepo = _MockTransitRepository();
-      final container = ProviderContainer(
-        overrides: [
-          transitRepositoryProvider.overrideWithValue(mockRepo),
-        ],
-      );
-      addTearDown(container.dispose);
-      final sub = container.listen(liveTransitPollingProvider, (_, _) {});
-      addTearDown(sub.close);
+    test(
+      'pause and resume correctly pause and resume live stream subscription',
+      () async {
+        final mockRepo = _MockTransitRepository();
+        final container = ProviderContainer(
+          overrides: [transitRepositoryProvider.overrideWithValue(mockRepo)],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(liveTransitPollingProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      final notifier = container.read(liveTransitPollingProvider.notifier);
-      notifier.pause();
+        final notifier = container.read(liveTransitPollingProvider.notifier);
+        notifier.pause();
 
-      final testBus = Bus(
-        id: 'bus-paused',
-        name: 'Paused Shuttle',
-        numberPlate: 'KL-11-PAUSED',
-        status: BusStatus.live,
-        position: BusPosition(
-          point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
-          timestamp: DateTime.now(),
-        ),
-        lastUpdated: DateTime.now(),
-      );
-      mockRepo.emitBuses([testBus]);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        final testBus = Bus(
+          id: 'bus-paused',
+          name: 'Paused Shuttle',
+          numberPlate: 'KL-11-PAUSED',
+          status: BusStatus.live,
+          position: BusPosition(
+            point: const GeoPoint(latitude: 11.3216, longitude: 75.9337),
+            timestamp: DateTime.now(),
+          ),
+          lastUpdated: DateTime.now(),
+        );
+        mockRepo.emitBuses([testBus]);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      // Should still be empty because stream was paused
-      final pausedState = container.read(liveTransitPollingProvider);
-      expect(pausedState.buses, isEmpty);
+        // Should still be empty because stream was paused
+        final pausedState = container.read(liveTransitPollingProvider);
+        expect(pausedState.buses, isEmpty);
 
-      // Resuming triggers refresh
-      await notifier.resume();
-      expect(mockRepo.getActiveBusesCount, 1);
-    });
+        // Resuming triggers refresh
+        await notifier.resume();
+        expect(mockRepo.getActiveBusesCount, 1);
+      },
+    );
   });
 
-  group('Campus Reference Repositories Caching and In-Flight Deduplication', () {
-    test('CampusBuildingRepository caches in memory and invalidates on request', () async {
-      final repo = SupabaseCampusBuildingRepository(null);
-      final b1 = await repo.getBuildings();
-      expect(b1, isEmpty);
-      repo.invalidateCache();
-      final b2 = await repo.getBuildings();
-      expect(b2, isEmpty);
-    });
+  group(
+    'Campus Reference Repositories Caching and In-Flight Deduplication',
+    () {
+      test(
+        'CampusBuildingRepository caches in memory and invalidates on request',
+        () async {
+          final repo = SupabaseCampusBuildingRepository(null);
+          final b1 = await repo.getBuildings();
+          expect(b1, isEmpty);
+          repo.invalidateCache();
+          final b2 = await repo.getBuildings();
+          expect(b2, isEmpty);
+        },
+      );
 
-    test('HostelRepository caches in memory and invalidates on request', () async {
-      final repo = SupabaseHostelRepository(null);
-      final h1 = await repo.getHostels();
-      expect(h1, isEmpty);
-      repo.invalidateCache();
-      final h2 = await repo.getHostels();
-      expect(h2, isEmpty);
-    });
+      test(
+        'HostelRepository caches in memory and invalidates on request',
+        () async {
+          final repo = SupabaseHostelRepository(null);
+          final h1 = await repo.getHostels();
+          expect(h1, isEmpty);
+          repo.invalidateCache();
+          final h2 = await repo.getHostels();
+          expect(h2, isEmpty);
+        },
+      );
 
-    test('DepartmentRepository caches in memory and invalidates on request', () async {
-      final repo = SupabaseDepartmentRepository(null);
-      final d1 = await repo.getDepartments();
-      expect(d1, isEmpty);
-      repo.invalidateCache();
-      final d2 = await repo.getDepartments();
-      expect(d2, isEmpty);
-    });
-  });
+      test(
+        'DepartmentRepository caches in memory and invalidates on request',
+        () async {
+          final repo = SupabaseDepartmentRepository(null);
+          final d1 = await repo.getDepartments();
+          expect(d1, isEmpty);
+          repo.invalidateCache();
+          final d2 = await repo.getDepartments();
+          expect(d2, isEmpty);
+        },
+      );
+    },
+  );
 }

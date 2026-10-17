@@ -14,7 +14,7 @@ abstract class HostelRepository {
 /// Supabase implementation querying public.hostels table / get_hostels() RPC.
 class SupabaseHostelRepository implements HostelRepository {
   SupabaseHostelRepository(this._supabase, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+    : _clock = clock ?? DateTime.now;
 
   final SupabaseClient? _supabase;
   final DateTime Function() _clock;
@@ -58,20 +58,23 @@ class SupabaseHostelRepository implements HostelRepository {
       final rpcData = await client.rpc<dynamic>('get_hostels');
       List<Hostel> hostels;
       if (rpcData is List) {
-        hostels = rpcData
-            .map(
-              (row) => Hostel.fromJson(Map<String, dynamic>.from(row as Map)),
-            )
-            .toList();
+        hostels =
+            rpcData
+                .map(
+                  (row) =>
+                      Hostel.fromJson(Map<String, dynamic>.from(row as Map)),
+                )
+                .toList();
       } else {
         final tableData = await client
             .from('hostels')
             .select('hostel_id, hostel_name, short_code, gender')
             .order('hostel_name', ascending: true);
 
-        hostels = tableData
-            .map((row) => Hostel.fromJson(Map<String, dynamic>.from(row)))
-            .toList();
+        hostels =
+            tableData
+                .map((row) => Hostel.fromJson(Map<String, dynamic>.from(row)))
+                .toList();
       }
 
       _cache = (

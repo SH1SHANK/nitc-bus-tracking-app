@@ -304,10 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 18, 20, 8),
-              child: TrackletBrandLockup(
-                logoSize: 34,
-                wordmarkHeight: 20,
-              ),
+              child: TrackletBrandLockup(logoSize: 34, wordmarkHeight: 20),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -366,8 +363,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color:
-                                              TrackletColors
-                                                  .adaptiveTextPrimary(context),
+                                              TrackletColors.adaptiveTextPrimary(
+                                                context,
+                                              ),
                                           fontSize: 14,
                                           fontWeight: FontWeight.w800,
                                         ),
@@ -381,10 +379,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color:
-                                              TrackletColors
-                                                  .adaptiveTextSecondary(
-                                                    context,
-                                                  ),
+                                              TrackletColors.adaptiveTextSecondary(
+                                                context,
+                                              ),
                                           fontSize: 12,
                                         ),
                                       ),

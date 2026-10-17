@@ -14,7 +14,7 @@ abstract class DepartmentRepository {
 /// Supabase implementation querying public.departments table / get_departments() RPC.
 class SupabaseDepartmentRepository implements DepartmentRepository {
   SupabaseDepartmentRepository(this._supabase, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+    : _clock = clock ?? DateTime.now;
 
   final SupabaseClient? _supabase;
   final DateTime Function() _clock;
@@ -58,21 +58,26 @@ class SupabaseDepartmentRepository implements DepartmentRepository {
       final rpcData = await client.rpc<dynamic>('get_departments');
       List<Department> departments;
       if (rpcData is List) {
-        departments = rpcData
-            .map(
-              (row) =>
-                  Department.fromJson(Map<String, dynamic>.from(row as Map)),
-            )
-            .toList();
+        departments =
+            rpcData
+                .map(
+                  (row) => Department.fromJson(
+                    Map<String, dynamic>.from(row as Map),
+                  ),
+                )
+                .toList();
       } else {
         final tableData = await client
             .from('departments')
             .select('department_id, department_name')
             .order('department_name', ascending: true);
 
-        departments = tableData
-            .map((row) => Department.fromJson(Map<String, dynamic>.from(row)))
-            .toList();
+        departments =
+            tableData
+                .map(
+                  (row) => Department.fromJson(Map<String, dynamic>.from(row)),
+                )
+                .toList();
       }
 
       _cache = (

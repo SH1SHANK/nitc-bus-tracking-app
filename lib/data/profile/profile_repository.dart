@@ -134,10 +134,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         );
   }
 
-  Future<Profile> _fetchProfile(
-    SupabaseClient client,
-    User currentUser,
-  ) async {
+  Future<Profile> _fetchProfile(SupabaseClient client, User currentUser) async {
     TransitCacheMetrics.instance.recordMiss('profile');
     try {
       final data = await client.rpc<dynamic>('ensure_my_profile');

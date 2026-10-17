@@ -432,28 +432,28 @@ class SupabaseTransitRepository implements TransitRepository {
   }
 
   void _startActiveBusesSubscription(SupabaseClient client) {
-    _activeBusesChannel = client
-        .channel('active-bus-positions')
-        .onBroadcast(
-          event: 'bus_state_updated',
-          callback: (_) {
-            _lastBroadcastReceived = _clock();
-            TransitCacheMetrics.instance.recordRealtimeBroadcast();
-            unawaited(_triggerActiveBusesStreamRefresh(client));
-          },
-        )
-        .subscribe();
+    _activeBusesChannel =
+        client
+            .channel('active-bus-positions')
+            .onBroadcast(
+              event: 'bus_state_updated',
+              callback: (_) {
+                _lastBroadcastReceived = _clock();
+                TransitCacheMetrics.instance.recordRealtimeBroadcast();
+                unawaited(_triggerActiveBusesStreamRefresh(client));
+              },
+            )
+            .subscribe();
 
-    _activeBusesFallbackTimer = Timer.periodic(
-      const Duration(seconds: 20),
-      (_) {
-        final timeSinceBroadcast = _clock().difference(_lastBroadcastReceived);
-        if (timeSinceBroadcast >= const Duration(seconds: 18)) {
-          TransitCacheMetrics.instance.recordFallbackPoll();
-          unawaited(_triggerActiveBusesStreamRefresh(client));
-        }
-      },
-    );
+    _activeBusesFallbackTimer = Timer.periodic(const Duration(seconds: 20), (
+      _,
+    ) {
+      final timeSinceBroadcast = _clock().difference(_lastBroadcastReceived);
+      if (timeSinceBroadcast >= const Duration(seconds: 18)) {
+        TransitCacheMetrics.instance.recordFallbackPoll();
+        unawaited(_triggerActiveBusesStreamRefresh(client));
+      }
+    });
 
     unawaited(_triggerActiveBusesStreamRefresh(client));
   }

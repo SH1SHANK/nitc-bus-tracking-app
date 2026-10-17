@@ -6,10 +6,10 @@ import '../helpers/pump_app.dart';
 
 void main() {
   group('TrackletBrandLockup Tests', () {
-    testWidgets('renders both bus icon and wordmark by default', (tester) async {
-      await tester.pumpTrackletWidget(
-        const TrackletBrandLockup(),
-      );
+    testWidgets('renders both bus icon and wordmark by default', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(const TrackletBrandLockup());
 
       expect(
         find.byWidgetPredicate(
@@ -36,9 +36,7 @@ void main() {
     testWidgets('TrackletBrandLockup.logoOnly renders only bus icon', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(
-        const TrackletBrandLockup.logoOnly(),
-      );
+      await tester.pumpTrackletWidget(const TrackletBrandLockup.logoOnly());
 
       expect(
         find.byWidgetPredicate(
@@ -65,9 +63,7 @@ void main() {
     testWidgets('TrackletBrandLockup.wordmarkOnly renders only wordmark', (
       tester,
     ) async {
-      await tester.pumpTrackletWidget(
-        const TrackletBrandLockup.wordmarkOnly(),
-      );
+      await tester.pumpTrackletWidget(const TrackletBrandLockup.wordmarkOnly());
 
       expect(
         find.byWidgetPredicate(

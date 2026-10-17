@@ -11,7 +11,7 @@ abstract interface class CampusBuildingRepository {
 
 class SupabaseCampusBuildingRepository implements CampusBuildingRepository {
   SupabaseCampusBuildingRepository(this._supabase, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+    : _clock = clock ?? DateTime.now;
 
   final SupabaseClient? _supabase;
   final DateTime Function() _clock;
@@ -60,10 +60,7 @@ class SupabaseCampusBuildingRepository implements CampusBuildingRepository {
         .whereType<CampusBuilding>()
         .toList(growable: false);
 
-    _cache = (
-      buildings: buildings,
-      expiresAt: now.add(_cacheTtl),
-    );
+    _cache = (buildings: buildings, expiresAt: now.add(_cacheTtl));
     return buildings;
   }
 

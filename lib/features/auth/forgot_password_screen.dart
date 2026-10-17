@@ -126,10 +126,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const SizedBox(height: 36.0),
 
                 // Brand Lockup
-                const TrackletBrandLockup(
-                  logoSize: 42.0,
-                  wordmarkHeight: 24.0,
-                )
+                const TrackletBrandLockup(logoSize: 42.0, wordmarkHeight: 24.0)
                     .animate()
                     .fadeIn(duration: 350.ms)
                     .scale(

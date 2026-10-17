@@ -102,10 +102,10 @@ class _ResetPasswordSentScreenState
 
               // Brand Lockup
               TrackletBrandLockup(
-                logoSize: 42.0,
-                wordmarkHeight: 24.0,
-                isDark: isDark,
-              )
+                    logoSize: 42.0,
+                    wordmarkHeight: 24.0,
+                    isDark: isDark,
+                  )
                   .animate()
                   .fadeIn(duration: 350.ms)
                   .scale(
