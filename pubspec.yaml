@@ -2,7 +2,7 @@ name: tracklet
 description: "BusTracker - NITC campus bus tracking application built with Flutter for Android and Web."
 publish_to: 'none'
 
-version: 0.1.0+1
+version: 1.0.0-rc-1+1
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -23,7 +23,6 @@ dependencies:
   latlong2: ^0.9.1
   moon_design: ^1.1.0
   shared_preferences: ^2.5.6
-  cupertino_icons: ^2.0.0
   animated_custom_dropdown: ^4.0.0
   flutter_animate: ^4.5.0
   url_launcher: ^6.3.3
@@ -32,8 +31,8 @@ dependencies:
   path: ^1.9.1
   http: ^1.2.0
   package_info_plus: ^10.2.2
-  lucide_icons_flutter: ^4.0.0
   flutter_native_splash: ^2.4.8
+  flutter_lucide_animated: ^0.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,14 +44,13 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/branding/
-    - assets/icons/
+    - assets/branding/bustracker_bus_icon.png
+    - assets/branding/bustracker_wordmark.png
     - assets/images/Clean_Login_Design_Rectangle_10.png
     - assets/images/Young_Man_Laptop_Clean_Login_Design.png
     - assets/images/Young_Man_with_Laptop.png
     - assets/images/favicon.png
-    - assets/images/app_launcher_icon.png
-    - assets/images/adaptive_foreground_icon.png
+    - assets/images/google_logo.png
     - assets/images/Abstract_Gradient_Background_4K.jpg
     - assets/images/Research_New_Pin_Crop.gif
     - assets/maps/nitc_campus.mbtiles
@@ -64,6 +62,12 @@ flutter:
     - family: Satoshi
       fonts:
         - asset: assets/fonts/Satoshi-Variable.ttf
+    - family: Lucide
+      fonts:
+        - asset: assets/fonts/lucide.ttf
+    - family: lucide
+      fonts:
+        - asset: assets/fonts/lucide.ttf
 
 flutter_launcher_icons:
   android: true

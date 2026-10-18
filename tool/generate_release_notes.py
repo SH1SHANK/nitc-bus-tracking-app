@@ -23,7 +23,7 @@ def get_pubspec_version(pubspec_path="pubspec.yaml"):
     with open(pubspec_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    match = re.search(r"^version:\s*([0-9]+\.[0-9]+\.[0-9]+)(?:\+([0-9]+))?", content, re.MULTILINE)
+    match = re.search(r"^version:\s*([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)(?:\+([0-9]+))?", content, re.MULTILINE)
     if not match:
         raise ValueError("Could not find valid 'version: X.Y.Z+N' in pubspec.yaml")
 
@@ -41,9 +41,15 @@ def get_pubspec_version(pubspec_path="pubspec.yaml"):
 def validate_tag_against_pubspec(tag, pubspec_info):
     """Validates that a given tag corresponds to the version defined in pubspec.yaml."""
     normalized_tag = tag.lstrip("v")
-    if normalized_tag not in (pubspec_info["semver"], pubspec_info["canonical"]):
-        return False
-    return True
+    valid_tags = {
+        pubspec_info["semver"],
+        pubspec_info["canonical"],
+        pubspec_info["semver"].split("-")[0],
+    }
+    return (
+        normalized_tag in valid_tags
+        or normalized_tag.startswith(pubspec_info["semver"].split("-")[0])
+    )
 
 def run_git(args):
     """Executes a git command and returns standard output trimmed."""

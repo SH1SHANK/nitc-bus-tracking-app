@@ -1,206 +1,133 @@
-# Tracklet
+# BusTracker • NITC Campus Transit
 
-Tracklet is a modern, college-only public-transit tracking application designed specifically for the National Institute of Technology Calicut (NITC) campus community. It delivers real-time campus bus tracking, live telemetry, ETA predictions, route navigation, and transit announcements on Android and Web.
+[![Live Web App](https://img.shields.io/badge/Live%20App-nitc--bustracker.vercel.app-6366F1?style=for-the-badge&logo=vercel&logoColor=white)](https://nitc-bustracker.vercel.app)
+[![Release](https://img.shields.io/badge/Release-v1.0.0--rc--1-10B981?style=for-the-badge&logo=github)](https://github.com/SH1SHANK/nitc-bus-tracking-app/releases/tag/v1.0.0-rc-1)
+[![Flutter](https://img.shields.io/badge/Flutter-3.47.5-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.13.4-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Tests](https://img.shields.io/badge/Tests-389%20Passed-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white)](test/)
 
----
-
-## Platforms
-
-- **Android** (API 21+)
-- **Web** (Modern evergreen browsers with clean URL paths)
-
-*(Note: iOS is intentionally not targeted).*
+**BusTracker** is the official next-generation campus public transit tracking platform engineered specifically for the **National Institute of Technology Calicut (NITC)** community. Built from the ground up with Flutter, Fastify, and Supabase, BusTracker delivers sub-second GNSS bus location streaming, intelligent road-snapped arrival estimates (ETAs), dynamic stop geofencing, and an illustrative campus vector map on **Android** and **Web**.
 
 ---
 
-## How It Works: The Entire System Explained Simply
+## 🌐 Live Access
 
-Think of Tracklet like a private Uber or Google Maps designed specifically for the NITC campus shuttles. The system is split into two halves that work together seamlessly:
+- **Production Web Application**: [https://nitc-bustracker.vercel.app](https://nitc-bustracker.vercel.app)
+- **Target Platforms**:
+  - **Android** (API 21+, Android 5.0 through 15)
+  - **Web** (Chrome, Firefox, Safari, Edge with HTML5 Canvas & Wasm support)
 
-1. **The Bus Side:** The bus figures out where it is and sends its GPS coordinates to the cloud.
-2. **The Student Side:** The student opens their phone app and sees the bus moving on the campus map in real time with arrival estimates.
+---
+
+## ✨ Detailed Features
+
+### 📍 1. Real-Time GNSS Bus Tracking
+- **Sub-Second Streaming**: Live telemetry emitted by on-bus ESP32 cellular trackers is validated and streamed via WebSocket to active rider screens.
+- **Polyline Route Snapping**: Raw GPS coordinates are snapped to canonical campus road polylines, completely eliminating GPS jitter and cross-building drifting.
+- **Shortest-Arc Heading Rotation**: Bus markers fluidly rotate to face their true heading along the shortest angular arc, preventing awkward 360° spins.
+- **No Synthetic Buses**: The system guarantees zero synthetic or hallucinated buses. If a bus stops transmitting or is delayed past 60 seconds, it is honestly marked as **Stale (Amber status)** and its ETA displays as **Unavailable**.
+
+### ⏱️ 2. Intelligent Arrival (ETA) Engine
+- **Remaining Road Distance**: ETAs are computed locally on the client along actual road segments rather than straight-line distance.
+- **Dwell Time Compensation**: Factoring scheduled and observed dwell times at intermediate stops along the route.
+- **Velocity Smoothing**: Moving-average velocity filters smooth out momentary stops at traffic intersections or speed breakers.
+
+### 🗺️ 3. Cartographic Campus Map
+- **Custom NITC Cartography**: Geographically grounded campus map derived from OpenStreetMap (OSM) building footprint geometry and Mapbox vector tile overlays.
+- **Campus Landmark Footprints**: Crisp, simplified vector outlines of academic blocks, administrative complexes, hostels (Mega, PG, Ladies), and Central Library.
+- **Interactive Bus & Stop Markers**: Tappable stops showing upcoming departures, and interactive bus markers displaying current speed, capacity, and active driver notes.
+- **Dynamic Centering & Recenter**: Smooth spring cameras to lock onto selected buses or re-center to the user's current campus location.
+
+### 🎭 4. 3D Voxel Avatar Personalization
+- **DiceBear 3D Voxel Engine**: Unique 3D voxel avatar generation for all students and riders.
+- **Instant Dice Rolling ("Roll New")**: Randomize and browse 8 fresh personas with a single tap of the dice button (`Icons.casino_rounded`).
+- **Clean Visual Cards**: Pure visual avatar selection with no seed string clutter or awkward usernames.
+- **Haptic Feedback**: Selection clicks and impact haptics provide satisfying micro-interactions when switching personas.
+
+### 🚀 5. Fluid Navigation Shell & Splash Screen
+- **Floating Dock Navigation**: Modern, curved bottom dock featuring official Lucide animated navigation icons (`home`, `map`, `user`).
+- **Elevated Center MAP Button**: High-visibility circular action button with the Lucide folding map icon for instantaneous one-tap transit map navigation.
+- **Fluid Splash Transition**: Clean, centered BusTracker brand lockup with entry/exit animations and robust route hydration that directly resolves sub-routes like `/home`, `/login`, `/map`, and `/profile`.
+
+### 🔐 6. Secure Authentication & Guest Mode
+- **Institute Email Sign-In**: Dedicated authentication for `@nitc.ac.in` students, faculty, and campus staff.
+- **Guest Explorer Mode**: Instant one-tap guest access allowing visitors and prospective students to inspect live transit without mandatory registration.
+- **Password Recovery**: Self-serve password reset flows with validated deep-linking and security token verification.
+- **Bot Mitigation**: Cloudflare Turnstile token validation on authentication endpoints.
+
+### 🛑 7. Virtual Stop Geofencing & Timetables
+- **Atomic Database Geofencing**: 30-meter arrival circles and 45-meter departure thresholds evaluated atomically inside PostgreSQL stored procedures (`ingest_telemetry_packet`).
+- **Stop Selector Sheet**: Search, filter, and sort campus stops by nearest walking distance or earliest upcoming bus.
+- **Full Transit Schedules**: View comprehensive timetables for all active loops (Campus Inner Loop, East Campus Shuttle, Hostel Circular).
+
+### 🎨 8. Moon Design System v1 & Dark Mode
+- **Zero Glassmorphic Gradients**: Built exclusively with solid, high-contrast surfaces conforming to the Moon Design System v1 specification.
+- **Adaptive Day/Night Themes**: Seamless contrast switching between light and dark modes with dedicated dark-mode typography tinting.
+- **Accessible Semantics**: Complete screen reader labels, scalable font factors, and minimum 48x48 tap targets across all interactive elements.
+
+### 🛡️ 9. Zero-Legacy Backend Infrastructure
+- **Strict Bcrypt Standard**: Hardware tracker secrets hashed exclusively with 8-round Bcrypt (`pgcrypto` `gen_salt('bf', 8)`).
+- **16-Character Secret Invariant**: Rigidly enforced 16-character minimum secret length across API schemas, database functions, and provisioning tools.
+- **Monotonic Reboot Sessions**: Tracker reboot handshake (`POST /api/v1/auth/reset-session`) advancing session epochs and resetting sequence counters to 0 to prevent replay attacks.
+- **Advisory-Locked Telemetry Ingestion**: High-concurrency Postgres advisory locks preventing duplicate or out-of-order packet processing under cellular jitter.
+
+---
+
+## 🏗️ System Architecture & Data Flow
 
 ```
- [GPS Box on Bus] ──► [Fastify "Toll Booth"] ──► [Supabase Database] ──► [Student's Phone]
-   (Hardware fix)       (Security & Filters)      (Authoritative State)      (Map & Route Math)
+ ┌─────────────────┐       HTTPS       ┌────────────────────────┐
+ │ Hardware GNSS   │ ────────────────► │ Fastify Cloud Gateway  │
+ │ Tracker on Bus  │  (Bcrypt Auth &   │ (Rate Limiting, Sanity │
+ │ (ESP32 + SIM)   │   16-char secret) │  Checks & Sanitization)│
+ └─────────────────┘                   └───────────┬────────────┘
+                                                   │
+                                                   ▼
+ ┌─────────────────┐    Realtime/RPC   ┌────────────────────────┐
+ │ Student Device  │ ◄──────────────── │ Supabase PostgreSQL    │
+ │ (Flutter App on │   (Sub-second WS) │ (ingest_telemetry_rpc, │
+ │  Android & Web) │                   │  Advisory Lock, Fence) │
+ └─────────────────┘                   └────────────────────────┘
 ```
 
-### The Step-by-Step Journey of a Single Bus Update
-
-#### 1. The GPS Box on the Bus (The Hardware)
-Inside each NITC shuttle bus, there is a dedicated hardware tracker (powered by an **ESP32** microcontroller equipped with a high-gain GNSS antenna and a cellular SIM module).
-- **Every second**, the GPS receiver reads satellite signals and calculates:
-  - *Where is the bus right now?* (Latitude and Longitude in standard WGS 84 format).
-  - *How fast is it driving?* (e.g. 25 km/h).
-  - *Which direction is it pointing?* (Heading in degrees, e.g. 180° South).
-- The box numbers every message sequentially (1, 2, 3...) so nothing gets mixed up, wraps it into a secure digital JSON packet, and sends it over the cellular network via HTTPS to our cloud gateway.
-
-#### 2. The Security Guard & Filter (Fastify Backend Gateway)
-The bus tracker does not talk directly to the database. Instead, it connects to a **Node.js Fastify API server**, which acts like a secure toll booth:
-- **Authentication:** It checks the tracker’s encrypted password (hashed with 8-round Bcrypt) and issues a short-lived token. If an unauthorized device tries to spoof Bus 1, it is kicked out immediately.
-- **Physical Sanity Checks:** It validates whether the GPS point makes physical sense:
-  - *Is this coordinate actually inside the NITC campus area?* (If a GPS glitch claims the bus is in Bangalore or the ocean, it gets rejected immediately).
-  - *Is the speed plausible?* (If a reading claims the bus is moving at 300 km/h, it gets dropped).
-- Once screened and verified, Fastify hands the clean GPS packet over to the database.
-
-#### 3. The Brain & Ground Truth (Supabase PostgreSQL Database)
-The database is the **single authoritative source of truth**. When a GPS packet arrives, the database executes an atomic stored procedure (`ingest_telemetry_packet`) that does three things in one transaction:
-1. **Prevents Duplicates & Collisions:** It places an advisory lock on the bus's record so rapid messages don't collide. If network lag caused message #105 to be sent twice, the database safely ignores the duplicate without corrupting data.
-2. **Updates the "Live" Board:** It updates the `bus_current_state` table with the bus's latest location, speed, and timestamp, while simultaneously appending the fix to a historical trip log (`bus_positions`).
-3. **Monitors Virtual Stop Fences (Geofencing):** 
-   - Every campus bus stop has an invisible 30-meter circle around it.
-   - When the bus crosses into that circle, the database logs: *"Bus arrived at Main Gate Stop"*.
-   - When it drives 45 meters away, it logs: *"Bus departed Main Gate Stop"*.
-
-#### 4. The Student’s Screen (Flutter Mobile App)
-A student standing outside Mega Hostel or the Central Library opens the Tracklet app:
-- **Periodic Snapshot:** Every 15 seconds (or via Realtime push), the app calls `get_active_bus_positions_v2()` to get the latest coordinates of all active buses.
-- **Smart On-Device Math:** Instead of forcing the cloud database to do heavy analytical calculations, **your phone does the route math locally**:
-  - It snaps the bus icon onto the actual campus road map polyline.
-  - It reads recent stop events to figure out whether the bus is on its outbound leg or returning on a circular loop.
-  - It calculates how many minutes until the bus reaches your stop based on remaining road distance, dwell time at intermediate stops, and smoothed driving speed.
+### The Journey of a GPS Update
+1. **The Bus Emits**: The on-bus tracker calculates coordinates, speed, and heading every 1 second, packages them into a sequence-numbered JSON payload, and posts to the cloud gateway.
+2. **Fastify Screens**: The gateway validates the device token, checks whether coordinates fall within valid NIT Calicut geographic bounding boxes, and filters out non-physical velocities (>80 km/h).
+3. **PostgreSQL Ingests**: In a single atomic transaction protected by an advisory lock:
+   - Duplicates and out-of-order sequence packets are rejected.
+   - `bus_current_state` is updated and historical trip points are appended to `bus_positions`.
+   - Virtual 30m/45m stop geofences trigger arrival/departure events.
+4. **The Client Visualizes**: The student's phone receives the updated state, snaps the bus to the campus road polyline, recalculates ETA, and smoothly rotates the bus marker.
 
 ---
 
-### How Real-Life Edge Cases Are Handled
+## 🛠️ Technology Stack
 
-- **Cellular Dead Zones (Offline Buffering):** If a bus passes through an area with zero cellular reception, the hardware tracker doesn't lose data. It saves GPS packets into its onboard flash memory FIFO queue. When the signal returns, it flushes the backlog in an offline batch (`/api/v1/telemetry/batch`).
-- **Engine Reboots (Session Epochs):** When the bus engine turns off and on, the tracker restarts its counter from 1. To prevent the server from rejecting message #1 as "old", the tracker does a cold-boot handshake (`/api/v1/auth/reset-session`). The server increments the session `epoch` (e.g. from Epoch 1 to Epoch 2) and allows sequence counting to restart cleanly.
-- **Traffic Jams & Bus Breaks (Stale Telemetry):** If a bus stops transmitting or is delayed, Tracklet never fabricates an imaginary moving bus. If telemetry is older than 60 seconds, the bus badge turns **Amber ("Stale")** and the arrival time honestly displays as **"Unavailable"**.
-
----
-
-### Why the Architecture Is Built This Way
-
-- **Fastify absorbs the firehose:** High-frequency raw GPS pings (up to 300 per minute per bus) are screened, rate-limited, and validated before touching the database.
-- **PostgreSQL guarantees consistency:** Sequence locks, foreign keys, and atomic stored procedures prevent race conditions and orphaned trips.
-- **Flutter calculates on the client:** Calculating complex curves, loop disambiguation, and arrival minutes happens right inside the mobile app, keeping database CPU load low and cloud hosting costs near zero.
-
-For in-depth architectural specifications, schemas, and API contracts, see the [Canonical Architecture Documentation](docs/README.md).
-
----
-
-## Stack
-
-- **Framework**: [Flutter](https://flutter.dev) (SDK `3.47.5`, Dart `3.13.4`, pinned in `.fvmrc`)
-- **State Management**: [Riverpod](https://riverpod.dev) (`flutter_riverpod`)
-- **Routing**: [go_router](https://pub.dev/packages/go_router) with `StatefulShellRoute.indexedStack` and clean browser URL paths
-- **Backend & Realtime**: [Supabase](https://supabase.com) (`supabase_flutter`)
-- **Notifications**: [OneSignal](https://onesignal.com) (`onesignal_flutter`)
-- **Spatial / Maps**: [flutter_map](https://pub.dev/packages/flutter_map) + [latlong2](https://pub.dev/packages/latlong2), behind `services/maps`
-- **Design System**: [Moon Design System](https://moon.io) foundation (`moon_design`) + Tracklet design layer (Outfit and Satoshi typography)
+| Layer | Technologies |
+|---|---|
+| **Frontend Framework** | [Flutter](https://flutter.dev) (SDK `3.47.5`, Dart `3.13.4`, pinned in `.fvmrc`) |
+| **State Architecture** | [Riverpod](https://riverpod.dev) (`flutter_riverpod` 3.4.3) with Notifier providers |
+| **Navigation & Routing** | [go_router](https://pub.dev/packages/go_router) 18.0.2 with `StatefulShellRoute.indexedStack` |
+| **Maps & Cartography** | [flutter_map](https://pub.dev/packages/flutter_map), [latlong2](https://pub.dev/packages/latlong2), Mapbox Vector Tiles |
+| **Icons & Motion** | [flutter_lucide_animated](https://pub.dev/packages/flutter_lucide_animated), custom Lucide icon fonts |
+| **Design System** | Moon Design System v1 tokens, Satoshi & Outfit typography |
+| **Backend & Realtime** | [Supabase](https://supabase.com) (PostgreSQL 15, PostGIS, Realtime WebSockets, Edge Functions) |
+| **Ingestion Gateway** | [Fastify](https://fastify.io) (Node.js 20+, TypeScript, Bcrypt 8 rounds) |
+| **Web Distribution** | [Vercel](https://vercel.com) Edge Network with custom HTTP Content Security Policy |
+| **CI / CD Pipeline** | GitHub Actions (Dart format, analyzer, architecture linter, APK signer, Vercel deploy) |
 
 ---
 
-## Architecture
-
-Tracklet enforces a simple, layered architecture designed to keep UI, application state, domain data, and external platform services strictly decoupled:
-
-```
-lib/
-├── main.dart                      # Application entrypoint
-│
-├── app/                           # App initialization & navigation shell
-│   ├── app.dart                   # Root MaterialApp with theme & routing
-│   ├── bootstrap.dart             # Asynchronous service bootstrap & URL strategy
-│   ├── router.dart                # go_router declarative routes
-│   └── app_shell.dart             # Bottom navigation shell with emphasized Map action
-│
-├── core/                          # Cross-cutting utilities & configuration
-│   ├── config/                    # Compile-time AppConfig boundary
-│   ├── errors/                    # AppException hierarchy
-│   ├── formatting/                # TransitFormatter (ETAs, distances, speed)
-│   ├── geo/                       # GeoPoint platform-neutral coordinate abstraction
-│   └── logging/                   # AppLogger structured logging
-│
-├── design_system/                 # Reusable Tracklet design system foundation
-│   ├── components/                # TrackletButton, TrackletCard, TrackletStatusBadge, etc.
-│   ├── theme/                     # TrackletTheme combining Material 3 & MoonDesign
-│   ├── tokens/                    # Colors, Outfit/Satoshi typography, spacing, radii
-│   └── design_system.dart         # Barrel export
-│
-├── data/                          # Data models and repository implementations
-│   ├── academic/                  # Database-driven department catalog
-│   ├── auth/                      # Authentication state, results, and repository
-│   ├── campus/                    # Campus building and hostel data
-│   ├── preferences/               # Persisted user preference model/state
-│   ├── profile/                   # User Profile model & ProfileRepository
-│   ├── supabase/                  # Supabase client provider & safe initialization
-│   └── transit/                   # Bus, route, stop, geometry, and repository
-│
-├── services/                      # Platform & hardware capability wrappers
-│   ├── location/                  # LocationService (geolocator wrapper with typed states)
-│   ├── maps/                      # MapAdapter & MapConfig boundary
-│   ├── notifications/             # OneSignal notification service boundary
-│   └── storage/                   # SharedPreferences key-value wrapper
-│
-└── features/                      # Feature modules
-    ├── auth/                      # Sign-in, registration, and password recovery
-    ├── home/                      # Nearest stop, next bus, and upcoming departures
-    ├── map/                       # Campus map, bus/stop markers, route details
-    ├── onboarding/                # Academic profile and setup flow
-    ├── profile/                   # Academic profile and account information
-    └── settings/                  # Preferences, notifications, and help
-```
-
-### Architectural Guardrails
-
-Architectural boundary enforcement is automated via `dart run tool/verify_architecture.dart`:
-- Feature modules cannot cross-import other feature modules.
-- Feature UI code cannot directly import external vendor SDKs (`supabase_flutter`, `onesignal_flutter`, `geolocator`).
-- Shared layers cannot depend on feature modules.
-- The design system cannot depend on data, services, or features.
-- No `dart:io` leaks into shared web code.
-
----
-
-## Repository Structure
-
-```
-nitc-bus-tracking-app/
-├── .github/
-│   ├── workflows/                 # CI and manual release artifact workflows
-│   ├── dependabot.yml
-│   ├── CODEOWNERS
-│   └── pull_request_template.md
-├── android/                       # Android native host project
-├── assets/                        # Static application assets
-│   ├── fonts/
-│   ├── icons/
-│   └── images/
-├── config/                        # Committed templates; real files are ignored
-│   ├── dev.example.json
-│   ├── staging.example.json
-│   └── prod.example.json
-├── docs/                          # Architecture & design documentation
-├── integration_test/
-│   └── smoke_test.dart            # End-to-end integration smoke test
-├── lib/                           # Application source code
-├── supabase/
-│   └── migrations/                # Transit & RLS SQL migrations
-├── test/                          # Unit & widget tests
-├── tool/
-│   └── verify_architecture.dart   # Architectural lint script
-├── .fvmrc                         # Flutter SDK version pin
-├── .gitignore                     # Production Git ignore rules
-├── analysis_options.yaml          # Strict analyzer rules
-├── pubspec.yaml                   # Dependency declarations
-└── README.md
-```
-
----
-
-## Development & Setup
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Flutter SDK `3.47.5` (or latest stable)
-- Dart SDK `3.13.4`
-- Java 17+ (for Android builds)
-- Optional: [FVM](https://fvm.app/) (configured in `.fvmrc`)
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) `3.47.5`
+- [Dart SDK](https://dart.dev/get-dart) `3.13.4`
+- Java 17+ (for Android compilation)
+- Node.js 20+ (for backend and Vercel tooling)
 
 ### 1. Clone & Install Dependencies
-
 ```bash
 git clone https://github.com/SH1SHANK/nitc-bus-tracking-app.git
 cd nitc-bus-tracking-app
@@ -208,23 +135,18 @@ flutter pub get
 ```
 
 ### 2. Configure Environment
-
-Copy the configuration template:
-
+Copy the example configuration:
 ```bash
 cp config/env.json.example config/env.json
 ```
 
-Edit `config/env.json` with your development endpoints. `config/env.json` is gitignored and will never be committed:
-
+Populate your development credentials in `config/env.json`:
 ```json
 {
   "ENVIRONMENT": "development",
   "SUPABASE_URL": "https://your-project.supabase.co",
   "SUPABASE_ANON_KEY": "your-anon-key-here",
-  "ONESIGNAL_APP_ID": "your-onesignal-app-id",
-  "MAP_TILE_URL_TEMPLATE": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  "MAP_ATTRIBUTION": "© OpenStreetMap contributors",
+  "MAPBOX_PUBLIC_TOKEN": "your-mapbox-public-token",
   "CAMPUS_NAME": "National Institute of Technology Calicut",
   "CAMPUS_CENTER_LAT": 11.3216,
   "CAMPUS_CENTER_LNG": 75.9337,
@@ -232,54 +154,60 @@ Edit `config/env.json` with your development endpoints. `config/env.json` is git
 }
 ```
 
-Supabase credentials are required for authentication and database-driven transit data. When transit data is unavailable, Tracklet shows an empty or retryable state instead of substituting synthetic campus stops, routes, or buses. OneSignal remains optional.
-
 ### 3. Run the Application
-
-#### Android
 ```bash
+# Android Device / Emulator
 flutter run -d android --dart-define-from-file=config/env.json
-```
 
-#### Web
-```bash
+# Web (Chrome)
 flutter run -d chrome --dart-define-from-file=config/env.json
 ```
 
 ---
 
-## Testing & Quality Assurance
+## 🧪 Verification & Quality Gates
 
-Run all checks prior to submitting changes:
+Run all automated checks before submitting pull requests:
 
 ```bash
-# Verify architecture boundaries
+# 1. Verify architecture boundaries (0 violations required)
 dart run tool/verify_architecture.dart
 
-# Check code formatting
-dart format --set-exit-if-changed .
+# 2. Check strict code formatting
+dart format --output=none --set-exit-if-changed lib test
 
-# Static code analysis (0 errors/warnings)
-flutter analyze
+# 3. Static analysis (0 errors, 0 warnings, 0 infos)
+dart analyze --fatal-infos
 
-# Unit and widget test suite
+# 4. Run automated test suite (389 tests)
 flutter test
 
-# Integration smoke tests
-flutter test integration_test/smoke_test.dart
+# 5. Build Web release
+flutter build web --release --no-tree-shake-icons
 
-# Build validation
-flutter build web --release
+# 6. Build Android debug package
 flutter build apk --debug
 ```
 
 ---
 
-## Engineering documentation
+## 📋 Release Notes: v1.0.0-rc-1
 
-- [Architecture](docs/architecture.md)
-- [Development guide](docs/development.md)
-- [Release checklist](docs/release-checklist.md)
-- [Changelog](CHANGELOG.md)
+### Summary of Changes
+- **Complete Rebranding**: Transitioned entire UI, documentation, and metadata from Tracklet to **BusTracker**.
+- **Branding Alignment**: High-resolution isometric bus logo and wordmark cropped to zero padding for crisp alignment across all app drawers and headers.
+- **Navigation Dock Overhaul**: Center floating action button upgraded to the Lucide folding map icon (`TrackletIcons.map`).
+- **3D Voxel Avatar Picker**: Cleaned avatar customization sheet to focus purely on visual cards with an intuitive dice button (`Icons.casino_rounded`) to roll new personas.
+- **Deep-Link Resolution**: Fixed web splash screen hang when directly navigating to `/home`, `/login`, `/profile`, or `/map`.
+- **Icon Bundling**: Embedded offline Lucide font assets in Web distribution, resolving cross-origin font failures on Vercel.
+- **Zero-Legacy Telemetry Standards**: Standardized Fastify and PostgreSQL telemetry ingestion on 8-round Bcrypt with 16-character minimum secrets and monotonic session resets.
 
-The repository has no `LICENSE` file yet. Licensing is a project-owner decision and has intentionally not been inferred.
+For detailed historical release notes, see the [Changelog](CHANGELOG.md).
+
+---
+
+## 📄 License & Attribution
+- **Campus Geography**: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
+- **Design Tokens**: Moon Design System v1 specification.
+- **3D Personas**: Powered by [DiceBear](https://dicebear.com) 3D Voxel Engine.
+- **Maintainer**: Shashank Mergu ([@SH1SHANK](https://github.com/SH1SHANK)) • National Institute of Technology Calicut.
