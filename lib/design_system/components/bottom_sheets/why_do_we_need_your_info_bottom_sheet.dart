@@ -132,7 +132,7 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Your choice matters',
+                                    'Privacy and control',
                                     style: TrackletTypography.adaptive(
                                       context,
                                       TrackletTypography.titleSmall,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/colors.dart';
+import '../tokens/motion.dart';
 import '../tokens/radii.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
@@ -26,14 +27,18 @@ class TrackletSkeleton extends StatefulWidget {
 class _TrackletSkeletonState extends State<TrackletSkeleton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: TrackletMotion.pulse,
     )..repeat(reverse: true);
+    _opacityAnimation = Tween<double>(begin: 0.55, end: 0.85).animate(
+      CurvedAnimation(parent: _controller, curve: TrackletMotion.smooth),
+    );
   }
 
   @override
@@ -54,13 +59,7 @@ class _TrackletSkeletonState extends State<TrackletSkeleton>
     );
     if (reducedMotion) return child;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(opacity: 0.55 + (_controller.value * 0.3), child: child);
-      },
-      child: child,
-    );
+    return FadeTransition(opacity: _opacityAnimation, child: child);
   }
 }
 

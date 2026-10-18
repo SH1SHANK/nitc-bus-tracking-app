@@ -1,121 +1,153 @@
 import 'package:flutter/widgets.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Semantic Lucide icon repository for BusTracker.
 ///
 /// Standardizes all ordinary UI icons to Lucide.
+@staticIconProvider
 abstract final class TrackletIcons {
+  static const String _fontFamily = 'Lucide';
+
   // Navigation & Shell
-  static const IconData home = LucideIcons.home;
-  static const IconData map = LucideIcons.map;
-  static const IconData profile = LucideIcons.user;
-  static const IconData settings = LucideIcons.settings;
-  static const IconData notifications = LucideIcons.bell;
-  static const IconData search = LucideIcons.search;
-  static const IconData filter = LucideIcons.slidersHorizontal;
-  static const IconData menu = LucideIcons.menu;
+  static const IconData home = IconData(0xe0f5, fontFamily: _fontFamily);
+  static const IconData map = IconData(0xe110, fontFamily: _fontFamily);
+  static const IconData profile = IconData(0xe19f, fontFamily: _fontFamily);
+  static const IconData settings = IconData(0xe154, fontFamily: _fontFamily);
+  static const IconData notifications = IconData(
+    0xe059,
+    fontFamily: _fontFamily,
+  );
+  static const IconData search = IconData(0xe151, fontFamily: _fontFamily);
+  static const IconData filter = IconData(0xe29a, fontFamily: _fontFamily);
+  static const IconData menu = IconData(0xe115, fontFamily: _fontFamily);
 
   // Transit & Geo
-  static const IconData bus = LucideIcons.bus;
-  static const IconData busStop = LucideIcons.mapPin;
-  static const IconData location = LucideIcons.locateFixed;
-  static const IconData navigation = LucideIcons.navigation;
-  static const IconData route = LucideIcons.gitCommit;
-  static const IconData speed = LucideIcons.gauge;
-  static const IconData compass = LucideIcons.compass;
-  static const IconData layers = LucideIcons.layers;
-  static const IconData walk = LucideIcons.footprints;
+  static const IconData bus = IconData(0xe1d4, fontFamily: _fontFamily);
+  static const IconData busStop = IconData(0xe111, fontFamily: _fontFamily);
+  static const IconData location = IconData(0xe1db, fontFamily: _fontFamily);
+  static const IconData navigation = IconData(0xe123, fontFamily: _fontFamily);
+  static const IconData route = IconData(0xe0e3, fontFamily: _fontFamily);
+  static const IconData speed = IconData(0xe1bf, fontFamily: _fontFamily);
+  static const IconData compass = IconData(0xe09b, fontFamily: _fontFamily);
+  static const IconData layers = IconData(0xe529, fontFamily: _fontFamily);
+  static const IconData walk = IconData(0xe3b9, fontFamily: _fontFamily);
 
   // Temporal & Numeric
-  static const IconData time = LucideIcons.clock;
-  static const IconData calendar = LucideIcons.calendar;
-  static const IconData refresh = LucideIcons.refreshCw;
+  static const IconData time = IconData(0xe087, fontFamily: _fontFamily);
+  static const IconData calendar = IconData(0xe063, fontFamily: _fontFamily);
+  static const IconData refresh = IconData(0xe145, fontFamily: _fontFamily);
 
   // Capacity & Amenities
-  static const IconData seat = LucideIcons.armchair;
-  static const IconData wheelchair = LucideIcons.accessibility;
-  static const IconData wifi = LucideIcons.wifi;
+  static const IconData seat = IconData(0xe2c0, fontFamily: _fontFamily);
+  static const IconData wheelchair = IconData(0xe297, fontFamily: _fontFamily);
+  static const IconData wifi = IconData(0xe1ae, fontFamily: _fontFamily);
 
   // Status & Feedback
-  static const IconData info = LucideIcons.info;
-  static const IconData warning = LucideIcons.alertTriangle;
-  static const IconData error = LucideIcons.alertCircle;
-  static const IconData check = LucideIcons.check;
-  static const IconData checkCircle = LucideIcons.checkCircle2;
-  static const IconData help = LucideIcons.helpCircle;
+  static const IconData info = IconData(0xe0f9, fontFamily: _fontFamily);
+  static const IconData warning = IconData(0xe193, fontFamily: _fontFamily);
+  static const IconData error = IconData(0xe077, fontFamily: _fontFamily);
+  static const IconData check = IconData(0xe06c, fontFamily: _fontFamily);
+  static const IconData checkCircle = IconData(0xe226, fontFamily: _fontFamily);
+  static const IconData help = IconData(0xe082, fontFamily: _fontFamily);
 
   // Chevrons & Controls
-  static const IconData chevronLeft = LucideIcons.chevronLeft;
-  static const IconData chevronRight = LucideIcons.chevronRight;
-  static const IconData chevronDown = LucideIcons.chevronDown;
-  static const IconData chevronUp = LucideIcons.chevronUp;
-  static const IconData close = LucideIcons.x;
-  static const IconData plus = LucideIcons.plus;
-  static const IconData minus = LucideIcons.minus;
-  static const IconData share = LucideIcons.share2;
-  static const IconData logout = LucideIcons.logOut;
-  static const IconData externalLink = LucideIcons.externalLink;
-  static const IconData copy = LucideIcons.copy;
-  static const IconData eye = LucideIcons.eye;
-  static const IconData eyeOff = LucideIcons.eyeOff;
-  static const IconData lock = LucideIcons.lock;
-  static const IconData mail = LucideIcons.mail;
-  static const IconData arrowRight = LucideIcons.arrowRight;
-  static const IconData arrowLeft = LucideIcons.arrowLeft;
-  static const IconData trash = LucideIcons.trash2;
-  static const IconData shield = LucideIcons.shieldCheck;
-  static const IconData key = LucideIcons.key;
-  static const IconData sparkles = LucideIcons.sparkles;
-  static const IconData academic = LucideIcons.graduationCap;
-  static const IconData locate = LucideIcons.locateFixed;
-  static const IconData building = LucideIcons.building;
-  static const IconData building2 = LucideIcons.building2;
-  static const IconData gitBranch = LucideIcons.gitBranch;
-  static const IconData users = LucideIcons.users;
-  static const IconData timer = LucideIcons.timer;
-  static const IconData ruler = LucideIcons.ruler;
-  static const IconData star = LucideIcons.star;
-  static const IconData pause = LucideIcons.pause;
-  static const IconData chevronsUpDown = LucideIcons.chevronsUpDown;
-  static const IconData calendarX = LucideIcons.calendarX;
-  static const IconData cloudOff = LucideIcons.cloudOff;
-  static const IconData globe = LucideIcons.globe;
-  static const IconData globe2 = LucideIcons.globe2;
-  static const IconData arrowRightLeft = LucideIcons.arrowRightLeft;
-  static const IconData scale = LucideIcons.scale;
-  static const IconData activity = LucideIcons.activity;
-  static const IconData radar = LucideIcons.radar;
-  static const IconData smartphone = LucideIcons.smartphone;
-  static const IconData mousePointer = LucideIcons.mousePointer;
-  static const IconData pencil = LucideIcons.pencil;
-  static const IconData atSign = LucideIcons.atSign;
-  static const IconData mailCheck = LucideIcons.mailCheck;
-  static const IconData mapPinOff = LucideIcons.mapPinOff;
-  static const IconData logIn = LucideIcons.logIn;
-  static const IconData award = LucideIcons.award;
-  static const IconData fileText = LucideIcons.fileText;
-  static const IconData folderGit2 = LucideIcons.folderGit2;
-  static const IconData puzzle = LucideIcons.puzzle;
-  static const IconData code = LucideIcons.code;
-  static const IconData history = LucideIcons.history;
-  static const IconData circle = LucideIcons.circle;
+  static const IconData chevronLeft = IconData(0xe06e, fontFamily: _fontFamily);
+  static const IconData chevronRight = IconData(
+    0xe06f,
+    fontFamily: _fontFamily,
+  );
+  static const IconData chevronDown = IconData(0xe06d, fontFamily: _fontFamily);
+  static const IconData chevronUp = IconData(0xe070, fontFamily: _fontFamily);
+  static const IconData close = IconData(0xe1b2, fontFamily: _fontFamily);
+  static const IconData plus = IconData(0xe13d, fontFamily: _fontFamily);
+  static const IconData minus = IconData(0xe11c, fontFamily: _fontFamily);
+  static const IconData share = IconData(0xe156, fontFamily: _fontFamily);
+  static const IconData logout = IconData(0xe10e, fontFamily: _fontFamily);
+  static const IconData externalLink = IconData(
+    0xe0b9,
+    fontFamily: _fontFamily,
+  );
+  static const IconData copy = IconData(0xe09e, fontFamily: _fontFamily);
+  static const IconData eye = IconData(0xe0ba, fontFamily: _fontFamily);
+  static const IconData eyeOff = IconData(0xe0bb, fontFamily: _fontFamily);
+  static const IconData lock = IconData(0xe10b, fontFamily: _fontFamily);
+  static const IconData mail = IconData(0xe10f, fontFamily: _fontFamily);
+  static const IconData arrowRight = IconData(0xe049, fontFamily: _fontFamily);
+  static const IconData arrowLeft = IconData(0xe048, fontFamily: _fontFamily);
+  static const IconData trash = IconData(0xe18e, fontFamily: _fontFamily);
+  static const IconData shield = IconData(0xe1ff, fontFamily: _fontFamily);
+  static const IconData key = IconData(0xe0fd, fontFamily: _fontFamily);
+  static const IconData sparkles = IconData(0xe412, fontFamily: _fontFamily);
+  static const IconData academic = IconData(0xe234, fontFamily: _fontFamily);
+  static const IconData locate = IconData(0xe1db, fontFamily: _fontFamily);
+  static const IconData building = IconData(0xe1cc, fontFamily: _fontFamily);
+  static const IconData building2 = IconData(0xe290, fontFamily: _fontFamily);
+  static const IconData gitBranch = IconData(0xe0e2, fontFamily: _fontFamily);
+  static const IconData users = IconData(0xe1a4, fontFamily: _fontFamily);
+  static const IconData timer = IconData(0xe1e0, fontFamily: _fontFamily);
+  static const IconData ruler = IconData(0xe14b, fontFamily: _fontFamily);
+  static const IconData star = IconData(0xe176, fontFamily: _fontFamily);
+  static const IconData pause = IconData(0xe12e, fontFamily: _fontFamily);
+  static const IconData chevronsUpDown = IconData(
+    0xe211,
+    fontFamily: _fontFamily,
+  );
+  static const IconData calendarX = IconData(0xe2be, fontFamily: _fontFamily);
+  static const IconData cloudOff = IconData(0xe08d, fontFamily: _fontFamily);
+  static const IconData globe = IconData(0xe0e8, fontFamily: _fontFamily);
+  static const IconData globe2 = IconData(0xe1f3, fontFamily: _fontFamily);
+  static const IconData arrowRightLeft = IconData(
+    0xe417,
+    fontFamily: _fontFamily,
+  );
+  static const IconData scale = IconData(0xe212, fontFamily: _fontFamily);
+  static const IconData activity = IconData(0xe038, fontFamily: _fontFamily);
+  static const IconData radar = IconData(0xe497, fontFamily: _fontFamily);
+  static const IconData smartphone = IconData(0xe163, fontFamily: _fontFamily);
+  static const IconData mousePointer = IconData(
+    0xe11f,
+    fontFamily: _fontFamily,
+  );
+  static const IconData pencil = IconData(0xe1f9, fontFamily: _fontFamily);
+  static const IconData atSign = IconData(0xe04e, fontFamily: _fontFamily);
+  static const IconData mailCheck = IconData(0xe361, fontFamily: _fontFamily);
+  static const IconData mapPinOff = IconData(0xe2a6, fontFamily: _fontFamily);
+  static const IconData logIn = IconData(0xe10d, fontFamily: _fontFamily);
+  static const IconData award = IconData(0xe04f, fontFamily: _fontFamily);
+  static const IconData fileText = IconData(0xe0cc, fontFamily: _fontFamily);
+  static const IconData folderGit2 = IconData(0xe40a, fontFamily: _fontFamily);
+  static const IconData puzzle = IconData(0xe29c, fontFamily: _fontFamily);
+  static const IconData code = IconData(0xe093, fontFamily: _fontFamily);
+  static const IconData history = IconData(0xe1f5, fontFamily: _fontFamily);
+  static const IconData circle = IconData(0xe076, fontFamily: _fontFamily);
 
   // Direct Lucide Aliases
-  static const IconData alertCircle = LucideIcons.alertCircle;
-  static const IconData alertTriangle = LucideIcons.alertTriangle;
-  static const IconData checkCircle2 = LucideIcons.checkCircle2;
-  static const IconData clock = LucideIcons.clock;
-  static const IconData footprints = LucideIcons.footprints;
-  static const IconData gauge = LucideIcons.gauge;
-  static const IconData gitCommit = LucideIcons.gitCommit;
-  static const IconData graduationCap = LucideIcons.graduationCap;
-  static const IconData helpCircle = LucideIcons.helpCircle;
-  static const IconData locateFixed = LucideIcons.locateFixed;
-  static const IconData logOut = LucideIcons.logOut;
-  static const IconData mapPin = LucideIcons.mapPin;
-  static const IconData refreshCw = LucideIcons.refreshCw;
-  static const IconData slidersHorizontal = LucideIcons.slidersHorizontal;
-  static const IconData trash2 = LucideIcons.trash2;
-  static const IconData user = LucideIcons.user;
-  static const IconData x = LucideIcons.x;
+  static const IconData alertCircle = IconData(0xe077, fontFamily: _fontFamily);
+  static const IconData alertTriangle = IconData(
+    0xe193,
+    fontFamily: _fontFamily,
+  );
+  static const IconData checkCircle2 = IconData(
+    0xe226,
+    fontFamily: _fontFamily,
+  );
+  static const IconData clock = IconData(0xe087, fontFamily: _fontFamily);
+  static const IconData footprints = IconData(0xe3b9, fontFamily: _fontFamily);
+  static const IconData gauge = IconData(0xe1bf, fontFamily: _fontFamily);
+  static const IconData gitCommit = IconData(0xe0e3, fontFamily: _fontFamily);
+  static const IconData graduationCap = IconData(
+    0xe234,
+    fontFamily: _fontFamily,
+  );
+  static const IconData helpCircle = IconData(0xe082, fontFamily: _fontFamily);
+  static const IconData locateFixed = IconData(0xe1db, fontFamily: _fontFamily);
+  static const IconData logOut = IconData(0xe10e, fontFamily: _fontFamily);
+  static const IconData mapPin = IconData(0xe111, fontFamily: _fontFamily);
+  static const IconData refreshCw = IconData(0xe145, fontFamily: _fontFamily);
+  static const IconData slidersHorizontal = IconData(
+    0xe29a,
+    fontFamily: _fontFamily,
+  );
+  static const IconData trash2 = IconData(0xe18e, fontFamily: _fontFamily);
+  static const IconData user = IconData(0xe19f, fontFamily: _fontFamily);
+  static const IconData x = IconData(0xe1b2, fontFamily: _fontFamily);
 }

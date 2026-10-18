@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/colors.dart';
+import '../tokens/motion.dart';
 
 /// A restrained, accessible shimmer effect for loading text and placeholders.
 ///
@@ -12,7 +13,7 @@ class TrackletShimmerText extends StatefulWidget {
     this.style,
     this.baseColor,
     this.highlightColor,
-    this.duration = const Duration(milliseconds: 1600),
+    this.duration = TrackletMotion.shimmer,
     this.textAlign,
   });
 
@@ -74,31 +75,36 @@ class _TrackletShimmerTextState extends State<TrackletShimmerText>
         widget.highlightColor ??
         (isDark ? Colors.white : TrackletColors.textPrimary);
 
-    return AnimatedBuilder(
-      animation: _controller!,
-      builder: (context, child) {
-        return ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (bounds) {
-            final double value = _controller!.value;
-            return LinearGradient(
-              begin: const Alignment(-1.0, 0.0),
-              end: const Alignment(2.0, 0.0),
-              stops: [
-                (value - 0.25).clamp(0.0, 1.0),
-                value.clamp(0.0, 1.0),
-                (value + 0.25).clamp(0.0, 1.0),
-              ],
-              colors: [base, highlight, base],
-            ).createShader(bounds);
-          },
-          child: Text(
-            widget.text,
-            style: textStyle?.copyWith(color: Colors.white),
-            textAlign: widget.textAlign,
-          ),
-        );
-      },
+    final textWidget = Text(
+      widget.text,
+      style: textStyle?.copyWith(color: Colors.white),
+      textAlign: widget.textAlign,
+    );
+
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller!,
+        builder: (context, child) {
+          return ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) {
+              final double value = _controller!.value;
+              return LinearGradient(
+                begin: const Alignment(-1.0, 0.0),
+                end: const Alignment(2.0, 0.0),
+                stops: [
+                  (value - 0.25).clamp(0.0, 1.0),
+                  value.clamp(0.0, 1.0),
+                  (value + 0.25).clamp(0.0, 1.0),
+                ],
+                colors: [base, highlight, base],
+              ).createShader(bounds);
+            },
+            child: child,
+          );
+        },
+        child: textWidget,
+      ),
     );
   }
 }

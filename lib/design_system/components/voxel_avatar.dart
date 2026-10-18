@@ -11,17 +11,21 @@ class VoxelAvatar extends StatelessWidget {
     super.key,
     required this.email,
     this.name = '',
+    this.avatarSeed,
     this.size = 48.0,
     this.borderRadius,
     this.border,
     this.isGuest = false,
   });
 
-  /// The user's email address used as the deterministic seed.
+  /// The user's email address used as the fallback deterministic seed.
   final String email;
 
   /// User's display name for initials fallback.
   final String name;
+
+  /// Optional custom avatar seed from DiceBear generator.
+  final String? avatarSeed;
 
   /// Dimensions (width and height).
   final double size;
@@ -37,6 +41,11 @@ class VoxelAvatar extends StatelessWidget {
 
   /// Generates the DiceBear Voxel Art URL.
   String get _avatarUrl {
+    final explicit = avatarSeed?.trim();
+    if (explicit != null && explicit.isNotEmpty) {
+      return 'https://api.dicebear.com/10.x/voxel-art/png?seed=${Uri.encodeComponent(explicit)}&size=150&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf';
+    }
+
     final cleanEmail = email.trim().toLowerCase();
     final seed =
         cleanEmail.isNotEmpty
@@ -96,13 +105,7 @@ class VoxelAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [TrackletColors.primary, TrackletColors.velvetSky],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      decoration: const BoxDecoration(color: TrackletColors.primary),
       child: Center(
         child:
             isPlaceholder

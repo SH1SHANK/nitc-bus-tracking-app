@@ -18,7 +18,7 @@ class TrackletBrandLockup extends StatelessWidget {
     this.isDark,
   });
 
-  /// Displays the standalone bus logo icon in a styled container.
+  /// Displays the standalone bus logo icon with natural transparency.
   const TrackletBrandLockup.logoOnly({
     super.key,
     this.logoSize = 36.0,
@@ -57,38 +57,12 @@ class TrackletBrandLockup extends StatelessWidget {
 
     final Widget logoWidget =
         showLogo
-            ? Container(
+            ? Image.asset(
+              'assets/branding/bustracker_bus_icon.png',
               width: logoSize,
               height: logoSize,
-              decoration: BoxDecoration(
-                color:
-                    effectiveIsDark
-                        ? TrackletColors.darkSurfaceElevated
-                        : TrackletColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(logoSize * 0.28),
-                border: Border.all(
-                  color:
-                      effectiveIsDark
-                          ? TrackletColors.darkCardBorder
-                          : TrackletColors.cardBorder,
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: TrackletColors.primary.withValues(
-                      alpha: effectiveIsDark ? 0.2 : 0.1,
-                    ),
-                    blurRadius: 8.0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.all(logoSize * 0.16),
-              child: Image.asset(
-                'assets/branding/bustracker_bus_icon.png',
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
             )
             : const SizedBox.shrink();
 
@@ -98,7 +72,7 @@ class TrackletBrandLockup extends StatelessWidget {
               'assets/branding/bustracker_wordmark.png',
               height: wordmarkHeight,
               fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
+              filterQuality: FilterQuality.medium,
               color: effectiveIsDark ? TrackletColors.darkTextPrimary : null,
             )
             : const SizedBox.shrink();
