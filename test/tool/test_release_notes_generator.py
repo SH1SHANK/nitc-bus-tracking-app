@@ -78,14 +78,14 @@ class TestReleaseNotesGenerator(unittest.TestCase):
             "maintenance": {"title": "🧰 Maintenance & Refactoring", "commits": []}
         }
         artifacts = {
-            "tracklet-v0.1.0-arm64-v8a.apk": {
+            "BusTracker-v0.1.0-arm64-v8a.apk": {
                 "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 "size": "50.8 MB"
             }
         }
 
         md = generate_markdown(version_info, "v0.1.0", "v0.0.9", categories, artifacts)
-        self.assertIn("# Tracklet v0.1.0", md)
+        self.assertIn("# BusTracker v0.1.0", md)
         self.assertIn("`e3b0c44298fc1c14...`", md)
         self.assertIn("`50.8 MB`", md)
         self.assertIn("arm64-v8a", md)

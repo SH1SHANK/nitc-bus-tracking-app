@@ -240,46 +240,28 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, artifacts
 
     catalog = [
         (
-            f"tracklet-v{semver}-arm64-v8a.apk",
+            f"BusTracker-v{semver}-arm64-v8a.apk",
             "64-bit ARM (`arm64-v8a`)",
             "Android 5.0 (API 21)",
             "**Recommended for 95%+ of modern smartphones** (Pixel, Galaxy, OnePlus, Xiaomi)",
         ),
         (
-            f"tracklet-v{semver}-universal.apk",
+            f"BusTracker-v{semver}-universal.apk",
             "Universal (All ABIs)",
             "Android 5.0 (API 21)",
             "Compatibility fallback / sideloading on any Android device",
         ),
         (
-            f"tracklet-v{semver}-armeabi-v7a.apk",
-            "32-bit ARM (`armeabi-v7a`)",
-            "Android 5.0 (API 21)",
-            "Older or budget 32-bit smartphones and legacy tablets",
-        ),
-        (
-            f"tracklet-v{semver}-x86_64.apk",
+            f"BusTracker-v{semver}-x86_64.apk",
             "64-bit x86 (`x86_64`)",
             "Android 5.0 (API 21)",
             "Android Studio Emulators and Intel-based Chromebooks",
         ),
         (
-            f"tracklet-v{semver}.aab",
+            f"BusTracker-v{semver}.aab",
             "Android App Bundle (`.aab`)",
             "Android 5.0 (API 21)",
             "Google Play Console release submission",
-        ),
-        (
-            f"tracklet-v{semver}-debug-symbols.tar.gz",
-            "R8 / Native Debug Symbols",
-            "N/A",
-            "Stack unwinding and crash symbolication",
-        ),
-        (
-            "BUILD_METADATA.json",
-            "Build Provenance Manifest",
-            "N/A",
-            "Cryptographic build verification and Git audit trail",
         ),
         (
             "checksums.sha256",
@@ -309,7 +291,7 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, artifacts
     lines.append("sha256sum -c checksums.sha256")
     lines.append("")
     lines.append("# Or compute an individual file's hash")
-    lines.append(f"shasum -a 256 tracklet-v{semver}-arm64-v8a.apk")
+    lines.append(f"shasum -a 256 BusTracker-v{semver}-arm64-v8a.apk")
     lines.append("```")
     lines.append("")
     lines.append("### Sideloading Instructions")

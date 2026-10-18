@@ -187,9 +187,8 @@ jobs:
             --dart-define=MAPBOX_PUBLIC_TOKEN="${MAPBOX_PUBLIC_TOKEN:-}"
 
           # Immediately move finished ABI APKs to dist/android/ and delete source to free runner disk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android/tracklet-v${SEMVER}-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android/tracklet-v${SEMVER}-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android/tracklet-v${SEMVER}-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android/BusTracker-v${SEMVER}-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android/BusTracker-v${SEMVER}-x86_64.apk
           rm -f build/app/outputs/flutter-apk/*.apk
           echo "ABI-split APKs staged in dist/android/. Reclaimed intermediate APK disk space."
 
@@ -216,7 +215,7 @@ jobs:
             --dart-define=MAPBOX_PUBLIC_TOKEN="${MAPBOX_PUBLIC_TOKEN:-}"
 
           # Immediately move Universal APK to dist/android/ and clean intermediate outputs
-          cp build/app/outputs/flutter-apk/app-release.apk dist/android/tracklet-v${SEMVER}-universal.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/android/BusTracker-v${SEMVER}-universal.apk
           rm -f build/app/outputs/flutter-apk/*.apk
           echo "Universal APK staged in dist/android/. Reclaimed intermediate APK disk space."
 
@@ -243,7 +242,7 @@ jobs:
             --dart-define=MAPBOX_PUBLIC_TOKEN="${MAPBOX_PUBLIC_TOKEN:-}"
 
           # Move App Bundle to dist/android/ and clean build folder
-          cp build/app/outputs/bundle/release/app-release.aab dist/android/tracklet-v${SEMVER}.aab
+          cp build/app/outputs/bundle/release/app-release.aab dist/android/BusTracker-v${SEMVER}.aab
           rm -rf build/app/outputs/bundle/release/
           echo "Play Store App Bundle staged in dist/android/."
 
@@ -269,20 +268,10 @@ jobs:
             apksigner verify --verbose --print-certs "$apk" | grep -E "Signer #1|Verified using" || true
           done
 
-      - name: Archive debug symbols and generate metadata
-        env:
-          SEMVER: ${{ steps.version.outputs.version }}
-          BUILD_NUM: ${{ steps.version.outputs.build_number }}
-          RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
-          COMMIT_SHA: ${{ github.sha }}
-          WORKFLOW_RUN_ID: ${{ github.run_id }}
+      - name: Generate artifact checksums
         run: |
-          tar -czf dist/android/tracklet-v${SEMVER}-debug-symbols.tar.gz -C build/app/outputs/symbols .
-
-          python3 -c "import json, datetime, os; data = {'project': 'bustracker', 'target': 'android', 'version': os.environ.get('SEMVER', ''), 'build_number': os.environ.get('BUILD_NUM', ''), 'commit_sha': os.environ.get('COMMIT_SHA', ''), 'release_tag': os.environ.get('RELEASE_TAG', ''), 'workflow_run_id': os.environ.get('WORKFLOW_RUN_ID', ''), 'built_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'integrity_status': 'VERIFIED_PRODUCTION'}; json.dump(data, open('dist/android/BUILD_METADATA.json', 'w'), indent=2)"
-
           # Generate checksums.sha256
-          (cd dist/android && sha256sum tracklet-* BUILD_METADATA.json > checksums.sha256)
+          (cd dist/android && sha256sum BusTracker-* > checksums.sha256)
           cat dist/android/checksums.sha256
 
       - name: Generate release notes and changelog
@@ -296,7 +285,7 @@ jobs:
       - name: Upload compiled Android distribution bundle
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: tracklet-android-${{ steps.version.outputs.release_tag }}
+          name: bustracker-android-${{ steps.version.outputs.release_tag }}
           path: dist/android
           if-no-files-found: error
           retention-days: 14
@@ -317,7 +306,7 @@ jobs:
       - name: Download compiled Android distribution
         uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
-          name: tracklet-android-${{ needs.build-and-verify-android.outputs.release_tag }}
+          name: bustracker-android-${{ needs.build-and-verify-android.outputs.release_tag }}
           path: dist/android
 
       - name: Tag commit if tag does not exist

@@ -160,10 +160,9 @@ def stage_android():
         semver = VERSION.split("+")[0]
 
         mapping = {
-            "app-release.apk": f"tracklet-v{semver}-universal.apk",
-            "app-arm64-v8a-release.apk": f"tracklet-v{semver}-arm64-v8a.apk",
-            "app-armeabi-v7a-release.apk": f"tracklet-v{semver}-armeabi-v7a.apk",
-            "app-x86_64-release.apk": f"tracklet-v{semver}-x86_64.apk",
+            "app-release.apk": f"BusTracker-v{semver}-universal.apk",
+            "app-arm64-v8a-release.apk": f"BusTracker-v{semver}-arm64-v8a.apk",
+            "app-x86_64-release.apk": f"BusTracker-v{semver}-x86_64.apk",
         }
         if os.path.isdir(apk_dir):
             for src_name, dest_name in mapping.items():
@@ -174,13 +173,7 @@ def stage_android():
         if os.path.isdir(bundle_dir):
             aab_src = os.path.join(bundle_dir, "app-release.aab")
             if os.path.isfile(aab_src):
-                shutil.copy2(aab_src, os.path.join(dest_android, f"tracklet-v{semver}.aab"))
-
-        symbols_dir = os.path.join(src_dir, "symbols")
-        if os.path.isdir(symbols_dir) and os.listdir(symbols_dir):
-            sym_archive = os.path.join(dest_android, f"tracklet-v{semver}-debug-symbols.tar.gz")
-            with tarfile.open(sym_archive, "w:gz") as tar:
-                tar.add(symbols_dir, arcname=".")
+                shutil.copy2(aab_src, os.path.join(dest_android, f"BusTracker-v{semver}.aab"))
 
     # Audit destination files for sensitive patterns
     forbidden_patterns = [".env", "keystore", "upload-keystore", ".jks", "key.properties"]
