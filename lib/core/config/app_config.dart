@@ -105,11 +105,19 @@ class AppConfig {
     defaultValue: 'mapbox://styles/mapbox/streets-v12',
   );
 
+  static const String mapboxDarkStyleUrl = String.fromEnvironment(
+    'MAPBOX_DARK_STYLE_URL',
+    defaultValue: 'mapbox://styles/mapbox/dark-v11',
+  );
+
   @visibleForTesting
   static String? testMapboxTokenOverride;
 
   @visibleForTesting
   static String? testMapboxStyleOverride;
+
+  @visibleForTesting
+  static String? testMapboxDarkStyleOverride;
 
   static String get effectiveMapboxPublicToken =>
       testMapboxTokenOverride ?? mapboxPublicToken;
@@ -117,17 +125,23 @@ class AppConfig {
   static String get effectiveMapboxStyleUrl =>
       testMapboxStyleOverride ?? mapboxStyleUrl;
 
+  static String get effectiveMapboxDarkStyleUrl =>
+      testMapboxDarkStyleOverride ?? mapboxDarkStyleUrl;
+
+  static String effectiveMapboxStyleUrlForTheme(bool isDark) =>
+      isDark ? effectiveMapboxDarkStyleUrl : effectiveMapboxStyleUrl;
+
   static bool get isMapboxConfigured =>
       effectiveMapboxPublicToken.trim().isNotEmpty;
 
-  /// Mapbox raster tile URL template for flutter_map TileLayer.
+  /// Mapbox raster tile URL template for flutter_map TileLayer based on dark/light mode.
   /// Converts `mapbox://styles/{owner}/{style_id}` into:
   /// `https://api.mapbox.com/styles/v1/{owner}/{style_id}/tiles/256/{z}/{x}/{y}{r}?access_token={token}`
-  static String get mapboxTileUrlTemplate {
+  static String mapboxTileUrlTemplateForTheme(bool isDark) {
     if (!isMapboxConfigured) return '';
-    final style = effectiveMapboxStyleUrl.trim();
+    final style = effectiveMapboxStyleUrlForTheme(isDark).trim();
     String owner = 'mapbox';
-    String styleId = 'streets-v12';
+    String styleId = isDark ? 'dark-v11' : 'streets-v12';
 
     if (style.startsWith('mapbox://styles/')) {
       final path = style.substring('mapbox://styles/'.length);
@@ -158,17 +172,26 @@ class AppConfig {
     return 'https://api.mapbox.com/styles/v1/$owner/$styleId/tiles/256/{z}/{x}/{y}{r}?access_token=$token';
   }
 
+  static String get mapboxTileUrlTemplate =>
+      mapboxTileUrlTemplateForTheme(false);
+
   static const String mapboxAttribution =
       '© Mapbox © OpenStreetMap contributors';
 
   // Fastify Telemetry & Admin Backend Configuration
   static const String _backendUrl = String.fromEnvironment(
     'BACKEND_URL',
-    defaultValue: '',
+    defaultValue: 'https://backend-bus-tracker-1.onrender.com',
   );
 
   static String get backendUrl =>
       isValidServiceUrl(_backendUrl, environment) ? _backendUrl : '';
+
+  // Hardware Simulator Credentials (from Flutter Android App Workbench)
+  static const String defaultSimulatorDeviceId = 'NITC-BUS-SIM-001';
+  static const String defaultSimulatorSecret =
+      'SimTrackerSecureKey2026_NitcPass#1';
+  static const String defaultSimulatorBusNumber = 'BUS-SIM-001';
 
   // Campus Geolocation Anchor (NITC Campus Center: 11.3216, 75.9337)
   static const double campusCenterLat = 11.3216;

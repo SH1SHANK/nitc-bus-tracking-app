@@ -437,5 +437,174 @@ void main() {
         expect(deleted, isTrue);
       },
     );
+
+    test(
+      'getTelemetryMetrics parses time-series throughput and speeds',
+      () async {
+        final client = FakeHttpClient((req) async {
+          if (req.url.path == '/rest/v1/rpc/admin_get_telemetry_metrics') {
+            return http.Response(
+              jsonEncode({
+                'hourly_packets': [
+                  {
+                    'timestamp': '2026-10-18T10:00:00.000Z',
+                    'count': 145,
+                    'avg_speed': 24.5,
+                  },
+                ],
+                'speed_distribution': [
+                  {
+                    'bus_number': 'BUS-01',
+                    'device_id': 'NITC-BUS-001',
+                    'speed': 32.4,
+                    'heading': 180.0,
+                    'last_seen': '2026-10-18T10:30:00.000Z',
+                  },
+                ],
+                'total_packets_all_time': 11800,
+                'total_packets_24h': 145,
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('Not Found', 404);
+        });
+
+        final supabase = SupabaseClient(
+          supabaseUrl,
+          anonKey,
+          httpClient: client,
+        );
+        final repo = HttpAdminRepository(
+          supabase: supabase,
+          httpClient: client,
+        );
+
+        final metrics = await repo.getTelemetryMetrics();
+        expect(metrics.totalPacketsAllTime, 11800);
+        expect(metrics.totalPackets24h, 145);
+        expect(metrics.hourlyPackets.length, 1);
+        expect(metrics.hourlyPackets.first.count, 145);
+        expect(metrics.hourlyPackets.first.avgSpeed, 24.5);
+        expect(metrics.speedDistribution.length, 1);
+        expect(metrics.speedDistribution.first.busNumber, 'BUS-01');
+        expect(metrics.speedDistribution.first.speed, 32.4);
+      },
+    );
+
+    test(
+      'testPingDevice executes reboot-session handshake against gateway',
+      () async {
+        final client = FakeHttpClient((req) async {
+          if (req.url.path == '/api/v1/auth/reset-session') {
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            expect(body['device_id'], 'NITC-BUS-SIM-001');
+            expect(body['secret'], 'SimTrackerSecureKey2026_NitcPass#1');
+            expect(body['reason'], 'admin_manual_ping');
+            return http.Response(
+              jsonEncode({
+                'ok': true,
+                'epoch': 3,
+                'idempotent_retry': false,
+                'message': 'Session established',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('Not Found', 404);
+        });
+
+        final supabase = SupabaseClient(
+          supabaseUrl,
+          anonKey,
+          httpClient: client,
+        );
+        final repo = HttpAdminRepository(
+          baseUrl: 'https://backend.test',
+          supabase: supabase,
+          httpClient: client,
+        );
+
+        final result = await repo.testPingDevice(
+          deviceId: 'NITC-BUS-SIM-001',
+          secret: 'SimTrackerSecureKey2026_NitcPass#1',
+        );
+        expect(result['ok'], isTrue);
+        expect(result['epoch'], 3);
+        expect(result['http_status'], 200);
+        expect(result.containsKey('latency_ms'), isTrue);
+      },
+    );
+
+    test(
+      'injectSimulatedTelemetry authenticates and submits GNSS waypoint',
+      () async {
+        final client = FakeHttpClient((req) async {
+          if (req.url.path == '/api/v1/auth/device') {
+            return http.Response(
+              jsonEncode({
+                'ok': true,
+                'token': 'mock_jwt_token_for_telemetry',
+                'epoch': 1,
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (req.url.path == '/rest/v1/bus_current_state') {
+            return http.Response(
+              jsonEncode({'epoch': 1, 'seq': 10}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (req.url.path == '/api/v1/telemetry') {
+            expect(
+              req.headers['authorization'],
+              'Bearer mock_jwt_token_for_telemetry',
+            );
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            expect(body['device_id'], 'NITC-BUS-SIM-001');
+            expect(body['seq'], 11);
+            expect(body['latitude'], 11.317139);
+            expect(body['longitude'], 75.937622);
+            return http.Response(
+              jsonEncode({
+                'ok': true,
+                'recorded_at': '2026-10-18T10:35:00.000Z',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('Not Found', 404);
+        });
+
+        final supabase = SupabaseClient(
+          supabaseUrl,
+          anonKey,
+          httpClient: client,
+        );
+        final repo = HttpAdminRepository(
+          baseUrl: 'https://backend.test',
+          supabase: supabase,
+          httpClient: client,
+        );
+
+        final res = await repo.injectSimulatedTelemetry(
+          deviceId: 'NITC-BUS-SIM-001',
+          secret: 'SimTrackerSecureKey2026_NitcPass#1',
+          latitude: 11.317139,
+          longitude: 75.937622,
+          speed: 25.0,
+          heading: 90.0,
+        );
+        expect(res['ok'], isTrue);
+        expect(res['seq'], 11);
+        expect(res.containsKey('latency_ms'), isTrue);
+      },
+    );
   });
 }

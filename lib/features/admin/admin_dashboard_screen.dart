@@ -10,8 +10,13 @@ import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/radii.dart';
 import 'providers/admin_provider.dart';
 import 'widgets/add_admin_dialog.dart';
+import 'widgets/bus_speed_bar_chart.dart';
+import 'widgets/fleet_status_donut_chart.dart';
+import 'widgets/hardware_workbench_card.dart';
 import 'widgets/register_device_dialog.dart';
 import 'widgets/rotate_secret_dialog.dart';
+import 'widgets/telemetry_throughput_chart.dart';
+import 'widgets/test_ping_dialog.dart';
 import 'widgets/tracker_detail_sheet.dart';
 
 /// Comprehensive Administrative Control Panel for Tracklet.
@@ -29,6 +34,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final TextEditingController _deviceSearchController = TextEditingController();
+  String _selectedDeviceFilter = 'all';
 
   @override
   void initState() {
@@ -173,6 +179,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   ref.invalidate(adminHealthProvider);
                   ref.invalidate(adminAuditLogsProvider);
                   ref.invalidate(adminUsersProvider);
+                  ref.invalidate(adminTelemetryMetricsProvider);
                 },
               ),
             ],
@@ -262,6 +269,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         return RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(adminOverviewProvider);
+            ref.invalidate(adminTelemetryMetricsProvider);
             await ref.read(adminOverviewProvider.future);
           },
           child: ListView(
@@ -398,6 +406,41 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+
+              // Fleet Distribution Donut Chart
+              FleetStatusDonutChart(
+                onlineCount: overview.onlineDevices,
+                staleCount: overview.staleDevices,
+                offlineCount: overview.offlineDevices,
+                totalDevices: overview.totalDevices,
+              ),
+              const SizedBox(height: 16),
+
+              // Telemetry Throughput Chart
+              Consumer(
+                builder: (context, ref, _) {
+                  final metricsAsync = ref.watch(adminTelemetryMetricsProvider);
+                  return metricsAsync.when(
+                    data:
+                        (metrics) => TelemetryThroughputChart(
+                          buckets: metrics.hourlyPackets,
+                          totalPackets24h: metrics.totalPackets24h,
+                          totalPacketsAllTime: metrics.totalPacketsAllTime,
+                        ),
+                    loading:
+                        () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                    error: (e, _) => const SizedBox.shrink(),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Hardware Simulation & Gateway Workbench Card
+              const HardwareWorkbenchCard(),
               const SizedBox(height: 24),
 
               const Text(
@@ -475,9 +518,26 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             ),
           ),
       data: (devices) {
+        final totalActive = devices.where((d) => d.isActive).length;
+        final totalInactive = devices.where((d) => !d.isActive).length;
+        final totalSim =
+            devices
+                .where((d) => d.deviceId.toLowerCase().contains('sim'))
+                .length;
+
         final query = _deviceSearchController.text.trim().toLowerCase();
         final filtered =
             devices.where((d) {
+              if (_selectedDeviceFilter == 'active' && !d.isActive) {
+                return false;
+              }
+              if (_selectedDeviceFilter == 'inactive' && d.isActive) {
+                return false;
+              }
+              if (_selectedDeviceFilter == 'simulated' &&
+                  !d.deviceId.toLowerCase().contains('sim')) {
+                return false;
+              }
               if (query.isEmpty) return true;
               return d.deviceId.toLowerCase().contains(query) ||
                   (d.busNumber?.toLowerCase().contains(query) ?? false) ||
@@ -527,6 +587,22 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     icon: const Icon(TrackletIcons.plus, size: 16),
                     onPressed: () => RegisterDeviceDialog.show(context),
                   ),
+                ],
+              ),
+            ),
+            // Device filter chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  _buildDeviceFilterChip('All', 'all', devices.length),
+                  const SizedBox(width: 8),
+                  _buildDeviceFilterChip('Active', 'active', totalActive),
+                  const SizedBox(width: 8),
+                  _buildDeviceFilterChip('Inactive', 'inactive', totalInactive),
+                  const SizedBox(width: 8),
+                  _buildDeviceFilterChip('Simulated', 'simulated', totalSim),
                 ],
               ),
             ),
@@ -606,7 +682,64 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     );
   }
 
+  Widget _buildDeviceFilterChip(String label, String value, int count) {
+    final isSelected = _selectedDeviceFilter == value;
+    return ChoiceChip(
+      label: Text('$label ($count)'),
+      selected: isSelected,
+      selectedColor: TrackletColors.primary.withValues(alpha: 0.15),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        color:
+            isSelected
+                ? TrackletColors.primary
+                : TrackletColors.adaptiveTextPrimary(context),
+      ),
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _selectedDeviceFilter = value;
+          });
+        }
+      },
+    );
+  }
+
   Widget _buildDeviceCard(BuildContext context, AdminDevice device) {
+    final isOnline =
+        device.isActive &&
+        device.lastSeenAt != null &&
+        DateTime.now().difference(device.lastSeenAt!).inMinutes < 2;
+    final isStale =
+        device.isActive &&
+        device.lastSeenAt != null &&
+        DateTime.now().difference(device.lastSeenAt!).inMinutes >= 2 &&
+        DateTime.now().difference(device.lastSeenAt!).inMinutes < 10;
+
+    final statusColor =
+        !device.isActive
+            ? Colors.grey
+            : isOnline
+            ? TrackletColors.success
+            : isStale
+            ? TrackletColors.warning
+            : TrackletColors.error;
+
+    final statusText =
+        !device.isActive
+            ? 'INACTIVE'
+            : isOnline
+            ? 'ONLINE'
+            : isStale
+            ? 'STALE'
+            : 'OFFLINE';
+
+    final busDisplayName =
+        device.busNumber != null
+            ? '${device.busNumber}${device.busLabel != null && device.busLabel!.isNotEmpty ? ' · ${device.busLabel}' : ''}'
+            : 'Unassigned Bus';
+
     return TrackletCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,15 +749,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color:
-                      device.isActive
-                          ? TrackletColors.primary.withValues(alpha: 0.12)
-                          : Colors.grey.withValues(alpha: 0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
                 ),
                 child: Icon(
                   TrackletIcons.smartphone,
-                  color: device.isActive ? TrackletColors.primary : Colors.grey,
+                  color: statusColor,
                   size: 20,
                 ),
               ),
@@ -633,18 +763,41 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      device.deviceId,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          device.deviceId,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.15),
+                            borderRadius: TrackletRadii.roundedSm,
+                          ),
+                          child: Text(
+                            statusText,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 2),
                     Text(
-                      device.busNumber != null
-                          ? 'Assigned: ${device.busNumber}'
-                          : 'Unassigned Bus',
+                      busDisplayName,
                       style: TextStyle(
                         fontSize: 12,
                         color: TrackletColors.adaptiveTextSecondary(context),
@@ -670,32 +823,54 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
           ),
           const Divider(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _subInfo('Epoch', '${device.currentEpoch}'),
+              const Spacer(),
               _subInfo(
                 'Last Seen',
                 device.lastSeenAt != null
                     ? _formatRelativeTime(device.lastSeenAt!)
                     : 'Never',
               ),
-              if (device.lastPosition != null)
+              if (device.lastPosition != null) ...[
+                const Spacer(),
                 _subInfo('Seq #', '${device.lastPosition!.seq}'),
-              OutlinedButton.icon(
-                icon: const Icon(TrackletIcons.key, size: 14),
-                label: const Text(
-                  'Rotate Secret',
-                  style: TextStyle(fontSize: 11),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(TrackletIcons.activity, size: 14),
+                  label: const Text(
+                    'Test Ping',
+                    style: TextStyle(fontSize: 12),
                   ),
-                  visualDensity: VisualDensity.compact,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed:
+                      () => TestPingDialog.show(context, device.deviceId),
                 ),
-                onPressed:
-                    () => RotateSecretDialog.show(context, device.deviceId),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(TrackletIcons.key, size: 14),
+                  label: const Text(
+                    'Rotate Secret',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed:
+                      () => RotateSecretDialog.show(context, device.deviceId),
+                ),
               ),
             ],
           ),
@@ -798,6 +973,67 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 ],
               ),
               const SizedBox(height: 8),
+              // Polling Interval Selector
+              Row(
+                children: [
+                  Text(
+                    'Polling Rate: ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: TrackletColors.adaptiveTextMuted(context),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  for (final sec in [1, 3, 5, 10]) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: InkWell(
+                        onTap: () => notifier.setPollingInterval(sec),
+                        borderRadius: TrackletRadii.roundedSm,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                consoleState.pollingIntervalSeconds == sec
+                                    ? TrackletColors.primary.withValues(
+                                      alpha: 0.15,
+                                    )
+                                    : TrackletColors.adaptiveSurface(context),
+                            borderRadius: TrackletRadii.roundedSm,
+                            border: Border.all(
+                              color:
+                                  consoleState.pollingIntervalSeconds == sec
+                                      ? TrackletColors.primary
+                                      : TrackletColors.adaptiveDivider(context),
+                            ),
+                          ),
+                          child: Text(
+                            '${sec}s',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight:
+                                  consoleState.pollingIntervalSeconds == sec
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                              color:
+                                  consoleState.pollingIntervalSeconds == sec
+                                      ? TrackletColors.primary
+                                      : TrackletColors.adaptiveTextPrimary(
+                                        context,
+                                      ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
               // Search & Freshness filter
               Row(
                 children: [
@@ -837,6 +1073,28 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               ),
             ],
           ),
+        ),
+
+        // Bus Speed Spectrum
+        Consumer(
+          builder: (context, ref, _) {
+            final metricsAsync = ref.watch(adminTelemetryMetricsProvider);
+            return metricsAsync.when(
+              data: (metrics) {
+                if (metrics.speedDistribution.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: BusSpeedBarChart(
+                    speedMetrics: metrics.speedDistribution,
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            );
+          },
         ),
 
         // Live Tracker list

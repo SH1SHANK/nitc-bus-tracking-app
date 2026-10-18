@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tracklet/data/admin/admin_models.dart';
 import 'package:tracklet/data/admin/admin_repository.dart';
@@ -160,6 +161,62 @@ class FakeAdminRepository implements AdminRepository {
 
   @override
   Future<bool> deleteAdminUser(String id) async => true;
+
+  @override
+  Future<AdminTelemetryMetrics> getTelemetryMetrics() async {
+    return AdminTelemetryMetrics(
+      hourlyPackets: [
+        HourlyPacketBucket(
+          timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+          count: 120,
+          avgSpeed: 22.5,
+        ),
+        HourlyPacketBucket(
+          timestamp: DateTime.now(),
+          count: 250,
+          avgSpeed: 26.0,
+        ),
+      ],
+      speedDistribution: [
+        BusSpeedMetric(
+          busNumber: 'Bus 1',
+          deviceId: 'NITC-BUS-001',
+          speed: 28.5,
+          heading: 90.0,
+          lastSeen: DateTime.now(),
+        ),
+      ],
+      totalPacketsAllTime: 12000,
+      totalPackets24h: 370,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> testPingDevice({
+    required String deviceId,
+    required String secret,
+  }) async {
+    return {
+      'ok': true,
+      'epoch': 2,
+      'idempotent_retry': false,
+      'latency_ms': 42,
+      'http_status': 200,
+      'message': 'Session reset successfully',
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> injectSimulatedTelemetry({
+    required String deviceId,
+    required String secret,
+    required double latitude,
+    required double longitude,
+    required double speed,
+    required double heading,
+  }) async {
+    return {'ok': true, 'seq': 51, 'latency_ms': 35, 'http_status': 200};
+  }
 }
 
 void main() {
@@ -184,7 +241,9 @@ void main() {
       );
     });
 
-    testWidgets('Verified admin sees Admin Controls and tabs', (tester) async {
+    testWidgets('Verified admin sees Admin Controls, charts and tabs', (
+      tester,
+    ) async {
       final fakeRepo = FakeAdminRepository(isAdmin: true);
 
       await tester.pumpTrackletWidget(
@@ -205,18 +264,30 @@ void main() {
       expect(find.text('Audit Logs'), findsOneWidget);
       expect(find.text('Admins'), findsOneWidget);
 
-      // Verify Overview contents
+      // Verify Overview contents & charts
       expect(find.text('Telemetry Core Connected'), findsOneWidget);
       expect(find.text('Total Trackers'), findsOneWidget);
+      expect(find.text('Fleet Tracker Distribution'), findsOneWidget);
+
+      // Drag down to reveal throughput and hardware workbench charts
+      await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Telemetry Ingestion Throughput'), findsOneWidget);
+
+      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Live Hardware & Telemetry Workbench'), findsOneWidget);
     });
 
     testWidgets(
-      'Live Debug Console pause/resume toggle updates stream status',
+      'Devices tab shows filters, status pill, and Test Ping button',
       (tester) async {
         final fakeRepo = FakeAdminRepository(isAdmin: true);
 
         await tester.pumpTrackletWidget(
-          const AdminDashboardScreen(initialTabIndex: 2),
+          const AdminDashboardScreen(initialTabIndex: 1),
           overrides: [
             isAdminProvider.overrideWith((ref) => Future.value(true)),
             adminRepositoryProvider.overrideWithValue(fakeRepo),
@@ -225,22 +296,54 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Debug Console tab is active
-        expect(find.text('PAUSE STREAM'), findsOneWidget);
+        // Check filter chips
+        expect(find.text('All (1)'), findsOneWidget);
+        expect(find.text('Active (1)'), findsOneWidget);
+        expect(find.text('Inactive (0)'), findsOneWidget);
+        expect(find.text('Simulated (0)'), findsOneWidget);
 
-        // Tap pause button
-        await tester.tap(find.text('PAUSE STREAM'));
-        await tester.pumpAndSettle();
-
-        // State is now paused
-        expect(find.text('RESUME STREAM'), findsOneWidget);
-
-        // Tap resume button
-        await tester.tap(find.text('RESUME STREAM'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('PAUSE STREAM'), findsOneWidget);
+        // Check device details
+        expect(find.text('NITC-BUS-001'), findsOneWidget);
+        expect(find.text('Test Ping'), findsOneWidget);
+        expect(find.text('Rotate Secret'), findsOneWidget);
       },
     );
+
+    testWidgets('Live Debug Console displays rate selector and speed chart', (
+      tester,
+    ) async {
+      final fakeRepo = FakeAdminRepository(isAdmin: true);
+
+      await tester.pumpTrackletWidget(
+        const AdminDashboardScreen(initialTabIndex: 2),
+        overrides: [
+          isAdminProvider.overrideWith((ref) => Future.value(true)),
+          adminRepositoryProvider.overrideWithValue(fakeRepo),
+        ],
+      );
+
+      await tester.pumpAndSettle();
+
+      // Debug Console tab is active
+      expect(find.text('PAUSE STREAM'), findsOneWidget);
+      expect(find.text('Fleet Velocity Spectrum'), findsOneWidget);
+      expect(find.text('1s'), findsOneWidget);
+      expect(find.text('3s'), findsOneWidget);
+      expect(find.text('5s'), findsOneWidget);
+      expect(find.text('10s'), findsOneWidget);
+
+      // Tap pause button
+      await tester.tap(find.text('PAUSE STREAM'));
+      await tester.pumpAndSettle();
+
+      // State is now paused
+      expect(find.text('RESUME STREAM'), findsOneWidget);
+
+      // Tap resume button
+      await tester.tap(find.text('RESUME STREAM'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PAUSE STREAM'), findsOneWidget);
+    });
   });
 }

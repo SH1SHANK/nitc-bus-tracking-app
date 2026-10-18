@@ -33,6 +33,14 @@ final adminAuditLogsProvider = FutureProvider<List<AdminAuditLog>>((ref) async {
   return repo.getAuditLogs();
 });
 
+/// Aggregated telemetry metrics provider for charts.
+final adminTelemetryMetricsProvider = FutureProvider<AdminTelemetryMetrics>((
+  ref,
+) async {
+  final repo = ref.watch(adminRepositoryProvider);
+  return repo.getTelemetryMetrics();
+});
+
 /// State notifier managing device inventory with interactive operations.
 class AdminDevicesNotifier extends AsyncNotifier<List<AdminDevice>> {
   @override
@@ -86,6 +94,19 @@ class AdminDevicesNotifier extends AsyncNotifier<List<AdminDevice>> {
     await refresh();
     return secret;
   }
+
+  Future<Map<String, dynamic>> testPingDevice({
+    required String deviceId,
+    required String secret,
+  }) async {
+    final result = await ref
+        .read(adminRepositoryProvider)
+        .testPingDevice(deviceId: deviceId, secret: secret);
+    await refresh();
+    ref.invalidate(adminOverviewProvider);
+    ref.invalidate(adminHealthProvider);
+    return result;
+  }
 }
 
 final adminDevicesProvider =
@@ -93,7 +114,7 @@ final adminDevicesProvider =
       AdminDevicesNotifier.new,
     );
 
-/// State for Live Debug Console stream with pause/resume support.
+/// State for Live Debug Console stream with pause/resume support and polling interval.
 class DebugConsoleState {
   const DebugConsoleState({
     required this.trackers,
@@ -101,6 +122,7 @@ class DebugConsoleState {
     required this.lastUpdated,
     this.searchQuery = '',
     this.selectedFreshnessFilter,
+    this.pollingIntervalSeconds = 3,
   });
 
   final List<TrackerDebugItem> trackers;
@@ -108,6 +130,7 @@ class DebugConsoleState {
   final DateTime lastUpdated;
   final String searchQuery;
   final String? selectedFreshnessFilter;
+  final int pollingIntervalSeconds;
 
   List<TrackerDebugItem> get filteredTrackers {
     return trackers.where((t) {
@@ -134,6 +157,7 @@ class DebugConsoleState {
     DateTime? lastUpdated,
     String? searchQuery,
     String? selectedFreshnessFilter,
+    int? pollingIntervalSeconds,
   }) {
     return DebugConsoleState(
       trackers: trackers ?? this.trackers,
@@ -142,6 +166,8 @@ class DebugConsoleState {
       searchQuery: searchQuery ?? this.searchQuery,
       selectedFreshnessFilter:
           selectedFreshnessFilter ?? this.selectedFreshnessFilter,
+      pollingIntervalSeconds:
+          pollingIntervalSeconds ?? this.pollingIntervalSeconds,
     );
   }
 }
@@ -156,23 +182,35 @@ class DebugConsoleNotifier extends Notifier<DebugConsoleState> {
       _pollingTimer?.cancel();
     });
 
-    _startPolling();
+    Future.microtask(() {
+      _startPolling();
+    });
 
     return DebugConsoleState(
       trackers: const [],
       isPaused: false,
       lastUpdated: DateTime.now(),
+      pollingIntervalSeconds: 3,
     );
   }
 
   void _startPolling() {
     _pollingTimer?.cancel();
     _fetch();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!state.isPaused) {
-        _fetch();
-      }
-    });
+    _pollingTimer = Timer.periodic(
+      Duration(seconds: state.pollingIntervalSeconds),
+      (_) {
+        if (!state.isPaused) {
+          _fetch();
+        }
+      },
+    );
+  }
+
+  void setPollingInterval(int seconds) {
+    if (state.pollingIntervalSeconds == seconds) return;
+    state = state.copyWith(pollingIntervalSeconds: seconds);
+    _startPolling();
   }
 
   Future<void> _fetch() async {
@@ -206,6 +244,103 @@ class DebugConsoleNotifier extends Notifier<DebugConsoleState> {
 final debugConsoleProvider =
     NotifierProvider<DebugConsoleNotifier, DebugConsoleState>(
       DebugConsoleNotifier.new,
+    );
+
+/// Hardware workbench state for live hardware testing & telemetry injection.
+class HardwareWorkbenchState {
+  const HardwareWorkbenchState({
+    this.isLoading = false,
+    this.lastResult,
+    this.lastError,
+    this.lastAction,
+    this.lastSuccessTimestamp,
+  });
+
+  final bool isLoading;
+  final Map<String, dynamic>? lastResult;
+  final String? lastError;
+  final String? lastAction;
+  final DateTime? lastSuccessTimestamp;
+
+  HardwareWorkbenchState copyWith({
+    bool? isLoading,
+    Map<String, dynamic>? lastResult,
+    String? lastError,
+    String? lastAction,
+    DateTime? lastSuccessTimestamp,
+  }) {
+    return HardwareWorkbenchState(
+      isLoading: isLoading ?? this.isLoading,
+      lastResult: lastResult ?? this.lastResult,
+      lastError: lastError,
+      lastAction: lastAction ?? this.lastAction,
+      lastSuccessTimestamp: lastSuccessTimestamp ?? this.lastSuccessTimestamp,
+    );
+  }
+}
+
+class HardwareWorkbenchNotifier extends Notifier<HardwareWorkbenchState> {
+  @override
+  HardwareWorkbenchState build() => const HardwareWorkbenchState();
+
+  Future<Map<String, dynamic>> probeHealth() async {
+    state = state.copyWith(isLoading: true, lastAction: 'Health Probe');
+    final repo = ref.read(adminRepositoryProvider);
+    try {
+      final res = await repo.testPingDevice(
+        deviceId: 'NITC-BUS-SIM-001',
+        secret: 'SimTrackerSecureKey2026_NitcPass#1',
+      );
+      state = state.copyWith(
+        isLoading: false,
+        lastResult: res,
+        lastSuccessTimestamp: DateTime.now(),
+      );
+      ref.invalidate(adminOverviewProvider);
+      ref.invalidate(adminHealthProvider);
+      return res;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> injectLiveWaypoint({
+    required double lat,
+    required double lon,
+    required double speed,
+    required double heading,
+  }) async {
+    state = state.copyWith(isLoading: true, lastAction: 'Inject Telemetry Fix');
+    final repo = ref.read(adminRepositoryProvider);
+    try {
+      final res = await repo.injectSimulatedTelemetry(
+        deviceId: 'NITC-BUS-SIM-001',
+        secret: 'SimTrackerSecureKey2026_NitcPass#1',
+        latitude: lat,
+        longitude: lon,
+        speed: speed,
+        heading: heading,
+      );
+      state = state.copyWith(
+        isLoading: false,
+        lastResult: res,
+        lastSuccessTimestamp: DateTime.now(),
+      );
+      ref.invalidate(adminOverviewProvider);
+      ref.invalidate(adminHealthProvider);
+      ref.invalidate(adminTelemetryMetricsProvider);
+      return res;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e.toString());
+      rethrow;
+    }
+  }
+}
+
+final hardwareWorkbenchProvider =
+    NotifierProvider<HardwareWorkbenchNotifier, HardwareWorkbenchState>(
+      HardwareWorkbenchNotifier.new,
     );
 
 /// State notifier managing administrator allowlist with add/remove actions.

@@ -356,3 +356,92 @@ class AdminUser {
     );
   }
 }
+
+/// Hourly telemetry packet bucket for time-series charts.
+@immutable
+class HourlyPacketBucket {
+  const HourlyPacketBucket({
+    required this.timestamp,
+    required this.count,
+    required this.avgSpeed,
+  });
+
+  final DateTime timestamp;
+  final int count;
+  final double avgSpeed;
+
+  factory HourlyPacketBucket.fromJson(Map<String, dynamic> json) {
+    return HourlyPacketBucket(
+      timestamp:
+          DateTime.tryParse(json['timestamp'].toString()) ?? DateTime.now(),
+      count: (json['count'] as num?)?.toInt() ?? 0,
+      avgSpeed: (json['avg_speed'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+/// Bus speed & operational metric for fleet charts.
+@immutable
+class BusSpeedMetric {
+  const BusSpeedMetric({
+    required this.busNumber,
+    required this.deviceId,
+    required this.speed,
+    required this.heading,
+    this.lastSeen,
+  });
+
+  final String busNumber;
+  final String deviceId;
+  final double speed;
+  final double heading;
+  final DateTime? lastSeen;
+
+  factory BusSpeedMetric.fromJson(Map<String, dynamic> json) {
+    return BusSpeedMetric(
+      busNumber: json['bus_number'] as String? ?? '',
+      deviceId: json['device_id'] as String? ?? '',
+      speed: (json['speed'] as num?)?.toDouble() ?? 0.0,
+      heading: (json['heading'] as num?)?.toDouble() ?? 0.0,
+      lastSeen:
+          json['last_seen'] != null
+              ? DateTime.tryParse(json['last_seen'].toString())
+              : null,
+    );
+  }
+}
+
+/// Aggregated telemetry metrics for admin graphs and charts.
+@immutable
+class AdminTelemetryMetrics {
+  const AdminTelemetryMetrics({
+    required this.hourlyPackets,
+    required this.speedDistribution,
+    required this.totalPacketsAllTime,
+    required this.totalPackets24h,
+  });
+
+  final List<HourlyPacketBucket> hourlyPackets;
+  final List<BusSpeedMetric> speedDistribution;
+  final int totalPacketsAllTime;
+  final int totalPackets24h;
+
+  factory AdminTelemetryMetrics.fromJson(Map<String, dynamic> json) {
+    final hourlyList =
+        (json['hourly_packets'] as List<dynamic>? ?? [])
+            .map((e) => HourlyPacketBucket.fromJson(e as Map<String, dynamic>))
+            .toList();
+    final speedList =
+        (json['speed_distribution'] as List<dynamic>? ?? [])
+            .map((e) => BusSpeedMetric.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+    return AdminTelemetryMetrics(
+      hourlyPackets: hourlyList,
+      speedDistribution: speedList,
+      totalPacketsAllTime:
+          (json['total_packets_all_time'] as num?)?.toInt() ?? 0,
+      totalPackets24h: (json['total_packets_24h'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
