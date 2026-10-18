@@ -2,7 +2,7 @@ name: tracklet
 description: "BusTracker - NITC campus bus tracking application built with Flutter for Android and Web."
 publish_to: 'none'
 
-version: 1.0.0-rc-1+1
+version: 1.0.0-rc-2+2
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -33,6 +33,7 @@ dependencies:
   package_info_plus: ^10.2.2
   flutter_native_splash: ^2.4.8
   flutter_lucide_animated: ^0.0.4
+  webview_flutter: ^4.10.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -53,6 +54,7 @@ flutter:
     - assets/images/google_logo.png
     - assets/images/Abstract_Gradient_Background_4K.jpg
     - assets/images/Research_New_Pin_Crop.gif
+    - assets/images/flow.gif
     - assets/maps/nitc_campus.mbtiles
 
   fonts:
