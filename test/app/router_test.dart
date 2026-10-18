@@ -382,6 +382,93 @@ void main() {
       },
     );
   });
+
+  group('Router Page Transition Tests', () {
+    testWidgets('modal routes render with smooth transition', (tester) async {
+      final mockUser = User(
+        id: 'student-uuid',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+        email: 'student@nitc.ac.in',
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(
+              AuthState(
+                status: AuthStatus.authenticated,
+                user: mockUser,
+                email: 'student@nitc.ac.in',
+              ),
+            ),
+          ),
+          profileStateProvider.overrideWith(
+            () => _FixedProfileNotifier(
+              const Profile(
+                id: 'student-uuid',
+                name: 'Student',
+                email: 'student@nitc.ac.in',
+                hasCompletedOnboarding: true,
+              ),
+            ),
+          ),
+        ],
+      );
+
+      final router = container.read(routerProvider);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/terms');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.byType(SlideTransition), findsWidgets);
+      await tester.pumpAndSettle();
+
+      expect(router.routeInformationProvider.value.uri.path, '/terms');
+    });
+
+    testWidgets('auth screens animate horizontal push with parallax', (
+      tester,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(
+              const AuthState(status: AuthStatus.unauthenticated),
+            ),
+          ),
+        ],
+      );
+
+      final router = container.read(routerProvider);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/create-account');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 160));
+      expect(find.byType(SlideTransition), findsWidgets);
+      await tester.pumpAndSettle();
+
+      expect(router.routeInformationProvider.value.uri.path, '/create-account');
+    });
+  });
 }
 
 class FakeAuthRepository implements AuthRepository {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
@@ -13,6 +14,14 @@ class TrackletApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        FlutterNativeSplash.remove();
+      } catch (_) {
+        // Silently ignore in test harnesses or unsupported platforms
+      }
+    });
+
     final router = ref.watch(routerProvider);
     final userPreferences = ref.watch(userPreferencesProvider);
 
