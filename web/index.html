@@ -36,6 +36,11 @@
   <script>
     window.requestTurnstileToken = function(sitekey, action) {
       return new Promise(function(resolve, reject) {
+        if (!sitekey || typeof sitekey !== 'string' || sitekey.trim().length === 0) {
+          resolve(null);
+          return;
+        }
+
         function ensureScriptLoaded() {
           if (window.turnstile && typeof window.turnstile.render === 'function') return;
           var script = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
@@ -54,7 +59,7 @@
         function pollTurnstile() {
           if (window.turnstile && typeof window.turnstile.render === 'function') {
             mountWidget();
-          } else if (attempts < 150) {
+          } else if (attempts < 60) {
             attempts++;
             setTimeout(pollTurnstile, 100);
           } else {
@@ -68,20 +73,28 @@
             existing.parentNode.removeChild(existing);
           }
 
+          var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var cardBg = isDark ? '#1e293b' : '#ffffff';
+          var cardBorder = isDark ? 'rgba(51,65,85,0.8)' : 'rgba(226,232,240,0.8)';
+          var titleColor = isDark ? '#f8fafc' : '#0f172a';
+          var subtitleColor = isDark ? '#94a3b8' : '#64748b';
+          var btnColor = isDark ? '#94a3b8' : '#64748b';
+          var btnHoverColor = isDark ? '#f8fafc' : '#0f172a';
+
           var overlay = document.createElement('div');
           overlay.id = 'turnstile-modal-overlay';
           overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2147483647;opacity:0;transition:opacity 0.2s ease-in-out;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
 
           var card = document.createElement('div');
-          card.style.cssText = 'background:#ffffff;border-radius:18px;padding:24px 28px;box-shadow:0 20px 40px -15px rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;max-width:360px;width:90%;text-align:center;border:1px solid rgba(226,232,240,0.8);';
+          card.style.cssText = 'background:' + cardBg + ';border-radius:18px;padding:24px 28px;box-shadow:0 20px 40px -15px rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;max-width:360px;width:90%;text-align:center;border:1px solid ' + cardBorder + ';';
 
           var title = document.createElement('h3');
           title.innerText = 'Security Verification';
-          title.style.cssText = 'margin:0 0 6px 0;font-size:18px;font-weight:700;color:#0f172a;';
+          title.style.cssText = 'margin:0 0 6px 0;font-size:18px;font-weight:700;color:' + titleColor + ';';
 
           var subtitle = document.createElement('p');
-          subtitle.innerText = 'Please verify that you are human to continue.';
-          subtitle.style.cssText = 'margin:0 0 20px 0;font-size:13px;color:#64748b;line-height:1.4;';
+          subtitle.innerText = 'Please complete the verification challenge to continue.';
+          subtitle.style.cssText = 'margin:0 0 20px 0;font-size:13px;color:' + subtitleColor + ';line-height:1.4;';
 
           var widgetContainer = document.createElement('div');
           widgetContainer.id = 'turnstile-widget-mount';
@@ -90,9 +103,9 @@
           var cancelBtn = document.createElement('button');
           cancelBtn.type = 'button';
           cancelBtn.innerText = 'Cancel';
-          cancelBtn.style.cssText = 'margin-top:18px;background:transparent;border:none;color:#64748b;font-size:14px;font-weight:500;cursor:pointer;padding:6px 14px;border-radius:8px;';
-          cancelBtn.onmouseover = function() { cancelBtn.style.color = '#0f172a'; };
-          cancelBtn.onmouseout = function() { cancelBtn.style.color = '#64748b'; };
+          cancelBtn.style.cssText = 'margin-top:18px;background:transparent;border:none;color:' + btnColor + ';font-size:14px;font-weight:500;cursor:pointer;padding:6px 14px;border-radius:8px;';
+          cancelBtn.onmouseover = function() { cancelBtn.style.color = btnHoverColor; };
+          cancelBtn.onmouseout = function() { cancelBtn.style.color = btnColor; };
 
           card.appendChild(title);
           card.appendChild(subtitle);
@@ -139,8 +152,8 @@
           try {
             widgetId = window.turnstile.render(widgetContainer, {
               sitekey: sitekey,
-              action: action || 'guest_login',
-              theme: 'light',
+              action: action || 'login',
+              theme: isDark ? 'dark' : 'light',
               size: 'normal',
               callback: function(token) {
                 cleanup();
@@ -171,7 +184,13 @@
           }
         }
 
-        pollTurnstile();
+        if (window.turnstile && typeof window.turnstile.render === 'function') {
+          mountWidget();
+        } else if (window.turnstile && typeof window.turnstile.ready === 'function') {
+          window.turnstile.ready(mountWidget);
+        } else {
+          pollTurnstile();
+        }
       });
     };
   </script>
@@ -245,6 +264,9 @@
       document.getElementById("splash-branding")?.remove();
       document.body.style.background = "transparent";
     }
+    window.addEventListener('flutter-first-frame', function() {
+      removeSplashFromWeb();
+    });
   </script>
 </head>
 <body>

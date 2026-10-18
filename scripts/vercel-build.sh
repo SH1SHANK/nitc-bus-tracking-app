@@ -2,8 +2,18 @@
 set -euo pipefail
 
 echo "================================================================================"
-echo "🚀 Tracklet Native Vercel Build Pipeline"
+echo "🚀 BusTracker Native Vercel Build Pipeline"
 echo "================================================================================"
+
+APP_ENV="${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-${VERCEL_ENV:-}}}"
+case "$APP_ENV" in
+  preview) APP_ENV="staging" ;;
+  production|staging|development) ;;
+  *)
+    echo "::error::Set TRACKLET_ENVIRONMENT, ENVIRONMENT, or VERCEL_ENV to development, staging, preview, or production."
+    exit 1
+    ;;
+esac
 
 # 1. Fast-fail environment variable checks
 if [ -z "${SUPABASE_URL:-}" ]; then
@@ -53,27 +63,28 @@ flutter pub get --enforce-lockfile || flutter pub get
 
 # 5. Compile Flutter Web release bundle
 echo "• Compiling Flutter Web release bundle..."
-flutter build web --release --no-pub \
-  --dart-define=ENVIRONMENT="${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-production}}" \
+flutter build web --release --no-pub --no-tree-shake-icons \
+  --dart-define=ENVIRONMENT="$APP_ENV" \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
   --dart-define=CAPTCHA_ENABLED="${CAPTCHA_ENABLED:-true}" \
   --dart-define=CAPTCHA_SITE_KEY="${CAPTCHA_SITE_KEY:-0x4AAAAAAFXxHTiFZHgWmlcA}" \
   --dart-define=CAPTCHA_PROVIDER="${CAPTCHA_PROVIDER:-turnstile}" \
   --dart-define=MAP_TILE_URL_TEMPLATE="${MAP_TILE_URL_TEMPLATE:-https://tile.openstreetmap.org/{z}/{x}/{y}.png}" \
-  --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}"
+  --dart-define=MAP_ATTRIBUTION="${MAP_ATTRIBUTION:-© OpenStreetMap contributors}" \
+  --dart-define=MAPBOX_PUBLIC_TOKEN="${MAPBOX_PUBLIC_TOKEN:-}"
 
 # 6. Generate build metadata dynamically
 mkdir -p build/web
 cat <<EOF > build/web/BUILD_METADATA.json
 {
-  "project": "tracklet",
+  "project": "bustracker",
   "target": "web",
   "version": "$APP_VERSION",
-  "environment": "${TRACKLET_ENVIRONMENT:-${ENVIRONMENT:-production}}",
+  "environment": "$APP_ENV",
   "commit_sha": "${VERCEL_GIT_COMMIT_SHA:-local}",
   "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-  "integrity_status": "VERIFIED_PRODUCTION"
+  "integrity_status": "VERIFIED_$APP_ENV"
 }
 EOF
 
@@ -85,5 +96,5 @@ find build/web -name "*keystore*" -type f -delete
 find build/web -name "*.dart.js.map" -type f -delete
 
 echo "================================================================================"
-echo "✓ Tracklet Web build completed successfully for Vercel."
+echo "✓ BusTracker Web build completed successfully for Vercel."
 echo "================================================================================"

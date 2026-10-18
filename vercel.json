@@ -9,7 +9,7 @@
       "destination": "/index.html"
     },
     {
-      "source": "/((?!assets/|canvaskit/|icons/|favicon\\.png|flutter.*|main\\.dart\\.js|manifest\\.json|version\\.json|BUILD_METADATA\\.json).*)",
+      "source": "/((?!assets/|canvaskit/|icons/|splash/|fonts/|favicon.*|apple-touch-icon.*|flutter.*|main\\.dart\\.js|manifest\\.json|version\\.json|BUILD_METADATA\\.json).*)",
       "destination": "/index.html"
     }
   ],
@@ -42,6 +42,24 @@
       ]
     },
     {
+      "source": "/icons/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/splash/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -66,7 +84,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.googleusercontent.com https://api.dicebear.com; connect-src 'self' https://fnngudikrvelpuhngtlw.supabase.co wss://fnngudikrvelpuhngtlw.supabase.co https://bus-telemetry-api.onrender.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://unpkg.com https://www.gstatic.com https://fonts.gstatic.com https://challenges.cloudflare.com; worker-src 'self' blob:; frame-ancestors 'none'; frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; form-action 'self' https://accounts.google.com https://fnngudikrvelpuhngtlw.supabase.co; base-uri 'self';"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://unpkg.com https://challenges.cloudflare.com https://api.mapbox.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.mapbox.com; font-src 'self' https://fonts.gstatic.com data: blob:; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://*.googleusercontent.com https://api.dicebear.com https://api.mapbox.com https://*.tiles.mapbox.com; connect-src 'self' blob: https://fnngudikrvelpuhngtlw.supabase.co wss://fnngudikrvelpuhngtlw.supabase.co https://bus-telemetry-api.onrender.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://unpkg.com https://www.gstatic.com https://fonts.gstatic.com https://challenges.cloudflare.com https://api.mapbox.com https://events.mapbox.com; worker-src 'self' blob:; child-src 'self' blob:; frame-ancestors 'none'; frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com; form-action 'self' https://accounts.google.com https://fnngudikrvelpuhngtlw.supabase.co; base-uri 'self';"
         }
       ]
     }

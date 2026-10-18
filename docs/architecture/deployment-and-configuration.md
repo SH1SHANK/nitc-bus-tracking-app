@@ -56,10 +56,16 @@ Configured at compile time via `--dart-define` or `--dart-define-from-file`:
 
 | Key Name | Required | Example Value | Description |
 |---|---|---|---|
-| `SUPABASE_URL` | Yes | `https://fnngudikrvelpuhngtlw.supabase.co` | Public Supabase HTTPS endpoint. |
-| `SUPABASE_ANON_KEY` | Yes | `eyJhbGciOi...` | Public anonymous client API key. |
+| `ENVIRONMENT` | Yes | `development`, `staging`, or `production` | Explicit environment selection. |
+| `SUPABASE_URL` | Yes for transit/auth | `https://your-project.supabase.co` | Public Supabase HTTPS endpoint; no built-in project fallback. |
+| `SUPABASE_ANON_KEY` | Yes for transit/auth | Supabase publishable/anon key | Public client key; authorization remains enforced by RLS and RPC grants. |
+| `BACKEND_URL` | No | `https://your-api.example.com` | Optional Fastify health endpoint; malformed or insecure release URLs are ignored. |
 | `ONESIGNAL_APP_ID` | No | `550e8400-e29b-41d4-...` | OneSignal push notification application ID. |
 | `MAP_STYLE_URL` | No | `https://tiles.openfreemap.org/styles/liberty` | Vector map tile style JSON URL. |
+
+The Flutter app has no remote Supabase or backend defaults. Local builds without
+explicit endpoint defines start without transit/auth data. The release workflows
+set `ENVIRONMENT=production` and provide the public Supabase values explicitly.
 
 ---
 

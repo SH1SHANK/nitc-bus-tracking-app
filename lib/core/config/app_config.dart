@@ -27,7 +27,38 @@ class AppConfig {
   );
 
   static bool get hasSupabaseCredentials =>
-      supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+      hasValidSupabaseConfiguration(supabaseUrl, supabaseAnonKey, environment);
+
+  static bool hasValidSupabaseConfiguration(
+    String url,
+    String anonKey,
+    String selectedEnvironment,
+  ) =>
+      isSupportedEnvironment(selectedEnvironment) &&
+      isValidServiceUrl(url, selectedEnvironment) &&
+      anonKey.trim().isNotEmpty;
+
+  static bool isSupportedEnvironment(String value) =>
+      const {'development', 'staging', 'production'}.contains(value);
+
+  static bool isValidServiceUrl(String value, String environment) {
+    final uri = Uri.tryParse(value);
+    if (uri == null ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment) {
+      return false;
+    }
+    if (environment == 'development') {
+      return uri.scheme == 'https' ||
+          (uri.scheme == 'http' &&
+              const {'localhost', '127.0.0.1', '10.0.2.2'}.contains(uri.host));
+    }
+    return const {'staging', 'production'}.contains(environment) &&
+        uri.scheme == 'https';
+  }
 
   // Supabase CAPTCHA Bot Protection Configuration (Cloudflare Turnstile or hCaptcha)
   static const bool captchaEnabled = bool.fromEnvironment(
@@ -64,7 +95,7 @@ class AppConfig {
   // Mapbox Web Configuration
   static const String mapboxPublicToken = String.fromEnvironment(
     'MAPBOX_PUBLIC_TOKEN',
-    defaultValue: '',
+    defaultValue: String.fromEnvironment('MAP_PUBLIC_KEY', defaultValue: ''),
   );
 
   static const String mapboxStyleUrl = String.fromEnvironment(
@@ -75,10 +106,13 @@ class AppConfig {
   static bool get isMapboxConfigured => mapboxPublicToken.trim().isNotEmpty;
 
   // Fastify Telemetry & Admin Backend Configuration
-  static const String backendUrl = String.fromEnvironment(
+  static const String _backendUrl = String.fromEnvironment(
     'BACKEND_URL',
-    defaultValue: 'https://bus-telemetry-api.onrender.com',
+    defaultValue: '',
   );
+
+  static String get backendUrl =>
+      isValidServiceUrl(_backendUrl, environment) ? _backendUrl : '';
 
   // Campus Geolocation Anchor (NITC Campus Center: 11.3216, 75.9337)
   static const double campusCenterLat = 11.3216;
