@@ -294,9 +294,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
 
     final validation = UsernameValidator.validate(cleaned);
     final isSynchronouslyValid =
-        validation.isValid &&
-        !takenUsernames.contains(cleaned) &&
-        cleaned.length <= 16;
+        validation.isValid && !takenUsernames.contains(cleaned);
 
     state = state.copyWith(
       username: cleaned,

@@ -80,7 +80,10 @@ void main() {
       expect(container.read(onboardingProvider).username, 'cool_student');
       expect(container.read(onboardingProvider).isUsernameAvailable, isTrue);
 
-      notifier.updateUsername(List.filled(17, 'a').join());
+      notifier.updateUsername(List.filled(20, 'a').join());
+      expect(container.read(onboardingProvider).isUsernameAvailable, isTrue);
+
+      notifier.updateUsername(List.filled(21, 'a').join());
       expect(container.read(onboardingProvider).isUsernameAvailable, isFalse);
     });
 

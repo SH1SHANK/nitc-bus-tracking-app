@@ -16,7 +16,6 @@ class UsernameValidationResult {
 /// - First character must be a letter.
 /// - No spaces.
 /// - Cannot start or end with an underscore.
-/// - No consecutive underscores (`__`).
 /// - Canonical form is trimmed lowercase.
 class UsernameValidator {
   UsernameValidator._();
@@ -66,13 +65,6 @@ class UsernameValidator {
       return const UsernameValidationResult(
         isValid: false,
         errorMessage: 'Username cannot start or end with an underscore.',
-      );
-    }
-
-    if (trimmed.contains('__')) {
-      return const UsernameValidationResult(
-        isValid: false,
-        errorMessage: 'Username cannot contain consecutive underscores.',
       );
     }
 
