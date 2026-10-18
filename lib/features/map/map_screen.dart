@@ -10,6 +10,7 @@ import '../../data/campus/campus_building_repository.dart';
 import '../../design_system/components/tracklet_empty_state.dart';
 import '../../design_system/components/tracklet_error_state.dart';
 import '../../design_system/components/tracklet_skeleton.dart';
+import '../../design_system/components/tracklet_snack_bar.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/motion.dart';
@@ -47,7 +48,7 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final TrackletMapController _mapController;
   bool _isRouteDetailsExpanded = false;
   int _cameraActionGeneration = 0;
@@ -89,7 +90,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 
   bool _showStopLabel(bool isHub, bool isRouteStop, bool isSelected) =>
-      isSelected || isHub || (isRouteStop && _zoomBucket > 0);
+      isSelected || isHub || isRouteStop || _zoomBucket >= 1;
 
   List<MapMarkerData> _routeDirectionMarkers(BusRoute? route) {
     if (!_showRoutes || route == null || !route.isGeometryAvailable) {
@@ -165,9 +166,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _mapController = TrackletMapController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
       final bus = ref.read(mapStateNotifierProvider).selectedBus;
       if (bus != null && _selectedBus?.id != bus.id) {
         _applyBusSelection(bus);
@@ -177,8 +180,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _mapController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
+    }
   }
 
   Future<void> _handleRecenterUser() async {
@@ -228,25 +240,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ? 'Location permission is denied. Enable it in settings.'
               : 'Could not determine your location.');
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text(message),
-          action: SnackBarAction(
-            label:
-                (isDeniedForever || isServiceDisabled) ? 'Settings' : 'Retry',
-            onPressed: () {
-              if (isDeniedForever) {
-                ref.read(locationServiceProvider).openAppSettings();
-              } else if (isServiceDisabled) {
-                ref.read(locationServiceProvider).openLocationSettings();
-              } else {
-                _handleRecenterUser();
-              }
-            },
-          ),
-        ),
+      TrackletSnackBar.show(
+        context,
+        message: message,
+        type: TrackletSnackBarType.error,
+        actionLabel:
+            (isDeniedForever || isServiceDisabled) ? 'Settings' : 'Retry',
+        onAction: () {
+          if (isDeniedForever) {
+            ref.read(locationServiceProvider).openAppSettings();
+          } else if (isServiceDisabled) {
+            ref.read(locationServiceProvider).openLocationSettings();
+          } else {
+            _handleRecenterUser();
+          }
+        },
       );
     }
   }
@@ -892,6 +900,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
           isRouteStop: activeStopIds.contains(stop.id),
           isMajorHub: stop.isMajorHub,
           accentColor: routeAccentColor,
+          alignment:
+              _showStopLabel(
+                    stop.isMajorHub,
+                    activeStopIds.contains(stop.id),
+                    mapState.selectedStop?.id == stop.id,
+                  )
+                  ? Alignment.bottomCenter
+                  : Alignment.center,
           width:
               _showStopLabel(
                     stop.isMajorHub,
@@ -1051,22 +1067,30 @@ class _MapScreenState extends ConsumerState<MapScreen>
         liveBusesAsync.hasValue &&
         !liveBusesAsync.isLoading;
 
-    const sheetBottom = 20.0;
-    final maxControlsHeight = (MediaQuery.sizeOf(context).height - 290.0).clamp(
+    final mediaQuery = MediaQuery.of(context);
+    final topInset = mediaQuery.padding.top;
+    final bottomInset = mediaQuery.padding.bottom;
+    final screenHeight = mediaQuery.size.height;
+    final sheetBottom = 16.0 + bottomInset;
+    final maxControlsHeight = (screenHeight - topInset - 360.0).clamp(
       0.0,
       double.infinity,
     );
     final controlsBottom =
         isBusDetailsVisible && _isBusDetailsExpanded
-            ? (MediaQuery.sizeOf(context).height * 0.56 + sheetBottom + 8.0)
-                .clamp(0.0, maxControlsHeight)
+            ? (screenHeight * 0.56 + sheetBottom + 8.0).clamp(
+              0.0,
+              maxControlsHeight,
+            )
             : isBusDetailsVisible
             ? (sheetBottom + 190.0).clamp(0.0, maxControlsHeight)
             : isStopDetailsVisible
             ? (sheetBottom + 210.0).clamp(0.0, maxControlsHeight)
             : _isRouteDetailsExpanded
-            ? (MediaQuery.sizeOf(context).height * 0.54 + sheetBottom + 8.0)
-                .clamp(0.0, maxControlsHeight)
+            ? (screenHeight * 0.54 + sheetBottom + 8.0).clamp(
+              0.0,
+              maxControlsHeight,
+            )
             : (selectedRoute != null ||
                     isFleetOverviewVisible ||
                     isEmptyFleetVisible ||
@@ -1370,14 +1394,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                 .read(userPreferencesProvider.notifier)
                                 .setPreferredStop(stop.id, stop.name);
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Set ${stop.name} as your boarding stop',
-                                ),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                              ),
+                            TrackletSnackBar.showSuccess(
+                              context,
+                              'Set ${stop.name} as your boarding stop',
                             );
                           },
                         )

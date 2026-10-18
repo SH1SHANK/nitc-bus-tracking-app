@@ -58,6 +58,9 @@ external void _fitBounds(
   JSAny? padding,
 );
 
+@JS('TrackletMapbox.setStyle')
+external void _setStyle(JSString viewId, JSString styleUrl);
+
 @JS('TrackletMapbox.destroy')
 external void _destroy(JSString viewId);
 
@@ -224,6 +227,12 @@ void fitMapboxBounds(
       });
     }
     _fitBounds(viewId.toJS, jsBounds, jsPad);
+  } catch (_) {}
+}
+
+void setMapboxStyle(String viewId, String styleUrl) {
+  try {
+    _setStyle(viewId.toJS, styleUrl.toJS);
   } catch (_) {}
 }
 

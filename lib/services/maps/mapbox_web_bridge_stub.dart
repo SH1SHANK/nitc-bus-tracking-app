@@ -49,4 +49,6 @@ void fitMapboxBounds(
   Map<String, int>? padding,
 ) {}
 
+void setMapboxStyle(String viewId, String styleUrl) {}
+
 void destroyMapbox(String viewId) {}

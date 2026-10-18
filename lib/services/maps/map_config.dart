@@ -24,6 +24,10 @@ class MapConfig {
   /// Mapbox raster tile URL template.
   static String get mapboxTileUrlTemplate => AppConfig.mapboxTileUrlTemplate;
 
+  /// Mapbox raster tile URL template for theme.
+  static String mapboxTileUrlTemplateForTheme(bool isDark) =>
+      AppConfig.mapboxTileUrlTemplateForTheme(isDark);
+
   /// Mapbox attribution text.
   static String get mapboxAttribution => AppConfig.mapboxAttribution;
 

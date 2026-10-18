@@ -80,7 +80,8 @@ void main() {
       if (line.contains("import 'dart:io'") ||
           line.contains('import "dart:io"')) {
         // Platform-specific IO implementation isolated behind conditional import
-        if (!path.endsWith('offline_map_manager_io.dart')) {
+        if (!path.endsWith('offline_map_manager_io.dart') &&
+            !path.endsWith('network_connectivity_io.dart')) {
           violations.add('$location dart:io is not allowed in app code: $line');
         }
       }

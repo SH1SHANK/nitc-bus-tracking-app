@@ -104,13 +104,15 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         );
       }
 
-      final destExists = isTestEnvironment
-          ? destinationFile.existsSync()
-          : await destinationFile.exists();
+      final destExists =
+          isTestEnvironment
+              ? destinationFile.existsSync()
+              : await destinationFile.exists();
       if (destExists) {
-        final existingLength = isTestEnvironment
-            ? destinationFile.lengthSync()
-            : await destinationFile.length();
+        final existingLength =
+            isTestEnvironment
+                ? destinationFile.lengthSync()
+                : await destinationFile.length();
         if (existingLength == assetLength) {
           AppLogger.info(
             'Offline campus map already present at: ${destinationFile.path} ($existingLength bytes)',

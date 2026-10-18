@@ -82,6 +82,10 @@ abstract class MapboxWebBridge {
     impl.fitMapboxBounds(viewId, bounds, padding);
   }
 
+  static void setStyle(String viewId, String styleUrl) {
+    impl.setMapboxStyle(viewId, styleUrl);
+  }
+
   static void destroy(String viewId) {
     impl.destroyMapbox(viewId);
   }

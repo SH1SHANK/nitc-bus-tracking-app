@@ -635,12 +635,16 @@ class _TrackletMapViewState extends State<TrackletMapView> {
   void _scheduleReconnectionCheck() {
     _reconnectTimer?.cancel();
     if (widget.isOnline != null || !AppConfig.isMapboxConfigured) return;
-    _reconnectTimer = Timer.periodic(const Duration(seconds: 25), (timer) async {
+    _reconnectTimer = Timer.periodic(const Duration(seconds: 25), (
+      timer,
+    ) async {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      final online = await NetworkConnectivity.isHostReachable('api.mapbox.com');
+      final online = await NetworkConnectivity.isHostReachable(
+        'api.mapbox.com',
+      );
       if (online && mounted) {
         timer.cancel();
         AppLogger.info(
@@ -740,7 +744,12 @@ class _TrackletMapViewState extends State<TrackletMapView> {
     }
 
     final isFallbackActive =
-        AppConfig.isMapboxConfigured && !_isMapboxOnline && _tileProvider != null;
+        AppConfig.isMapboxConfigured &&
+        !_isMapboxOnline &&
+        _tileProvider != null;
+
+    final isDark = TrackletColors.isDark(context);
+    final mapboxTileUrl = AppConfig.mapboxTileUrlTemplateForTheme(isDark);
 
     final mapWidget = fmap.FlutterMap(
       key: const ValueKey('tracklet_offline_mbtiles_map_view'),
@@ -790,10 +799,10 @@ class _TrackletMapViewState extends State<TrackletMapView> {
         // 2. Mapbox Primary Online Tile Layer
         if (_isMapboxOnline &&
             AppConfig.isMapboxConfigured &&
-            AppConfig.mapboxTileUrlTemplate.isNotEmpty)
+            mapboxTileUrl.isNotEmpty)
           fmap.TileLayer(
             key: const ValueKey('tracklet_mapbox_tile_layer'),
-            urlTemplate: AppConfig.mapboxTileUrlTemplate,
+            urlTemplate: mapboxTileUrl,
             userAgentPackageName: 'org.nitc.tracklet',
             maxZoom: MapConfig.maxZoom,
             minZoom: MapConfig.minZoom,
@@ -823,7 +832,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
                         points:
                             line.points
                                 .map(
-                                   (point) => ll.LatLng(
+                                  (point) => ll.LatLng(
                                     point.latitude,
                                     point.longitude,
                                   ),
@@ -885,8 +894,9 @@ class _TrackletMapViewState extends State<TrackletMapView> {
               left: TrackletSpacing.screenMargin,
               child: Material(
                 key: const ValueKey('tracklet_offline_map_badge'),
-                color: TrackletColors.adaptiveSurfaceElevated(context)
-                    .withValues(alpha: 0.92),
+                color: TrackletColors.adaptiveSurfaceElevated(
+                  context,
+                ).withValues(alpha: 0.92),
                 borderRadius: TrackletRadii.roundedPill,
                 elevation: 2,
                 child: Padding(
@@ -958,6 +968,7 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
   late double _currentZoom;
   bool _isLoaded = false;
   String? _errorMessage;
+  bool? _lastIsDark;
 
   @override
   GeoPoint get center => _currentCenter;
@@ -972,6 +983,17 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
     _currentCenter = widget.initialCenter;
     _currentZoom = widget.initialZoom;
     widget.controller._webMapController = this;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isDark = TrackletColors.isDark(context);
+    if (_lastIsDark != null && _lastIsDark != isDark && _isLoaded) {
+      final styleUrl = AppConfig.effectiveMapboxStyleUrlForTheme(isDark);
+      MapboxWebBridge.setStyle(_viewId, styleUrl);
+    }
+    _lastIsDark = isDark;
   }
 
   @override
@@ -1154,10 +1176,13 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
       );
     }
 
+    final isDark = TrackletColors.isDark(context);
+    final styleUrl = AppConfig.effectiveMapboxStyleUrlForTheme(isDark);
+
     return MapboxWebBridge.buildMapboxWebView(
       viewId: _viewId,
       accessToken: AppConfig.mapboxPublicToken,
-      styleUrl: AppConfig.mapboxStyleUrl,
+      styleUrl: styleUrl,
       initialCenter: widget.initialCenter,
       initialZoom: widget.initialZoom,
       onMapClick: (point) => widget.onTap?.call(point),

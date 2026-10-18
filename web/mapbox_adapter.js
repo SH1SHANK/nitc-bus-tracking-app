@@ -34,7 +34,7 @@
     el.style.alignItems = 'center';
     el.style.justifyContent = 'center';
     el.style.cursor = 'pointer';
-    el.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease';
+    el.style.transition = 'box-shadow 0.2s ease';
     el.style.outline = 'none';
 
     // Inner icon container
@@ -102,50 +102,88 @@
         // Add standard navigation controls (zoom, compass)
         map.addControl(new mapboxgl.NavigationControl({ showCompass: true, showZoom: true }), 'top-right');
 
+        var isDark = (config.styleUrl && config.styleUrl.indexOf('dark') !== -1);
         var instance = {
           map: map,
           busMarkers: {},
           callbacks: callbacks || {},
           selectedBusId: null,
-          userMarker: null
+          userMarker: null,
+          isDark: isDark,
+          lastStops: [],
+          lastRoutes: [],
+          lastSelectedStopId: null,
+          lastSelectedRouteId: null
         };
 
+        function setupSourcesAndLayers(m, dark) {
+          if (!m.getSource('tracklet-routes')) {
+            m.addSource('tracklet-routes', {
+              type: 'geojson',
+              data: { type: 'FeatureCollection', features: [] }
+            });
+          }
+
+          if (!m.getLayer('tracklet-routes-line')) {
+            m.addLayer({
+              id: 'tracklet-routes-line',
+              type: 'line',
+              source: 'tracklet-routes',
+              layout: { 'line-join': 'round', 'line-cap': 'round' },
+              paint: {
+                'line-color': ['get', 'color'],
+                'line-width': ['case', ['get', 'isSelected'], 5.5, 3.5],
+                'line-opacity': ['case', ['get', 'isSelected'], 0.95, 0.45]
+              }
+            });
+          }
+
+          if (!m.getSource('tracklet-stops')) {
+            m.addSource('tracklet-stops', {
+              type: 'geojson',
+              data: { type: 'FeatureCollection', features: [] }
+            });
+          }
+
+          if (!m.getLayer('tracklet-stops-circle')) {
+            m.addLayer({
+              id: 'tracklet-stops-circle',
+              type: 'circle',
+              source: 'tracklet-stops',
+              paint: {
+                'circle-radius': ['case', ['get', 'isMajorHub'], 7, 5],
+                'circle-color': dark ? '#1E293B' : '#FFFFFF',
+                'circle-stroke-color': ['get', 'color'],
+                'circle-stroke-width': ['case', ['get', 'isSelected'], 3.5, 2.5]
+              }
+            });
+          }
+
+          if (!m.getLayer('tracklet-stops-label')) {
+            m.addLayer({
+              id: 'tracklet-stops-label',
+              type: 'symbol',
+              source: 'tracklet-stops',
+              minzoom: 14.8,
+              layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 11,
+                'text-offset': [0, 1.25],
+                'text-anchor': 'top',
+                'text-optional': true,
+                'text-max-width': 10
+              },
+              paint: {
+                'text-color': dark ? '#F8FAFC' : '#0F172A',
+                'text-halo-color': dark ? '#0F172A' : '#FFFFFF',
+                'text-halo-width': 2.0
+              }
+            });
+          }
+        }
+
         map.on('load', function () {
-          // Initialize routes GeoJSON source and layers
-          map.addSource('tracklet-routes', {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features: [] }
-          });
-
-          map.addLayer({
-            id: 'tracklet-routes-line',
-            type: 'line',
-            source: 'tracklet-routes',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-              'line-color': ['get', 'color'],
-              'line-width': ['case', ['get', 'isSelected'], 5.5, 3.5],
-              'line-opacity': ['case', ['get', 'isSelected'], 0.95, 0.45]
-            }
-          });
-
-          // Initialize stops GeoJSON source and layer
-          map.addSource('tracklet-stops', {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features: [] }
-          });
-
-          map.addLayer({
-            id: 'tracklet-stops-circle',
-            type: 'circle',
-            source: 'tracklet-stops',
-            paint: {
-              'circle-radius': ['case', ['get', 'isMajorHub'], 7, 5],
-              'circle-color': '#FFFFFF',
-              'circle-stroke-color': ['get', 'color'],
-              'circle-stroke-width': ['case', ['get', 'isSelected'], 3.5, 2.5]
-            }
-          });
+          setupSourcesAndLayers(map, instance.isDark);
 
           map.on('click', 'tracklet-stops-circle', function (e) {
             if (e.features && e.features.length > 0) {
@@ -166,6 +204,16 @@
 
           if (instance.callbacks && typeof instance.callbacks.onLoad === 'function') {
             instance.callbacks.onLoad();
+          }
+        });
+
+        map.on('style.load', function () {
+          setupSourcesAndLayers(map, instance.isDark);
+          if (instance.lastRoutes && instance.lastRoutes.length > 0) {
+            window.TrackletMapbox.updateRoutes(viewId, instance.lastRoutes, instance.lastSelectedRouteId);
+          }
+          if (instance.lastStops && instance.lastStops.length > 0) {
+            window.TrackletMapbox.updateStops(viewId, instance.lastStops, instance.lastSelectedStopId);
           }
         });
 
@@ -270,6 +318,9 @@
       var instance = instances[viewId];
       if (!instance || !instance.map) return;
 
+      instance.lastRoutes = routes;
+      instance.lastSelectedRouteId = selectedRouteId;
+
       var map = instance.map;
       var source = map.getSource('tracklet-routes');
       if (!source) return;
@@ -308,6 +359,9 @@
       }
       var instance = instances[viewId];
       if (!instance || !instance.map) return;
+
+      instance.lastStops = stops;
+      instance.lastSelectedStopId = selectedStopId;
 
       var map = instance.map;
       var source = map.getSource('tracklet-stops');
@@ -394,6 +448,14 @@
         maxZoom: 17.5,
         duration: 500
       });
+    },
+
+    setStyle: function (viewId, styleUrl) {
+      var instance = instances[viewId];
+      if (!instance || !instance.map) return;
+      var isDark = (styleUrl && styleUrl.indexOf('dark') !== -1);
+      instance.isDark = isDark;
+      instance.map.setStyle(styleUrl);
     },
 
     destroy: function (viewId) {
