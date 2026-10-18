@@ -21,6 +21,12 @@ class MapConfig {
   /// Attribution text required by tile provider.
   static String get attributionText => AppConfig.mapAttribution;
 
+  /// Mapbox raster tile URL template.
+  static String get mapboxTileUrlTemplate => AppConfig.mapboxTileUrlTemplate;
+
+  /// Mapbox attribution text.
+  static String get mapboxAttribution => AppConfig.mapboxAttribution;
+
   /// NITC Campus Region Bounding Box matching QGIS MBTiles extent
   /// (with slight padding for camera bounds clamping).
   static const double minLat = 11.3050;

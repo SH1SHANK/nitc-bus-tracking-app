@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Compile-time & runtime environment configuration for Tracklet.
 ///
 /// Values can be supplied via `--dart-define` or `--dart-define-from-file=config/env.json`.
@@ -92,7 +94,7 @@ class AppConfig {
     defaultValue: '© OpenStreetMap contributors',
   );
 
-  // Mapbox Web Configuration
+  // Mapbox Configuration
   static const String mapboxPublicToken = String.fromEnvironment(
     'MAPBOX_PUBLIC_TOKEN',
     defaultValue: String.fromEnvironment('MAP_PUBLIC_KEY', defaultValue: ''),
@@ -103,7 +105,61 @@ class AppConfig {
     defaultValue: 'mapbox://styles/mapbox/streets-v12',
   );
 
-  static bool get isMapboxConfigured => mapboxPublicToken.trim().isNotEmpty;
+  @visibleForTesting
+  static String? testMapboxTokenOverride;
+
+  @visibleForTesting
+  static String? testMapboxStyleOverride;
+
+  static String get effectiveMapboxPublicToken =>
+      testMapboxTokenOverride ?? mapboxPublicToken;
+
+  static String get effectiveMapboxStyleUrl =>
+      testMapboxStyleOverride ?? mapboxStyleUrl;
+
+  static bool get isMapboxConfigured =>
+      effectiveMapboxPublicToken.trim().isNotEmpty;
+
+  /// Mapbox raster tile URL template for flutter_map TileLayer.
+  /// Converts `mapbox://styles/{owner}/{style_id}` into:
+  /// `https://api.mapbox.com/styles/v1/{owner}/{style_id}/tiles/256/{z}/{x}/{y}{r}?access_token={token}`
+  static String get mapboxTileUrlTemplate {
+    if (!isMapboxConfigured) return '';
+    final style = effectiveMapboxStyleUrl.trim();
+    String owner = 'mapbox';
+    String styleId = 'streets-v12';
+
+    if (style.startsWith('mapbox://styles/')) {
+      final path = style.substring('mapbox://styles/'.length);
+      final parts = path.split('/');
+      if (parts.length >= 2) {
+        owner = parts[0];
+        styleId = parts[1];
+      }
+    } else if (style.startsWith('http://') || style.startsWith('https://')) {
+      final uri = Uri.tryParse(style);
+      if (uri != null) {
+        final segments = uri.pathSegments;
+        final stylesIdx = segments.indexOf('styles');
+        if (stylesIdx != -1 && segments.length > stylesIdx + 2) {
+          final after = segments[stylesIdx + 1];
+          if (after == 'v1' && segments.length > stylesIdx + 3) {
+            owner = segments[stylesIdx + 2];
+            styleId = segments[stylesIdx + 3];
+          } else {
+            owner = segments[stylesIdx + 1];
+            styleId = segments[stylesIdx + 2];
+          }
+        }
+      }
+    }
+
+    final token = effectiveMapboxPublicToken.trim();
+    return 'https://api.mapbox.com/styles/v1/$owner/$styleId/tiles/256/{z}/{x}/{y}{r}?access_token=$token';
+  }
+
+  static const String mapboxAttribution =
+      '© Mapbox © OpenStreetMap contributors';
 
   // Fastify Telemetry & Admin Backend Configuration
   static const String _backendUrl = String.fromEnvironment(

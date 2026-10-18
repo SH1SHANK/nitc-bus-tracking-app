@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as fmap;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tracklet/core/config/app_config.dart';
 import 'package:tracklet/core/geo/geo_point.dart';
 import 'package:tracklet/services/maps/map_adapter.dart';
+import 'package:tracklet/services/maps/map_config.dart';
+import 'package:tracklet/services/maps/network_connectivity.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -360,5 +365,238 @@ void main() {
         expect(controller.center.longitude, initialCenter.longitude);
       },
     );
+  });
+
+  group('Mapbox Primary & Local MBTiles Fallback Tests', () {
+    late TrackletMapController controller;
+
+    setUp(() {
+      controller = TrackletMapController();
+      AppConfig.testMapboxTokenOverride = 'pk.test_valid_mapbox_token_12345';
+      AppConfig.testMapboxStyleOverride = 'mapbox://styles/mapbox/streets-v12';
+      NetworkConnectivity.testOverride = null;
+    });
+
+    tearDown(() {
+      controller.dispose();
+      AppConfig.testMapboxTokenOverride = null;
+      AppConfig.testMapboxStyleOverride = null;
+      NetworkConnectivity.testOverride = null;
+    });
+
+    test('AppConfig and MapConfig generate valid Mapbox raster tile URL templates', () {
+      expect(AppConfig.isMapboxConfigured, isTrue);
+      expect(
+        AppConfig.mapboxTileUrlTemplate,
+        'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}{r}?access_token=pk.test_valid_mapbox_token_12345',
+      );
+      expect(
+        MapConfig.mapboxTileUrlTemplate,
+        AppConfig.mapboxTileUrlTemplate,
+      );
+
+      // Custom user style test
+      AppConfig.testMapboxStyleOverride =
+          'mapbox://styles/tracklet_team/custom_dark_v1';
+      expect(
+        AppConfig.mapboxTileUrlTemplate,
+        'https://api.mapbox.com/styles/v1/tracklet_team/custom_dark_v1/tiles/256/{z}/{x}/{y}{r}?access_token=pk.test_valid_mapbox_token_12345',
+      );
+    });
+
+    testWidgets('renders Mapbox primary tile layer when online and configured', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Primary Mapbox tile layer is present in widget tree
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsOneWidget);
+      // Offline fallback badge is not shown while online
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsNothing);
+    });
+
+    Future<void> pumpUntilMapReady(WidgetTester tester) async {
+      await tester.pump();
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50; i++) {
+          if (find.byKey(const ValueKey('tracklet_map_initializing')).evaluate().isEmpty) {
+            break;
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+      });
+      await tester.pump();
+    }
+
+    testWidgets('falls back to local MBTiles and displays offline badge when offline', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: false,
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+
+      // Mapbox primary tile layer is deactivated to stop network requests
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsNothing);
+      // Local MBTiles basemap layer is present
+      expect(find.byKey(const ValueKey('tracklet_offline_mbtiles_tile_layer')), findsOneWidget);
+      // Offline fallback badge is visible to user
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsOneWidget);
+      expect(find.text('Offline Campus Map'), findsOneWidget);
+    });
+
+    testWidgets('switches from online Mapbox to offline local MBTiles on isOnline toggle', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsNothing);
+
+      // Transition to offline
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: false,
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsNothing);
+      expect(find.byKey(const ValueKey('tracklet_offline_mbtiles_tile_layer')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsOneWidget);
+
+      // Reconnect online
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsNothing);
+    });
+
+    testWidgets('falls back to local MBTiles when tile error callback is invoked', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(
+                controller: controller,
+                isOnline: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsOneWidget);
+
+      // Extract Mapbox TileLayer widget and invoke errorTileCallback
+      final tileLayer = tester.widget<fmap.TileLayer>(
+        find.byKey(const ValueKey('tracklet_mapbox_tile_layer')),
+      );
+      expect(tileLayer.errorTileCallback, isNotNull);
+
+      // Simulate network socket exception on tile request
+      final tileImage = fmap.TileImage(
+        vsync: const TestVSync(),
+        coordinates: const fmap.TileCoordinates(1, 1, 1),
+        imageProvider: const AssetImage('assets/branding/bustracker_bus_icon.png'),
+        onLoadComplete: (_) {},
+        onLoadError: (_, _, _) {},
+        tileDisplay: const fmap.TileDisplay.instantaneous(),
+        errorImage: null,
+        cancelLoading: Completer<void>(),
+      );
+
+      tileLayer.errorTileCallback!(
+        tileImage,
+        'SocketException: Failed host lookup: api.mapbox.com',
+        null,
+      );
+
+      await pumpUntilMapReady(tester);
+
+      // Mapbox is deactivated and offline fallback badge appears
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsNothing);
+      expect(find.byKey(const ValueKey('tracklet_offline_mbtiles_tile_layer')), findsOneWidget);
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsOneWidget);
+    });
+
+    testWidgets('uses local MBTiles directly when Mapbox token is unconfigured', (tester) async {
+      AppConfig.testMapboxTokenOverride = ''; // Unconfigured
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: TrackletMapView(controller: controller),
+            ),
+          ),
+        ),
+      );
+      await pumpUntilMapReady(tester);
+
+      expect(find.byKey(const ValueKey('tracklet_mapbox_tile_layer')), findsNothing);
+      expect(find.byKey(const ValueKey('tracklet_offline_mbtiles_tile_layer')), findsOneWidget);
+      // Since Mapbox was never configured, offline badge is not needed
+      expect(find.byKey(const ValueKey('tracklet_offline_map_badge')), findsNothing);
+    });
   });
 }

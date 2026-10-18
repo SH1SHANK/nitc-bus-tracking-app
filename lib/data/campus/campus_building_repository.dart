@@ -81,4 +81,4 @@ final campusBuildingRepositoryProvider = Provider<CampusBuildingRepository>((
 /// do not trigger another campus-building query.
 final campusBuildingsProvider = FutureProvider<List<CampusBuilding>>((ref) {
   return ref.watch(campusBuildingRepositoryProvider).getBuildings();
-});
+}, retry: (retryCount, error) => null);

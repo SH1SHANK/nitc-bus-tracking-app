@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -18,6 +20,7 @@ import '../../design_system/tokens/typography.dart';
 import 'map_cartography.dart';
 import 'map_config.dart';
 import 'mapbox_web_bridge.dart';
+import 'network_connectivity.dart';
 import 'offline_map_manager.dart';
 
 /// Marker representation data passed from feature layer into the map adapter.
@@ -522,7 +525,7 @@ class _AnimatedMarkerLayerState extends State<_AnimatedMarkerLayer>
   }
 }
 
-/// Primary map view backed by the local QGIS-generated NITC MBTiles offline raster basemap.
+/// Primary map view backed by Mapbox online raster tiles with local QGIS-generated NITC MBTiles offline fallback.
 class TrackletMapView extends StatefulWidget {
   const TrackletMapView({
     super.key,
@@ -536,6 +539,8 @@ class TrackletMapView extends StatefulWidget {
     this.onUserGesture,
     this.onZoomChanged,
     this.offlineMapManager,
+    this.isOnline,
+    this.showOfflineBadge = true,
   });
 
   final TrackletMapController controller;
@@ -548,6 +553,8 @@ class TrackletMapView extends StatefulWidget {
   final VoidCallback? onUserGesture;
   final ValueChanged<double>? onZoomChanged;
   final OfflineMapManager? offlineMapManager;
+  final bool? isOnline;
+  final bool showOfflineBadge;
 
   @override
   State<TrackletMapView> createState() => _TrackletMapViewState();
@@ -558,15 +565,110 @@ class _TrackletMapViewState extends State<TrackletMapView> {
   MbTilesTileProvider? _tileProvider;
   String? _initError;
   bool _isInitializing = false;
-
   bool _useOsmFallback = false;
+
+  late bool _isMapboxOnline;
+  int _consecutiveTileErrors = 0;
+  Timer? _reconnectTimer;
 
   @override
   void initState() {
     super.initState();
     _mapManager = widget.offlineMapManager ?? OfflineMapManager();
+    _isMapboxOnline = (widget.isOnline ?? true) && AppConfig.isMapboxConfigured;
     if (!kIsWeb) {
       _initOfflineMap();
+      if (_isMapboxOnline && widget.isOnline == null) {
+        _checkInitialConnectivity();
+      }
+    }
+  }
+
+  Future<void> _checkInitialConnectivity() async {
+    final online = await NetworkConnectivity.isHostReachable('api.mapbox.com');
+    if (!mounted) return;
+    if (!online && _isMapboxOnline) {
+      AppLogger.info(
+        'Initial network check unreachable for Mapbox. Falling back to offline local MBTiles.',
+        tag: 'TrackletMapView',
+      );
+      setState(() {
+        _isMapboxOnline = false;
+      });
+      _scheduleReconnectionCheck();
+    }
+  }
+
+  void _onMapboxTileError(Object error) {
+    _consecutiveTileErrors++;
+    final isNetwork = _isNetworkError(error);
+    if (_consecutiveTileErrors >= 3 || isNetwork) {
+      if (mounted && _isMapboxOnline) {
+        AppLogger.warning(
+          'Mapbox tile loading error ($error). Falling back to offline local MBTiles.',
+          tag: 'TrackletMapView',
+        );
+        setState(() {
+          _isMapboxOnline = false;
+        });
+        _scheduleReconnectionCheck();
+      }
+    }
+  }
+
+  bool _isNetworkError(Object error) {
+    final errorStr = error.toString().toLowerCase();
+    return errorStr.contains('socketexception') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('clientexception') ||
+        errorStr.contains('httpexception') ||
+        errorStr.contains('handshake') ||
+        errorStr.contains('network') ||
+        errorStr.contains('connection') ||
+        errorStr.contains('timeout') ||
+        errorStr.contains('401') ||
+        errorStr.contains('403') ||
+        errorStr.contains('404') ||
+        errorStr.contains('500');
+  }
+
+  void _scheduleReconnectionCheck() {
+    _reconnectTimer?.cancel();
+    if (widget.isOnline != null || !AppConfig.isMapboxConfigured) return;
+    _reconnectTimer = Timer.periodic(const Duration(seconds: 25), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      final online = await NetworkConnectivity.isHostReachable('api.mapbox.com');
+      if (online && mounted) {
+        timer.cancel();
+        AppLogger.info(
+          'Network reachability restored. Re-enabling Mapbox primary map.',
+          tag: 'TrackletMapView',
+        );
+        setState(() {
+          _isMapboxOnline = true;
+          _consecutiveTileErrors = 0;
+        });
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant TrackletMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isOnline != oldWidget.isOnline) {
+      setState(() {
+        _isMapboxOnline =
+            (widget.isOnline ?? true) && AppConfig.isMapboxConfigured;
+        _consecutiveTileErrors = 0;
+      });
+      if (!_isMapboxOnline && widget.isOnline == null) {
+        _scheduleReconnectionCheck();
+      } else if (_isMapboxOnline) {
+        _reconnectTimer?.cancel();
+      }
     }
   }
 
@@ -607,6 +709,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
 
   @override
   void dispose() {
+    _reconnectTimer?.cancel();
     _tileProvider?.dispose();
     super.dispose();
   }
@@ -614,7 +717,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
-      if (AppConfig.isMapboxConfigured) {
+      if (AppConfig.isMapboxConfigured && _isMapboxOnline) {
         return _TrackletWebMapboxView(
           key: const ValueKey('tracklet_mapbox_web_view'),
           controller: widget.controller,
@@ -635,6 +738,9 @@ class _TrackletMapViewState extends State<TrackletMapView> {
         );
       }
     }
+
+    final isFallbackActive =
+        AppConfig.isMapboxConfigured && !_isMapboxOnline && _tileProvider != null;
 
     final mapWidget = fmap.FlutterMap(
       key: const ValueKey('tracklet_offline_mbtiles_map_view'),
@@ -664,19 +770,45 @@ class _TrackletMapViewState extends State<TrackletMapView> {
         },
       ),
       children: [
+        // 1. Local MBTiles fallback basemap layer (rendered when offline or as base)
         if (_tileProvider != null)
           fmap.TileLayer(
+            key: const ValueKey('tracklet_offline_mbtiles_tile_layer'),
             tileProvider: _tileProvider,
             maxZoom: MapConfig.maxZoom,
             minZoom: MapConfig.minZoom,
           )
         else if (kIsWeb && _useOsmFallback)
           fmap.TileLayer(
+            key: const ValueKey('tracklet_osm_fallback_tile_layer'),
             urlTemplate: AppConfig.mapTileUrlTemplate,
             userAgentPackageName: 'org.nitc.tracklet',
             maxZoom: MapConfig.maxZoom,
             minZoom: MapConfig.minZoom,
           ),
+
+        // 2. Mapbox Primary Online Tile Layer
+        if (_isMapboxOnline &&
+            AppConfig.isMapboxConfigured &&
+            AppConfig.mapboxTileUrlTemplate.isNotEmpty)
+          fmap.TileLayer(
+            key: const ValueKey('tracklet_mapbox_tile_layer'),
+            urlTemplate: AppConfig.mapboxTileUrlTemplate,
+            userAgentPackageName: 'org.nitc.tracklet',
+            maxZoom: MapConfig.maxZoom,
+            minZoom: MapConfig.minZoom,
+            retinaMode: fmap.RetinaMode.isHighDensity(context),
+            tileBuilder: (context, tileWidget, tile) {
+              if (_consecutiveTileErrors > 0) {
+                _consecutiveTileErrors = 0;
+              }
+              return tileWidget;
+            },
+            errorTileCallback: (tile, error, stackTrace) {
+              _onMapboxTileError(error);
+            },
+          ),
+
         if (widget.polylines.isNotEmpty)
           fmap.PolylineLayer(
             polylines:
@@ -691,7 +823,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
                         points:
                             line.points
                                 .map(
-                                  (point) => ll.LatLng(
+                                   (point) => ll.LatLng(
                                     point.latitude,
                                     point.longitude,
                                   ),
@@ -714,24 +846,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
       ],
     );
 
-    if (_isInitializing) {
-      return Stack(
-        children: [
-          mapWidget,
-          const Positioned(
-            top: TrackletSpacing.md,
-            right: TrackletSpacing.md,
-            child: SizedBox(
-              key: ValueKey('tracklet_map_initializing'),
-              width: 24,
-              height: 24,
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_initError != null && _tileProvider == null) {
+    if (_initError != null && _tileProvider == null && !_isMapboxOnline) {
       return Stack(
         children: [
           mapWidget,
@@ -746,6 +861,60 @@ class _TrackletMapViewState extends State<TrackletMapView> {
               onRetry: _initOfflineMap,
             ),
           ),
+        ],
+      );
+    }
+
+    if (_isInitializing || (isFallbackActive && widget.showOfflineBadge)) {
+      return Stack(
+        children: [
+          mapWidget,
+          if (_isInitializing)
+            const Positioned(
+              top: TrackletSpacing.md,
+              right: TrackletSpacing.md,
+              child: SizedBox(
+                key: ValueKey('tracklet_map_initializing'),
+                width: 24,
+                height: 24,
+              ),
+            ),
+          if (isFallbackActive && widget.showOfflineBadge)
+            Positioned(
+              bottom: TrackletSpacing.screenMargin,
+              left: TrackletSpacing.screenMargin,
+              child: Material(
+                key: const ValueKey('tracklet_offline_map_badge'),
+                color: TrackletColors.adaptiveSurfaceElevated(context)
+                    .withValues(alpha: 0.92),
+                borderRadius: TrackletRadii.roundedPill,
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        TrackletIcons.cloudOff,
+                        size: 14,
+                        color: TrackletColors.adaptiveTextSecondary(context),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Offline Campus Map',
+                        style: TrackletTypography.caption.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TrackletColors.adaptiveTextSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       );
     }

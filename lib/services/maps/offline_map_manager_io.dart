@@ -53,16 +53,48 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         p.join(targetDir.path, OfflineMapManager.databaseFileName),
       );
 
-      final bundle = _bundle ?? rootBundle;
-      final ByteData assetData;
-      try {
-        assetData = await bundle.load(assetPath);
-      } catch (e) {
-        throw OfflineMapException(
-          'Failed to load bundled MBTiles asset at "$assetPath". '
-          'Verify that the asset exists and is registered in pubspec.yaml.',
-          e,
-        );
+      final isTestEnvironment =
+          Platform.environment.containsKey('FLUTTER_TEST') ||
+          const bool.fromEnvironment('flutter.test') ||
+          ServicesBinding.instance.runtimeType.toString().contains('Test');
+      ByteData assetData;
+
+      if (_bundle == null && isTestEnvironment) {
+        final localFile = File(assetPath);
+        if (localFile.existsSync()) {
+          final bytes = localFile.readAsBytesSync();
+          assetData = ByteData.sublistView(bytes);
+        } else {
+          throw OfflineMapException(
+            'Failed to load bundled MBTiles asset at "$assetPath". '
+            'Verify that the asset exists and is registered in pubspec.yaml.',
+          );
+        }
+      } else {
+        final bundle = _bundle ?? rootBundle;
+        try {
+          assetData = await bundle.load(assetPath);
+        } catch (e) {
+          if (_bundle == null) {
+            final localFile = File(assetPath);
+            if (await localFile.exists()) {
+              final bytes = await localFile.readAsBytes();
+              assetData = ByteData.sublistView(bytes);
+            } else {
+              throw OfflineMapException(
+                'Failed to load bundled MBTiles asset at "$assetPath". '
+                'Verify that the asset exists and is registered in pubspec.yaml.',
+                e,
+              );
+            }
+          } else {
+            throw OfflineMapException(
+              'Failed to load bundled MBTiles asset at "$assetPath". '
+              'Verify that the asset exists and is registered in pubspec.yaml.',
+              e,
+            );
+          }
+        }
       }
 
       final assetLength = assetData.lengthInBytes;
@@ -72,8 +104,13 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         );
       }
 
-      if (await destinationFile.exists()) {
-        final existingLength = await destinationFile.length();
+      final destExists = isTestEnvironment
+          ? destinationFile.existsSync()
+          : await destinationFile.exists();
+      if (destExists) {
+        final existingLength = isTestEnvironment
+            ? destinationFile.lengthSync()
+            : await destinationFile.length();
         if (existingLength == assetLength) {
           AppLogger.info(
             'Offline campus map already present at: ${destinationFile.path} ($existingLength bytes)',
@@ -88,8 +125,14 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         );
       }
 
-      if (!await targetDir.exists()) {
-        await targetDir.create(recursive: true);
+      if (isTestEnvironment) {
+        if (!targetDir.existsSync()) {
+          targetDir.createSync(recursive: true);
+        }
+      } else {
+        if (!await targetDir.exists()) {
+          await targetDir.create(recursive: true);
+        }
       }
 
       final tempFile = File('${destinationFile.path}.tmp');
@@ -98,8 +141,13 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         assetData.lengthInBytes,
       );
 
-      await tempFile.writeAsBytes(buffer, flush: true);
-      await tempFile.rename(destinationFile.path);
+      if (isTestEnvironment) {
+        tempFile.writeAsBytesSync(buffer, flush: true);
+        tempFile.renameSync(destinationFile.path);
+      } else {
+        await tempFile.writeAsBytes(buffer, flush: true);
+        await tempFile.rename(destinationFile.path);
+      }
 
       AppLogger.info(
         'Offline campus map successfully installed to: ${destinationFile.path} ($assetLength bytes)',
@@ -138,9 +186,17 @@ class OfflineMapManagerImpl implements OfflineMapManager {
 
     // In unit / widget test environments, path_provider's platform channel is
     // not registered unless mocked, and awaiting it hangs FakeAsync timers.
-    final isTestEnvironment = Platform.environment.containsKey('FLUTTER_TEST');
+    final isTestEnvironment =
+        Platform.environment.containsKey('FLUTTER_TEST') ||
+        ServicesBinding.instance.runtimeType.toString().contains('Test');
     if (isTestEnvironment) {
-      return Directory.systemTemp.createTemp('tracklet_offline_map_');
+      final testDir = Directory(
+        p.join(Directory.systemTemp.path, 'tracklet_test_offline_map'),
+      );
+      if (!testDir.existsSync()) {
+        testDir.createSync(recursive: true);
+      }
+      return testDir;
     }
 
     try {
@@ -162,7 +218,7 @@ class OfflineMapManagerImpl implements OfflineMapManager {
         'OfflineMapManager must be initialized before creating a tile provider.',
       );
     }
-    return MbTilesTileProvider.fromPath(path: path);
+    return MbTilesTileProvider.fromPath(path: path, silenceTileNotFound: true);
   }
 
   @override
