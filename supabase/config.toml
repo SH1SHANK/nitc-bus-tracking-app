@@ -4,6 +4,9 @@
 # working directory name when running `supabase init`.
 project_id = "NITC_BUS_TRACKING_APP"
 
+[functions.telemetry-simulator]
+verify_jwt = true
+
 [api]
 enabled = true
 # Port to use for the API URL.

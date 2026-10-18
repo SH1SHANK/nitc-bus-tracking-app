@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { authorizeScheduledRequest } from "./security.ts";
 
 // ============================================================================
 // GEOGRAPHIC & ROUTE DEFINITIONS
@@ -439,7 +439,6 @@ export async function authenticateOrResetTracker(
 }
 
 // In-memory cache structures to eliminate redundant PostgREST calls across simulator runs
-const PROVISIONED_DEVICES = new Set<string>();
 const BUS_ID_CACHE = new Map<string, string>();
 const ACTIVE_TRIP_CACHE = new Map<string, { tripId: string; busId: string; routeId: string; cachedAt: number }>();
 
@@ -460,31 +459,32 @@ async function ensureActiveTrip(
     if (!busId) {
       const { data: bus } = await supabase.from("buses").select("id").eq("bus_number", busNumber).maybeSingle();
       if (!bus?.id) return { tripId: null, busId: null };
-      busId = bus.id;
+      busId = bus.id as string;
       BUS_ID_CACHE.set(busNumber, busId);
     }
+    const resolvedBusId: string = busId;
 
     const { data: existingTrip } = await supabase
       .from("trips")
       .select("id, route_id")
-      .eq("bus_id", busId)
+      .eq("bus_id", resolvedBusId)
       .eq("status", "active")
       .maybeSingle();
 
     if (existingTrip?.id) {
       ACTIVE_TRIP_CACHE.set(busNumber, {
         tripId: existingTrip.id,
-        busId,
+        busId: resolvedBusId,
         routeId: existingTrip.route_id ?? routeId,
         cachedAt: Date.now(),
       });
-      return { tripId: existingTrip.id, busId };
+      return { tripId: existingTrip.id, busId: resolvedBusId };
     }
 
     const { data: newTrip, error } = await supabase
       .from("trips")
       .insert({
-        bus_id: busId,
+        bus_id: resolvedBusId,
         route_id: routeId,
         status: "active",
         started_at: new Date().toISOString(),
@@ -494,19 +494,19 @@ async function ensureActiveTrip(
 
     if (error) {
       console.warn("Could not auto-create trip:", error.message);
-      return { tripId: null, busId };
+      return { tripId: null, busId: resolvedBusId };
     }
 
     if (newTrip?.id) {
       ACTIVE_TRIP_CACHE.set(busNumber, {
         tripId: newTrip.id,
-        busId,
+        busId: resolvedBusId,
         routeId,
         cachedAt: Date.now(),
       });
     }
 
-    return { tripId: newTrip?.id ?? null, busId };
+    return { tripId: newTrip?.id ?? null, busId: resolvedBusId };
   } catch (e) {
     console.warn("ensureActiveTrip exception:", e);
     return { tripId: null, busId: null };
@@ -996,10 +996,34 @@ interface FleetBusSpec {
   speedKmh: number;
 }
 
-const DEFAULT_FLEET: FleetBusSpec[] = [
-  { busNumber: "Bus 1", deviceId: "NITC-SIM-001", secret: "SimDeviceSecret123456!", route: "R1", speedKmh: 20 },
-  { busNumber: "Bus 2", deviceId: "NITC-SIM-002", secret: "SimDeviceSecret223456!", route: "R2", speedKmh: 18 },
-];
+function configuredFleet(): FleetBusSpec[] {
+  const value = Deno.env.get("SIMULATOR_FLEET_JSON");
+  if (!value) throw new Error("simulator fleet is not configured");
+  const fleet = JSON.parse(value) as FleetBusSpec[];
+  if (!Array.isArray(fleet) || fleet.length === 0 || fleet.some((bus) =>
+    !bus || typeof bus.busNumber !== "string" || !bus.busNumber.startsWith("SIM-") ||
+    typeof bus.deviceId !== "string" || !bus.deviceId.startsWith("SIM-") ||
+    typeof bus.secret !== "string" || bus.secret.length < 16 ||
+    !["R1", "R2"].includes(bus.route) || !Number.isFinite(bus.speedKmh)
+  )) throw new Error("simulator fleet configuration is invalid");
+  return fleet;
+}
+
+async function isIsolatedFleet(supabase: SupabaseClient<any, any, any>, fleet: FleetBusSpec[]): Promise<boolean> {
+  const deviceIds = fleet.map((bus) => bus.deviceId);
+  const busNumbers = fleet.map((bus) => bus.busNumber);
+  const { data: buses, error: busesError } = await supabase.from("buses")
+    .select("id,bus_number,is_simulation").in("bus_number", busNumbers);
+  if (busesError || !buses || buses.length !== fleet.length || buses.some((bus) => bus.is_simulation !== true)) return false;
+  const assignments = new Map(buses.map((bus) => [bus.bus_number, bus.id]));
+  const { data: devices, error: devicesError } = await supabase.from("devices")
+    .select("device_id,bus_id,is_active").in("device_id", deviceIds);
+  if (devicesError || !devices || devices.length !== fleet.length) return false;
+  return fleet.every((bus) => {
+    const device = devices.find((item) => item.device_id === bus.deviceId);
+    return device?.is_active === true && device.bus_id === assignments.get(bus.busNumber);
+  });
+}
 
 async function handleFleetMode(
   supabase: SupabaseClient<any, any, any>,
@@ -1007,22 +1031,10 @@ async function handleFleetMode(
   startTime: number,
 ): Promise<Response> {
   const fleetResults: Array<Record<string, unknown>> = [];
-
-  // Register / Provision fleet devices if not already provisioned in current runtime isolate
-  for (const bus of DEFAULT_FLEET) {
-    if (!PROVISIONED_DEVICES.has(bus.deviceId)) {
-      await (supabase.rpc as any)("register_tracking_device", {
-        p_device_id: bus.deviceId,
-        p_bus_number: bus.busNumber,
-        p_secret: bus.secret,
-        p_allow_reassign: true,
-      });
-      PROVISIONED_DEVICES.add(bus.deviceId);
-    }
-  }
+  const fleet = configuredFleet();
 
   // Run simulation in parallel for each bus in fleet
-  const tasks = DEFAULT_FLEET.map(async (busSpec) => {
+  const tasks = fleet.map(async (busSpec) => {
     const busParams: SimulationParams = {
       ...params,
       busNumber: busSpec.busNumber,
@@ -1053,7 +1065,7 @@ async function handleFleetMode(
       {
         ok: fleetResults.every((r) => r.success),
         mode: "fleet",
-        fleetSize: DEFAULT_FLEET.length,
+        fleetSize: fleet.length,
         durationMs,
         fleet: fleetResults,
       },
@@ -1088,24 +1100,6 @@ async function runIntegrationTestSuite(
   const results: StepResult[] = [];
 
   try {
-    // Step 0: Ensure device is registered in Supabase
-    const t0 = Date.now();
-    const { data: regData, error: regError } = await (supabase.rpc as any)("register_tracking_device", {
-      p_device_id: deviceId,
-      p_bus_number: busNumber,
-      p_secret: secret,
-      p_allow_reassign: true,
-    });
-
-    results.push({
-      step: "0_provision",
-      name: "Device Provisioning / Verification",
-      success: !regError && (regData as any)?.ok === true,
-      status: regError ? 500 : 200,
-      durationMs: Date.now() - t0,
-      details: { rpcResult: regData, error: regError?.message },
-    });
-
     // Step 1: Reset Session (Cold boot)
     const sessionId = `sim-boot-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const t1 = Date.now();
@@ -1451,73 +1445,49 @@ export async function processSimulatorRequest(req: Request): Promise<Response> {
   const startTime = Date.now();
 
   try {
-    const url = new URL(req.url);
-    let body: Record<string, unknown> = {};
-
-    if (req.method === "POST") {
-      try {
-        body = await req.json();
-      } catch {
-        body = {};
-      }
-    }
-
-    const mode = ((body.mode as string) || url.searchParams.get("mode") || "simulate") as SimulationParams["mode"];
-    const route = (body.route as string) || url.searchParams.get("route") || "R1";
-    const fault = (body.fault as string) || url.searchParams.get("fault") || null;
-    const deviceId = (body.deviceId as string) || url.searchParams.get("deviceId") || "NITC-SIM-001";
-    const secret = (body.secret as string) || url.searchParams.get("secret") || "SimDeviceSecret123456!";
-    const busNumber = (body.busNumber as string) || url.searchParams.get("busNumber") || "Bus 1";
-    const apiUrl =
-      (body.apiUrl as string) ||
-      url.searchParams.get("apiUrl") ||
-      Deno.env.get("RENDER_API_URL") ||
-      "https://bus-telemetry-api.onrender.com";
-
-    const pointCount = Math.min(60, Math.max(1, Number(body.points || url.searchParams.get("points") || 6)));
-    const intervalSec = Math.min(10, Math.max(0, Number(body.interval || url.searchParams.get("interval") || 2.0)));
-    const nominalSpeedKmh = Math.min(50, Math.max(5, Number(body.speed || url.searchParams.get("speed") || 22)));
-    const autoTrip = body.autoTrip === true || url.searchParams.get("autoTrip") === "true";
-    const fullLoop = body.fullLoop === true || url.searchParams.get("fullLoop") === "true";
-
+    const hmacSecret = Deno.env.get("SIMULATOR_CRON_HMAC_SECRET") ?? "";
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!hmacSecret || !supabaseUrl || !supabaseServiceKey) {
+      return new Response(JSON.stringify({ ok: false, error: "simulator is not configured" }), { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+    }
+    const apiUrl = Deno.env.get("RENDER_API_URL") ?? "";
+    if (!apiUrl) return new Response(JSON.stringify({ ok: false, error: "simulator is not configured" }), { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+    let fleet: FleetBusSpec[];
+    try {
+      fleet = configuredFleet();
+    } catch {
+      return new Response(JSON.stringify({ ok: false, error: "simulator is not configured" }), { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const authorized = await authorizeScheduledRequest(req, hmacSecret, async (nonce, expiresAt) => {
+      const { data, error } = await (supabase.rpc as any)("consume_telemetry_simulator_nonce", {
+        p_nonce: nonce, p_expires_at: expiresAt,
+      });
+      return !error && data === true;
+    });
+    if (!authorized) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+    if (!await isIsolatedFleet(supabase, fleet)) {
+      return new Response(JSON.stringify({ ok: false, error: "simulator fleet is not provisioned" }), { status: 503, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+    }
 
     const params: SimulationParams = {
-      mode,
-      route,
-      fault,
-      deviceId,
-      secret,
-      busNumber,
+      mode: "fleet",
+      route: "R1",
+      fault: null,
+      deviceId: "",
+      secret: "",
+      busNumber: "",
       apiUrl,
-      pointCount,
-      intervalSec,
-      nominalSpeedKmh,
-      autoTrip,
-      fullLoop,
+      pointCount: 1,
+      intervalSec: 0,
+      nominalSpeedKmh: 20,
+      autoTrip: true,
     };
-
-    if (mode === "loop" || fullLoop) {
-      return await handleLoopMode(supabase, params, startTime);
-    }
-
-    switch (mode) {
-      case "test":
-        return await runIntegrationTestSuite(supabase, apiUrl, deviceId, secret, busNumber, startTime);
-      case "batch":
-        return await handleBatchMode(supabase, params, startTime);
-      case "fleet":
-        return await handleFleetMode(supabase, params, startTime);
-      case "simulate":
-      default:
-        return await handleSimulateMode(supabase, params, startTime);
-    }
-  } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
+    return await handleFleetMode(supabase, params, startTime);
+  } catch {
     return new Response(
-      JSON.stringify({ ok: false, error: errorMsg, durationMs: Date.now() - startTime }, null, 2),
+      JSON.stringify({ ok: false, error: "simulator request failed", durationMs: Date.now() - startTime }),
       { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }
@@ -1525,8 +1495,5 @@ export async function processSimulatorRequest(req: Request): Promise<Response> {
 
 // Start Deno HTTP server if served as an Edge Function
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
-  }
   return await processSimulatorRequest(req);
 });
