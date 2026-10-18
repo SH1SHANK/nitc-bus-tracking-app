@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,7 +54,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Passwords do not match. Please verify and try again.',
+            'Passwords do not match.',
             style: TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -77,7 +79,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Success! Your new password has been updated. Please log in.',
+            'Password updated. Please log in.',
             style: TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.success,
@@ -90,8 +92,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.errorMessage ??
-                'Failed to update password. Please try again.',
+            result.errorMessage ?? 'Could not update password. Try again.',
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -139,7 +140,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   const Align(
                         alignment: AlignmentDirectional(0.0, -1.0),
                         child: Text(
-                          'Reset Your Password!',
+                          'Reset password',
                           textAlign: TextAlign.center,
                           style: TrackletTypography.displaySmall,
                         ),
@@ -157,7 +158,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             bottom: TrackletSpacing.xl,
                           ),
                           child: Text(
-                            'We’ve got you covered, no stress!\nJust Enter Your Brand New Password!',
+                            'Enter a new password for your account.',
                             textAlign: TextAlign.center,
                             style: TrackletTypography.labelLarge,
                           ),
@@ -195,10 +196,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           _confirmPasswordFocusNode.requestFocus();
                         },
                         decoration: authInputDecoration(
-                          label: 'New Password',
+                          label: 'New password',
                           hint: 'abc123*',
                           icon: TrackletIcons.lock,
                           suffixIcon: IconButton(
+                            key: const ValueKey(
+                              'reset_password_visibility_toggle',
+                            ),
                             tooltip:
                                 _passwordVisibility
                                     ? 'Hide password'
@@ -208,12 +212,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 _passwordVisibility = !_passwordVisibility;
                               });
                             },
-                            icon: Icon(
-                              _passwordVisibility
-                                  ? TrackletIcons.eye
-                                  : TrackletIcons.eyeOff,
-                              color: TrackletColors.secondaryText,
-                              size: 22,
+                            icon: IgnorePointer(
+                              child: animated.LucideAnimatedIcon(
+                                key: ValueKey(_passwordVisibility),
+                                icon:
+                                    _passwordVisibility
+                                        ? animated.eye
+                                        : animated.eye_off,
+                                trigger: animated.AnimationTrigger.manual,
+                                color: TrackletColors.secondaryText,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -247,10 +256,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         },
                         onFieldSubmitted: (_) => _handleResetPassword(),
                         decoration: authInputDecoration(
-                          label: 'Confirm Password',
+                          label: 'Confirm password',
                           hint: 'abc123*',
                           icon: TrackletIcons.lock,
                           suffixIcon: IconButton(
+                            key: const ValueKey(
+                              'reset_password_confirm_visibility_toggle',
+                            ),
                             tooltip:
                                 _confirmPasswordVisibility
                                     ? 'Hide password'
@@ -261,12 +273,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                     !_confirmPasswordVisibility;
                               });
                             },
-                            icon: Icon(
-                              _confirmPasswordVisibility
-                                  ? TrackletIcons.eye
-                                  : TrackletIcons.eyeOff,
-                              color: TrackletColors.secondaryText,
-                              size: 22,
+                            icon: IgnorePointer(
+                              child: animated.LucideAnimatedIcon(
+                                key: ValueKey(_confirmPasswordVisibility),
+                                icon:
+                                    _confirmPasswordVisibility
+                                        ? animated.eye
+                                        : animated.eye_off,
+                                trigger: animated.AnimationTrigger.manual,
+                                color: TrackletColors.secondaryText,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -310,7 +327,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                         ),
                                       )
                                       : Text(
-                                        'Set New Password',
+                                        'Set new password',
                                         style: TrackletTypography.titleSmall
                                             .copyWith(
                                               color:
@@ -342,7 +359,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Head Back To Login Page',
+                            'Back to login',
                             style: TrackletTypography.bodyMedium.copyWith(
                               fontWeight: FontWeight.w900,
                               color: TrackletColors.secondaryText,

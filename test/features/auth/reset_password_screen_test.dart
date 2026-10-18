@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 import 'package:tracklet/features/auth/reset_password_screen.dart';
 
 import '../../helpers/pump_app.dart';
@@ -14,20 +15,20 @@ void main() {
       await tester.pumpAndSettle();
 
       // Title & Subtitle
-      expect(find.text('Reset Your Password!'), findsOneWidget);
+      expect(find.text('Reset password'), findsOneWidget);
       expect(
-        find.textContaining('We’ve got you covered, no stress!'),
+        find.text('Enter a new password for your account.'),
         findsOneWidget,
       );
 
       // Form Fields
       expect(find.byType(TextFormField), findsNWidgets(2));
-      expect(find.text('New Password'), findsOneWidget);
-      expect(find.text('Confirm Password'), findsOneWidget);
+      expect(find.text('New password'), findsOneWidget);
+      expect(find.text('Confirm password'), findsOneWidget);
 
       // Button & Navigation Link
-      expect(find.text('Set New Password'), findsOneWidget);
-      expect(find.text('Head Back To Login Page'), findsOneWidget);
+      expect(find.text('Set new password'), findsOneWidget);
+      expect(find.text('Back to login'), findsOneWidget);
     });
 
     testWidgets('validates required passwords and minimum length', (
@@ -38,7 +39,7 @@ void main() {
 
       final setPasswordButton = find.widgetWithText(
         ElevatedButton,
-        'Set New Password',
+        'Set new password',
       );
       await tester.ensureVisible(setPasswordButton);
       await tester.tap(setPasswordButton);
@@ -70,7 +71,7 @@ void main() {
 
       final setPasswordButton = find.widgetWithText(
         ElevatedButton,
-        'Set New Password',
+        'Set new password',
       );
       await tester.ensureVisible(setPasswordButton);
       await tester.tap(setPasswordButton);
@@ -85,13 +86,20 @@ void main() {
       await tester.pumpTrackletWidget(const ResetPasswordScreen());
       await tester.pumpAndSettle();
 
-      final visibilityIcons = find.byIcon(TrackletIcons.eyeOff);
-      expect(visibilityIcons, findsNWidgets(2));
+      final toggle = find.byKey(
+        const ValueKey('reset_password_visibility_toggle'),
+      );
+      expect(toggle, findsOneWidget);
 
-      await tester.tap(visibilityIcons.first);
+      await tester.tap(toggle);
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(TrackletIcons.eye), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is animated.LucideAnimatedIcon && w.icon.name == 'eye',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

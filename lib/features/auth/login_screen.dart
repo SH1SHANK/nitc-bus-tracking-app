@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -100,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         SnackBar(
           content: Text(
             result.errorMessage ??
-                'Sign in failed. Please check your credentials.',
+                'Sign-in failed. Check your email and password.',
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -135,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.errorMessage ?? 'Google Sign-In failed.',
+            result.errorMessage ?? 'Google sign-in failed.',
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -295,18 +297,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
-                    Positioned(
-                      top: 16.0,
-                      left: 16.0,
-                      child: SafeArea(
-                        child: TrackletBrandLockup(
-                          logoSize: 28.0,
-                          wordmarkHeight: 18.0,
-                          withContainer: true,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -327,14 +317,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Brand Logo and Wordmark
+                        // Authoritative Brand Wordmark (Bigger On Top)
                         AuthEntrance(
                           delay: 20.ms,
                           child: Padding(
-                            padding: const EdgeInsets.only(bottom: 14.0),
-                            child: TrackletBrandLockup(
-                              logoSize: 40.0,
-                              wordmarkHeight: 22.0,
+                            padding: const EdgeInsets.only(
+                              bottom: TrackletSpacing.md,
+                            ),
+                            child: TrackletBrandLockup.wordmarkOnly(
+                              wordmarkHeight: 40.0,
                               isDark: isDark,
                             ),
                           ),
@@ -343,7 +334,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         // Title
                         AuthEntrance(
                           child: Text(
-                            'Welcome Back!',
+                            'Welcome back',
                             style: TrackletTypography.displaySmall.copyWith(
                               fontSize: 26.0,
                               fontWeight: FontWeight.bold,
@@ -367,7 +358,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               18.0,
                             ),
                             child: Text(
-                              "Log in and pick up right where you left off. We've been saving your seat. ",
+                              'Sign in to view live campus bus routes and arrival times.',
                               style: TrackletTypography.labelMedium.copyWith(
                                 fontSize: 14.0,
                                 color:
@@ -471,6 +462,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   icon: TrackletIcons.lock,
                                   context: context,
                                   suffixIcon: IconButton(
+                                    key: const ValueKey(
+                                      'login_password_visibility_toggle',
+                                    ),
                                     tooltip:
                                         _passwordVisibility
                                             ? 'Hide password'
@@ -480,15 +474,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           _passwordVisibility =
                                               !_passwordVisibility;
                                         }),
-                                    icon: Icon(
-                                      _passwordVisibility
-                                          ? TrackletIcons.eye
-                                          : TrackletIcons.eyeOff,
-                                      color:
-                                          isDark
-                                              ? TrackletColors.darkTextSecondary
-                                              : TrackletColors.secondaryText,
-                                      size: 22,
+                                    icon: IgnorePointer(
+                                      child: animated.LucideAnimatedIcon(
+                                        key: ValueKey(_passwordVisibility),
+                                        icon:
+                                            _passwordVisibility
+                                                ? animated.eye
+                                                : animated.eye_off,
+                                        trigger:
+                                            animated.AnimationTrigger.manual,
+                                        color:
+                                            isDark
+                                                ? TrackletColors
+                                                    .darkTextSecondary
+                                                : TrackletColors.secondaryText,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -520,7 +521,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 context.push('/forgot-password');
                               },
                               child: Text(
-                                'perhaps, forgot your password?',
+                                'Forgot password?',
                                 style: TrackletTypography.bodyMedium.copyWith(
                                   fontSize: 15.0,
                                   fontWeight: FontWeight.w500,
@@ -570,7 +571,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           ),
                                         )
                                         : Text(
-                                          'Login',
+                                          'Log in',
                                           style: TrackletTypography.titleMedium
                                               .copyWith(
                                                 fontSize: 18.0,
@@ -583,11 +584,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
 
-                        // -- OR -- Divider
+                        // Divider
                         Align(
                           alignment: const AlignmentDirectional(0.0, 0.0),
                           child: Text(
-                            '-- OR --',
+                            'or',
                             style: TrackletTypography.caption.copyWith(
                               fontSize: 13.0,
                               fontWeight: FontWeight.w500,
@@ -634,9 +635,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Image.asset(
-                                    'assets/images/favicon.png',
+                                    'assets/images/google_logo.png',
                                     width: 20,
                                     height: 20,
+                                    cacheWidth: 60,
+                                    cacheHeight: 60,
                                     errorBuilder:
                                         (_, _, _) => const Icon(
                                           TrackletIcons.globe,
@@ -721,7 +724,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            'Continue as Guest',
+                                            'Continue as guest',
                                             style: TrackletTypography.titleSmall
                                                 .copyWith(
                                                   fontSize: 15.0,
@@ -736,7 +739,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'Explore BusTracker live bus tracking without creating an account',
+                                            'View live campus bus tracking without an account',
                                             style: TrackletTypography.bodySmall
                                                 .copyWith(
                                                   fontSize: 12.0,
@@ -806,7 +809,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         ),
                                   ),
                                   TextSpan(
-                                    text: 'Sign Up Here',
+                                    text: 'Sign up',
                                     style: TrackletTypography.bodyMedium
                                         .copyWith(
                                           fontWeight: FontWeight.bold,

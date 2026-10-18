@@ -41,7 +41,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'We’ll need your email to help you reset your password.',
+            'Enter your email address.',
             style: TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -54,7 +54,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Please enter a valid email address.',
+            'Enter a valid email address.',
             style: TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -140,7 +140,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const Align(
                       alignment: AlignmentDirectional(0.0, -1.0),
                       child: Text(
-                        'Forgot Password?',
+                        'Forgot password?',
                         textAlign: TextAlign.center,
                         style: TrackletTypography.displaySmall,
                       ),
@@ -158,7 +158,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           bottom: TrackletSpacing.xl,
                         ),
                         child: Text(
-                          'We’ve got you covered, no stress!\nJust drop your email below... ',
+                          'Enter your email address to receive a password reset link.',
                           textAlign: TextAlign.center,
                           style: TrackletTypography.labelLarge,
                         ),
@@ -186,13 +186,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       decoration: InputDecoration(
                         isDense: false,
-                        labelText: 'Your Email Address:',
+                        labelText: 'Email address',
                         labelStyle: TrackletTypography.labelMedium.copyWith(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                           color: TrackletColors.secondaryText,
                         ),
-                        hintText: 'joedoe@email.com',
+                        hintText: 'name@nitc.ac.in',
                         hintStyle: TrackletTypography.labelMedium.copyWith(
                           fontWeight: FontWeight.normal,
                           color: TrackletColors.secondaryText,
@@ -270,7 +270,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                       ),
                                     )
                                     : Text(
-                                      'Send Magic Link',
+                                      'Send reset link',
                                       style: TrackletTypography.titleSmall
                                           .copyWith(
                                             color:
@@ -306,7 +306,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Head Back To Login Page',
+                          'Back to login',
                           style: TrackletTypography.bodyMedium.copyWith(
                             fontWeight: FontWeight.w900,
                             color: TrackletColors.secondaryText,

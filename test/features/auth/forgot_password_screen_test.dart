@@ -9,28 +9,27 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: ForgotPasswordScreen()));
 
       // Verify Title & Subtitle
-      expect(find.text('Forgot Password?'), findsOneWidget);
+      expect(find.text('Forgot password?'), findsOneWidget);
       expect(
-        find.textContaining('We’ve got you covered, no stress!'),
+        find.textContaining(
+          'Enter your email address to receive a password reset link.',
+        ),
         findsOneWidget,
       );
 
       // Verify Email Form Field
-      expect(find.text('Your Email Address:'), findsOneWidget);
-      expect(find.text('joedoe@email.com'), findsOneWidget);
+      expect(find.text('Email address'), findsOneWidget);
+      expect(find.text('name@nitc.ac.in'), findsOneWidget);
 
       // Verify Action Buttons
-      expect(find.text('Send Magic Link'), findsOneWidget);
-      expect(find.text('Head Back To Login Page'), findsOneWidget);
+      expect(find.text('Send reset link'), findsOneWidget);
+      expect(find.text('Back to login'), findsOneWidget);
 
       // Test entering empty email shows validation snackbar
-      await tester.tap(find.text('Send Magic Link'));
+      await tester.tap(find.text('Send reset link'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('We’ll need your email to help you reset your password.'),
-        findsOneWidget,
-      );
+      expect(find.text('Enter your email address.'), findsOneWidget);
     },
   );
 }

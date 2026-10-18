@@ -195,7 +195,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ResetPasswordScreen), findsOneWidget);
-      expect(find.text('Reset Your Password!'), findsOneWidget);
+      expect(find.text('Reset password'), findsOneWidget);
     });
 
     testWidgets(
@@ -226,7 +226,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(LoginScreen), findsOneWidget);
-        expect(find.text('Welcome Back!'), findsOneWidget);
+        expect(find.text('Welcome back'), findsOneWidget);
       },
     );
 

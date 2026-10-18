@@ -201,8 +201,35 @@ class SupabaseAuthRepository implements AuthRepository {
                 );
               }
               break;
-            case AuthChangeEvent.mfaChallengeVerified:
             case AuthChangeEvent.initialSession:
+              if (user != null) {
+                if (!user.isAnonymous && !isNitcEmail(user.email)) {
+                  AppLogger.warning(
+                    'Initial session rejected for unauthorized email: ${user.email}',
+                  );
+                  unawaited(client.auth.signOut());
+                  _emitState(
+                    const AuthState(
+                      status: AuthStatus.unauthenticated,
+                      errorMessage:
+                          'Please sign in using your @nitc.ac.in institute email address.',
+                    ),
+                  );
+                } else {
+                  _emitState(
+                    AuthState(
+                      status: AuthStatus.authenticated,
+                      user: user,
+                      session: session,
+                      email: user.email,
+                    ),
+                  );
+                }
+              } else {
+                _emitState(const AuthState(status: AuthStatus.unauthenticated));
+              }
+              break;
+            case AuthChangeEvent.mfaChallengeVerified:
             default:
               break;
           }

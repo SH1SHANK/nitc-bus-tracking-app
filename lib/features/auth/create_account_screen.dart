@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +10,7 @@ import '../../core/services/turnstile_service.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/components/tracklet_brand_lockup.dart';
+import '../../design_system/tokens/motion.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
@@ -124,7 +127,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.errorMessage ?? 'Registration failed. Please try again.',
+            result.errorMessage ?? 'Registration failed. Try again.',
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -149,7 +152,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.errorMessage ?? 'Google Sign-In failed.',
+            result.errorMessage ?? 'Google sign-in failed.',
             style: const TextStyle(color: TrackletColors.info),
           ),
           backgroundColor: TrackletColors.errorBorder,
@@ -169,7 +172,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
               borderRadius: TrackletRadii.roundedCard,
             ),
             title: Text(
-              'Verification Email Sent',
+              'Verification email sent',
               style: TrackletTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.bold,
                 color: TrackletColors.primaryText,
@@ -180,7 +183,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'We have sent a verification link to:\n$email\n\nPlease check your inbox and verify your email before logging in.',
+                  'A verification link has been sent to:\n$email\n\nVerify your email before logging in.',
                   style: TrackletTypography.bodyMedium.copyWith(
                     color: TrackletColors.secondaryText,
                     height: 1.4,
@@ -195,7 +198,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                   context.go('/login');
                 },
                 child: Text(
-                  'Proceed to Login',
+                  'Back to login',
                   style: TrackletTypography.titleSmall.copyWith(
                     color: TrackletColors.primary,
                     fontWeight: FontWeight.bold,
@@ -209,6 +212,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = TrackletColors.isDark(context);
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return GestureDetector(
@@ -216,7 +220,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        backgroundColor: TrackletColors.secondaryBackground,
+        backgroundColor:
+            isDark
+                ? TrackletColors.darkBackground
+                : TrackletColors.secondaryBackground,
         body: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.max,
@@ -267,14 +274,42 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                         ),
                       ),
                     ),
-                    const Positioned(
-                      top: 16.0,
-                      left: 16.0,
+                    // Back navigation button
+                    Positioned(
+                      top: 14.0,
+                      left: TrackletSpacing.screenMargin,
                       child: SafeArea(
-                        child: TrackletBrandLockup(
-                          logoSize: 28.0,
-                          wordmarkHeight: 18.0,
-                          withContainer: true,
+                        child: Material(
+                          color: (isDark
+                                  ? TrackletColors.darkSurfaceElevated
+                                  : Colors.white)
+                              .withValues(alpha: 0.88),
+                          shape: const CircleBorder(),
+                          elevation: 2.0,
+                          shadowColor: Colors.black.withValues(
+                            alpha: isDark ? 0.35 : 0.08,
+                          ),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              if (context.canPop()) {
+                                context.pop();
+                              } else {
+                                context.go('/login');
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(TrackletSpacing.sm),
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                size: 20,
+                                color:
+                                    isDark
+                                        ? TrackletColors.darkTextPrimary
+                                        : TrackletColors.altPrimaryText,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -298,14 +333,16 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Brand Logo and Wordmark
+                        // Authoritative Brand Wordmark (Bigger On Top)
                         AuthEntrance(
                           delay: 20.ms,
-                          child: const Padding(
-                            padding: EdgeInsets.only(bottom: 14.0),
-                            child: TrackletBrandLockup(
-                              logoSize: 40.0,
-                              wordmarkHeight: 22.0,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: TrackletSpacing.md,
+                            ),
+                            child: TrackletBrandLockup.wordmarkOnly(
+                              wordmarkHeight: 40.0,
+                              isDark: isDark,
                             ),
                           ),
                         ),
@@ -313,11 +350,14 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                         // Title
                         AuthEntrance(
                           child: Text(
-                            'Create Your Account',
+                            'Create account',
                             style: TrackletTypography.displaySmall.copyWith(
                               fontSize: 26.0,
                               fontWeight: FontWeight.bold,
-                              color: TrackletColors.altPrimaryText,
+                              color:
+                                  isDark
+                                      ? TrackletColors.darkTextPrimary
+                                      : TrackletColors.altPrimaryText,
                             ),
                           ),
                         ),
@@ -334,10 +374,13 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                               18.0,
                             ),
                             child: Text(
-                              "Let's get started by filling out the form below.",
+                              'Enter your NITC email to register for campus bus tracking.',
                               style: TrackletTypography.labelMedium.copyWith(
                                 fontSize: 14.0,
-                                color: TrackletColors.secondaryText,
+                                color:
+                                    isDark
+                                        ? TrackletColors.darkTextSecondary
+                                        : TrackletColors.secondaryText,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -416,6 +459,9 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   hint: 'Create a password',
                                   icon: TrackletIcons.lock,
                                   suffixIcon: IconButton(
+                                    key: const ValueKey(
+                                      'create_account_password_visibility_toggle',
+                                    ),
                                     tooltip:
                                         _passwordVisibility
                                             ? 'Hide password'
@@ -425,12 +471,18 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                           _passwordVisibility =
                                               !_passwordVisibility;
                                         }),
-                                    icon: Icon(
-                                      _passwordVisibility
-                                          ? TrackletIcons.eye
-                                          : TrackletIcons.eyeOff,
-                                      color: TrackletColors.secondaryText,
-                                      size: 22,
+                                    icon: IgnorePointer(
+                                      child: animated.LucideAnimatedIcon(
+                                        key: ValueKey(_passwordVisibility),
+                                        icon:
+                                            _passwordVisibility
+                                                ? animated.eye
+                                                : animated.eye_off,
+                                        trigger:
+                                            animated.AnimationTrigger.manual,
+                                        color: TrackletColors.secondaryText,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -472,10 +524,13 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     ),
                                 onFieldSubmitted: (_) => _handleCreateAccount(),
                                 decoration: authInputDecoration(
-                                  label: 'Confirm Password',
+                                  label: 'Confirm password',
                                   hint: 'Re-enter your password',
                                   icon: TrackletIcons.lock,
                                   suffixIcon: IconButton(
+                                    key: const ValueKey(
+                                      'create_account_confirm_password_visibility_toggle',
+                                    ),
                                     tooltip:
                                         _confirmPasswordVisibility
                                             ? 'Hide password'
@@ -485,12 +540,20 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                           _confirmPasswordVisibility =
                                               !_confirmPasswordVisibility;
                                         }),
-                                    icon: Icon(
-                                      _confirmPasswordVisibility
-                                          ? TrackletIcons.eye
-                                          : TrackletIcons.eyeOff,
-                                      color: TrackletColors.secondaryText,
-                                      size: 22,
+                                    icon: IgnorePointer(
+                                      child: animated.LucideAnimatedIcon(
+                                        key: ValueKey(
+                                          _confirmPasswordVisibility,
+                                        ),
+                                        icon:
+                                            _confirmPasswordVisibility
+                                                ? animated.eye
+                                                : animated.eye_off,
+                                        trigger:
+                                            animated.AnimationTrigger.manual,
+                                        color: TrackletColors.secondaryText,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -505,7 +568,21 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                         ),
 
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 180),
+                          duration: TrackletMotion.adaptiveDuration(
+                            context,
+                            TrackletMotion.fast,
+                          ),
+                          switchInCurve: TrackletMotion.easeOut,
+                          switchOutCurve: TrackletMotion.easeIn,
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SizeTransition(
+                                sizeFactor: animation,
+                                child: child,
+                              ),
+                            );
+                          },
                           child:
                               _passwordsMatch
                                   ? const Padding(
@@ -565,7 +642,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                           ),
                                         )
                                         : Text(
-                                          'Create Account',
+                                          'Create account',
                                           style: TrackletTypography.titleMedium
                                               .copyWith(
                                                 fontSize: 18.0,
@@ -582,7 +659,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                         Align(
                           alignment: const AlignmentDirectional(0.0, 0.0),
                           child: Text(
-                            '-- OR --',
+                            'or',
                             style: TrackletTypography.caption.copyWith(
                               fontSize: 13.0,
                               fontWeight: FontWeight.w500,
@@ -617,9 +694,11 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Image.asset(
-                                    'assets/images/favicon.png',
+                                    'assets/images/google_logo.png',
                                     width: 20,
                                     height: 20,
+                                    cacheWidth: 60,
+                                    cacheHeight: 60,
                                     errorBuilder:
                                         (_, _, _) => const Icon(
                                           TrackletIcons.globe,
@@ -666,7 +745,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                         ),
                                   ),
                                   TextSpan(
-                                    text: 'Log In Here',
+                                    text: 'Log in',
                                     style: TrackletTypography.bodyMedium
                                         .copyWith(
                                           fontWeight: FontWeight.bold,

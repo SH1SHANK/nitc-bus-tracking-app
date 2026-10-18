@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../design_system/tokens/colors.dart';
+import '../../design_system/tokens/motion.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
@@ -20,14 +21,15 @@ class AuthEntrance extends StatelessWidget {
   Widget build(BuildContext context) {
     if (MediaQuery.disableAnimationsOf(context)) return child;
 
+    const duration = TrackletMotion.standard;
     return child
         .animate(delay: delay)
-        .fadeIn(duration: 280.ms, curve: Curves.easeOutCubic)
+        .fadeIn(duration: duration, curve: TrackletMotion.easeOut)
         .slideY(
           begin: 0.04,
           end: 0,
-          duration: 280.ms,
-          curve: Curves.easeOutCubic,
+          duration: duration,
+          curve: TrackletMotion.easeOut,
         );
   }
 }

@@ -57,7 +57,7 @@ void main() {
       find.byType(TextFormField).first,
       'student@gmail.com',
     );
-    final createButton = find.widgetWithText(ElevatedButton, 'Create Account');
+    final createButton = find.widgetWithText(ElevatedButton, 'Create account');
     await tester.ensureVisible(createButton);
     await tester.tap(createButton);
     await tester.pumpAndSettle();
@@ -78,7 +78,7 @@ void main() {
       find.byType(TextFormField).first,
       'student@NITC.AC.IN',
     );
-    final createButton = find.widgetWithText(ElevatedButton, 'Create Account');
+    final createButton = find.widgetWithText(ElevatedButton, 'Create account');
     await tester.ensureVisible(createButton);
     await tester.tap(createButton);
     await tester.pumpAndSettle();

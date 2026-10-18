@@ -68,7 +68,7 @@ class _ResetPasswordSentScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'A new password reset link has been dispatched to your email.',
+          'Password reset link sent to your email.',
           style: TextStyle(
             color: TrackletColors.info,
             fontWeight: FontWeight.w500,
@@ -162,7 +162,7 @@ class _ResetPasswordSentScreenState
                       ),
                       children: [
                         TextSpan(
-                          text: 'Your reset request is on its way!\n',
+                          text: 'Password reset link sent\n',
                           style: TrackletTypography.titleMedium.copyWith(
                             color: textPrimary,
                             fontWeight: FontWeight.w700,
@@ -170,22 +170,7 @@ class _ResetPasswordSentScreenState
                         ),
                         TextSpan(
                           text:
-                              'It might be hiding in Promotions or Spam,\nso don’t forget to check there. \n',
-                          style: TextStyle(color: textSecondary),
-                        ),
-                        TextSpan(
-                          text: 'Still missing? No worries \n Just hit ',
-                          style: TextStyle(color: textSecondary),
-                        ),
-                        TextSpan(
-                          text: '‘Resend’ ',
-                          style: TrackletTypography.bodyMedium.copyWith(
-                            color: TrackletColors.tertiary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'and we’ve got you covered.',
+                              'Check your inbox and spam folder for the password reset email.\n',
                           style: TextStyle(color: textSecondary),
                         ),
                       ],
@@ -205,7 +190,7 @@ class _ResetPasswordSentScreenState
                   ),
                   children: [
                     TextSpan(
-                      text: 'Didn’t show up? ',
+                      text: 'Didn’t receive the email? ',
                       style: TrackletTypography.bodyMedium.copyWith(
                         color: textSecondary,
                         fontWeight: FontWeight.w500,
@@ -215,7 +200,7 @@ class _ResetPasswordSentScreenState
                       text:
                           _cooldownSeconds > 0
                               ? 'Resend in ${_cooldownSeconds}s'
-                              : 'Resend Mail',
+                              : 'Resend',
                       style: TrackletTypography.bodyMedium.copyWith(
                         color:
                             _cooldownSeconds > 0
@@ -259,7 +244,7 @@ class _ResetPasswordSentScreenState
                         padding: EdgeInsets.zero,
                       ),
                       child: Text(
-                        'Back to Login',
+                        'Back to login',
                         style: TrackletTypography.titleSmall.copyWith(
                           color:
                               isDark

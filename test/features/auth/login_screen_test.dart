@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
 import 'package:tracklet/features/auth/login_screen.dart';
 
 import '../../helpers/pump_app.dart';
@@ -14,11 +15,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Title & Subtitle
-      expect(find.text('Welcome Back!'), findsOneWidget);
+      expect(find.text('Welcome back'), findsOneWidget);
       expect(
-        find.text(
-          "Log in and pick up right where you left off. We've been saving your seat. ",
-        ),
+        find.text('Sign in to view live campus bus routes and arrival times.'),
         findsOneWidget,
       );
 
@@ -48,13 +47,13 @@ void main() {
       }
 
       // Forgot Password Link
-      expect(find.text('perhaps, forgot your password?'), findsOneWidget);
+      expect(find.text('Forgot password?'), findsOneWidget);
 
       // Buttons
-      expect(find.text('Login'), findsOneWidget);
-      expect(find.text('-- OR --'), findsOneWidget);
+      expect(find.text('Log in'), findsOneWidget);
+      expect(find.text('or'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
-      expect(find.text('Continue as Guest'), findsOneWidget);
+      expect(find.text('Continue as guest'), findsOneWidget);
 
       // Sign Up / Create Account Link
       expect(find.byType(RichText), findsWidgets);
@@ -85,7 +84,7 @@ void main() {
         find.byType(TextFormField).first,
         'student@gmail.com',
       );
-      final loginButton = find.widgetWithText(ElevatedButton, 'Login');
+      final loginButton = find.widgetWithText(ElevatedButton, 'Log in');
       await tester.ensureVisible(loginButton);
       await tester.tap(loginButton);
       await tester.pumpAndSettle();
@@ -106,7 +105,7 @@ void main() {
         find.byType(TextFormField).first,
         'student@NITC.AC.IN',
       );
-      final loginButton = find.widgetWithText(ElevatedButton, 'Login');
+      final loginButton = find.widgetWithText(ElevatedButton, 'Log in');
       await tester.ensureVisible(loginButton);
       await tester.tap(loginButton);
       await tester.pumpAndSettle();
@@ -123,13 +122,29 @@ void main() {
       await tester.pumpTrackletWidget(const LoginScreen());
       await tester.pumpAndSettle();
 
-      final visibilityIcon = find.byIcon(TrackletIcons.eyeOff);
-      expect(visibilityIcon, findsOneWidget);
+      final visibilityToggle = find.byKey(
+        const ValueKey('login_password_visibility_toggle'),
+      );
+      expect(visibilityToggle, findsOneWidget);
 
-      await tester.tap(visibilityIcon);
+      final editableBefore = tester.widget<EditableText>(
+        find.byType(EditableText).last,
+      );
+      expect(editableBefore.obscureText, isTrue);
+
+      await tester.tap(visibilityToggle);
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(TrackletIcons.eye), findsOneWidget);
+      final editableAfter = tester.widget<EditableText>(
+        find.byType(EditableText).last,
+      );
+      expect(editableAfter.obscureText, isFalse);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is animated.LucideAnimatedIcon && w.icon.name == 'eye',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets(

@@ -18,9 +18,7 @@ void main() {
         find.byWidgetPredicate(
           (w) =>
               w is RichText &&
-              w.text.toPlainText().contains(
-                'Your reset request is on its way!',
-              ),
+              w.text.toPlainText().contains('Password reset link sent'),
         ),
         findsOneWidget,
       );
@@ -28,11 +26,11 @@ void main() {
         find.byWidgetPredicate(
           (w) =>
               w is RichText &&
-              w.text.toPlainText().contains('Didn’t show up? Resend Mail'),
+              w.text.toPlainText().contains('Didn’t receive the email? Resend'),
         ),
         findsOneWidget,
       );
-      expect(find.text('Back to Login'), findsOneWidget);
+      expect(find.text('Back to login'), findsOneWidget);
     },
   );
 }
