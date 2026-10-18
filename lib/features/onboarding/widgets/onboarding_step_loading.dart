@@ -97,12 +97,12 @@ class OnboardingStepLoading extends StatelessWidget {
                   ).copyWith(fontSize: 14, height: 1.45),
                 ).enterOnboarding(context, delay: 150.ms),
                 Expanded(
-                  child: ClipRect(
-                    child: Transform.scale(
-                      scale: 1.28,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Image.asset(
-                        'assets/images/Abstract_Gradient_Background_4K.jpg',
-                        fit: BoxFit.cover,
+                        'assets/images/flow.gif',
+                        fit: BoxFit.contain,
                         errorBuilder:
                             (context, error, stackTrace) => Container(
                               decoration: BoxDecoration(
@@ -113,8 +113,8 @@ class OnboardingStepLoading extends StatelessWidget {
                               ),
                             ),
                       ),
-                    ).enterOnboarding(context, delay: 180.ms),
-                  ),
+                    ),
+                  ).enterOnboarding(context, delay: 180.ms),
                 ),
                 AnimatedSwitcher(
                   duration: TrackletMotion.adaptiveDuration(

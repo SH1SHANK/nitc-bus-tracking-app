@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/preferences/user_preferences.dart';
 import '../../data/profile/profile.dart';
 import '../../design_system/components/voxel_avatar.dart';
+import '../../design_system/components/tracklet_snack_bar.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/radii.dart';
@@ -28,8 +29,8 @@ import 'dialogs/change_username_dialog.dart';
 import 'dialogs/delete_account_dialog.dart';
 import 'dialogs/transit_faq_dialog.dart';
 import 'widgets/settings_card.dart';
-import 'widgets/settings_choice_chips.dart';
 import 'widgets/settings_row_item.dart';
+import 'widgets/settings_theme_selector.dart';
 
 /// Complete, production-ready Settings Screen for Tracklet.
 /// Adheres strictly to Attendrix design language, spacing, tokens, typography, and card hierarchy.
@@ -128,39 +129,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: TrackletColors.success,
-        content: Text(
-          message,
-          style: TrackletFonts.outfit(
-            color: TrackletColors.textInverse,
-            fontSize: 13.0,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    TrackletSnackBar.showSuccess(context, message);
   }
 
   void _showInfoSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: TrackletColors.primary,
-        content: Text(
-          message,
-          style: TrackletFonts.outfit(
-            color: TrackletColors.textInverse,
-            fontSize: 13.0,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    TrackletSnackBar.showInfo(context, message);
   }
 
   Future<void> _launchEmail(String subject, String body) async {
@@ -844,14 +817,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                             ),
                           ),
                           const SizedBox(height: TrackletSpacing.compactMd),
-                          SettingsChoiceChips<String>(
-                            options: const ['System', 'Light', 'Dark'],
-                            selectedOption: prefs.themeMode,
-                            onSelected: (String val) {
+                          SettingsThemeSelector(
+                            selectedMode: prefs.themeMode,
+                            enableHaptics: prefs.hapticFeedbackEnabled,
+                            onChanged: (String val) {
                               prefsNotifier.setThemeMode(val);
-                              if (prefs.hapticFeedbackEnabled) {
-                                unawaited(HapticFeedback.selectionClick());
-                              }
                             },
                           ),
                         ],
@@ -886,6 +856,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingsCard(
                 child: Column(
                   children: [
+                    SettingsRowItem(
+                      title: 'Report an App Bug',
+                      subtitle: 'Submit reproduction steps or track on GitHub',
+                      leadingIcon: TrackletIcons.alertCircle,
+                      leadingIconColor: TrackletColors.error,
+                      showChevron: true,
+                      onTap: () => context.push('/bug-report'),
+                    ),
+                    _buildDivider(context),
+                    SettingsRowItem(
+                      title: 'General App Feedback',
+                      subtitle: 'Rate your experience and share improvements',
+                      leadingIcon: TrackletIcons.star,
+                      leadingIconColor: const Color(0xFFF59E0B),
+                      showChevron: true,
+                      onTap: () => context.push('/feedback'),
+                    ),
+                    _buildDivider(context),
+                    SettingsRowItem(
+                      title: 'Suggest a Feature',
+                      subtitle: 'Propose ideas for campus transit tracking',
+                      leadingIcon: TrackletIcons.sparkles,
+                      leadingIconColor: TrackletColors.primary,
+                      showChevron: true,
+                      onTap: () => context.push('/feature-suggestion'),
+                    ),
+                    _buildDivider(context),
                     SettingsRowItem(
                       title: 'Transit FAQ',
                       subtitle:
