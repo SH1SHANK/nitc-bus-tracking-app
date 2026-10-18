@@ -29,6 +29,16 @@ class TurnstileServiceImpl implements TurnstileService {
       return jsString.toDart;
     } catch (e) {
       debugPrint('Turnstile error: $e');
+      final err = e.toString();
+      if (err.contains('110200') ||
+          err.contains('domain not allowed') ||
+          err.contains('110600') ||
+          err.contains('invalid sitekey')) {
+        debugPrint(
+          'Turnstile domain/key not permitted on this host. Proceeding without captcha token.',
+        );
+        return null;
+      }
       rethrow;
     }
   }
