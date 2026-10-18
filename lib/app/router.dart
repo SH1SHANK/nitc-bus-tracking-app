@@ -23,6 +23,9 @@ import '../features/settings/screens/about_screen.dart';
 import '../features/settings/screens/open_source_licenses_screen.dart';
 import '../features/settings/screens/privacy_policy_screen.dart';
 import '../features/settings/screens/terms_of_service_screen.dart';
+import '../features/feedback/bug_report_screen.dart';
+import '../features/feedback/feature_suggestion_screen.dart';
+import '../features/feedback/general_feedback_screen.dart';
 import '../design_system/tokens/motion.dart';
 import 'app_shell.dart';
 
@@ -441,6 +444,36 @@ GoRouter createRouter({
             (context, state) => _buildModalPage(
               key: state.pageKey,
               child: const AdminDashboardScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/bug-report',
+        name: 'bugReport',
+        pageBuilder:
+            (context, state) => _buildModalPage(
+              key: state.pageKey,
+              child: const BugReportScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/feedback',
+        name: 'feedback',
+        pageBuilder:
+            (context, state) => _buildModalPage(
+              key: state.pageKey,
+              child: const GeneralFeedbackScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/feature-suggestion',
+        name: 'featureSuggestion',
+        pageBuilder:
+            (context, state) => _buildModalPage(
+              key: state.pageKey,
+              child: const FeatureSuggestionScreen(),
             ),
       ),
 
