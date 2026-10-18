@@ -152,12 +152,8 @@ jobs:
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
             chmod 600 "$KEYSTORE_PATH"
 
-            cat <<EOF > android/key.properties
-            storePassword=$ANDROID_STORE_PASSWORD
-            keyPassword=$ANDROID_KEY_PASSWORD
-            keyAlias=$ANDROID_KEY_ALIAS
-            storeFile=$KEYSTORE_PATH
-            EOF
+            printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=%s\n' \
+              "$ANDROID_STORE_PASSWORD" "$ANDROID_KEY_PASSWORD" "$ANDROID_KEY_ALIAS" "$KEYSTORE_PATH" > android/key.properties
             chmod 600 android/key.properties
             echo "Ephemeral keystore and key.properties provisioned securely."
           else
@@ -272,19 +268,22 @@ jobs:
           SEMVER="${{ steps.version.outputs.version }}"
           tar -czf dist/android/tracklet-v${SEMVER}-debug-symbols.tar.gz -C build/app/outputs/symbols .
 
-          cat <<EOF > dist/android/BUILD_METADATA.json
-          {
-            "project": "tracklet",
-            "target": "android",
-            "version": "${{ steps.version.outputs.version }}",
-            "build_number": "${{ steps.version.outputs.build_number }}",
-            "commit_sha": "${{ github.sha }}",
-            "release_tag": "${{ steps.version.outputs.release_tag }}",
-            "workflow_run_id": "${{ github.run_id }}",
-            "built_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-            "integrity_status": "VERIFIED_PRODUCTION"
-          }
-          EOF
+          python3 -c "
+import json, datetime
+data = {
+  'project': 'bustracker',
+  'target': 'android',
+  'version': '${{ steps.version.outputs.version }}',
+  'build_number': '${{ steps.version.outputs.build_number }}',
+  'commit_sha': '${{ github.sha }}',
+  'release_tag': '${{ steps.version.outputs.release_tag }}',
+  'workflow_run_id': '${{ github.run_id }}',
+  'built_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+  'integrity_status': 'VERIFIED_PRODUCTION'
+}
+with open('dist/android/BUILD_METADATA.json', 'w') as f:
+  json.dump(data, f, indent=2)
+"
 
           # Generate checksums.sha256
           (cd dist/android && sha256sum tracklet-* BUILD_METADATA.json > checksums.sha256)
@@ -349,7 +348,7 @@ jobs:
           IS_DRAFT: ${{ inputs.draft || false }}
         run: |
           FLAGS=""
-          if [ "$IS_PRERELEASE" = "true" ]; then
+          if [ "$IS_PRERELEASE" = "true" ] || [[ "$RELEASE_TAG" == *-* ]]; then
             FLAGS="$FLAGS --prerelease"
           fi
           if [ "$IS_DRAFT" = "true" ]; then
@@ -363,7 +362,7 @@ jobs:
             gh release upload "$RELEASE_TAG" dist/android/* --clobber
           else
             gh release create "$RELEASE_TAG" dist/android/* \
-              --title "Tracklet $RELEASE_TAG" \
+              --title "BusTracker $RELEASE_TAG" \
               --notes-file dist/android/RELEASE_NOTES.md \
               $FLAGS
           fi
