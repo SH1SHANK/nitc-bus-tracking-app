@@ -201,9 +201,9 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, artifacts
     build_num = version_info["build_number"]
 
     lines = []
-    lines.append(f"# Tracklet {release_tag}")
+    lines.append(f"# BusTracker {release_tag}")
     lines.append("")
-    lines.append(f"**Application:** Tracklet — NITC Campus Bus Tracking  ")
+    lines.append(f"**Application:** BusTracker — NITC Campus Bus Tracking  ")
     lines.append(f"**Version:** `{semver}` (Build `{build_num}`)  ")
     lines.append(f"**Release Tag:** `{release_tag}`  ")
     if prev_tag:
