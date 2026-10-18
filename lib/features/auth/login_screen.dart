@@ -55,6 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       captchaToken = await TurnstileService.instance.getCaptchaToken(
         action: 'login',
+        context: context,
       );
     } catch (e) {
       if (!mounted) return;
@@ -160,6 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       captchaToken = await TurnstileService.instance.getCaptchaToken(
         action: 'guest_login',
+        context: context,
       );
     } catch (e) {
       if (!mounted) return;

@@ -83,6 +83,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     try {
       captchaToken = await TurnstileService.instance.getCaptchaToken(
         action: 'signup',
+        context: context,
       );
     } catch (e) {
       if (!mounted) return;

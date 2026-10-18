@@ -69,6 +69,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     try {
       captchaToken = await TurnstileService.instance.getCaptchaToken(
         action: 'password_reset',
+        context: context,
       );
     } catch (e) {
       if (!mounted) return;

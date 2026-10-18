@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../config/app_config.dart';
 import 'turnstile_service.dart';
@@ -14,7 +15,10 @@ external JSPromise<JSString>? _requestTurnstileToken(
 /// Web implementation of [TurnstileService] invoking Cloudflare Turnstile explicitly.
 class TurnstileServiceImpl implements TurnstileService {
   @override
-  Future<String?> getCaptchaToken({required String action}) async {
+  Future<String?> getCaptchaToken({
+    required String action,
+    BuildContext? context,
+  }) async {
     if (!kIsWeb || !AppConfig.isCaptchaConfigured) {
       return null;
     }

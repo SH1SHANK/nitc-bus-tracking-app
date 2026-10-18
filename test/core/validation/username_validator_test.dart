@@ -20,7 +20,8 @@ void main() {
         expect(
           result.isValid,
           isTrue,
-          reason: 'Expected "$name" to be valid, but got: ${result.errorMessage}',
+          reason:
+              'Expected "$name" to be valid, but got: ${result.errorMessage}',
         );
         expect(result.errorMessage, isNull);
       }

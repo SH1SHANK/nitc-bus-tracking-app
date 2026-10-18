@@ -72,6 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ref.read(liveTransitPollingProvider.notifier).pause();
     } else if (state == AppLifecycleState.resumed) {
       ref.read(liveTransitPollingProvider.notifier).resume();
+      ref.read(locationStateProvider.notifier).refreshPermission();
     }
   }
 
