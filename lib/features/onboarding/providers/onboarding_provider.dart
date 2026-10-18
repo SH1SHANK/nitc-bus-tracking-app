@@ -283,7 +283,14 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   void updateUsername(String text) {
     _usernameDebounceTimer?.cancel();
     final cleaned = text.replaceAll('@', '').trim().toLowerCase();
-    const takenUsernames = ['admin', 'root', 'support', 'nitc', 'tracklet'];
+    const takenUsernames = [
+      'admin',
+      'root',
+      'support',
+      'nitc',
+      'bustracker',
+      'tracklet',
+    ];
 
     final validation = UsernameValidator.validate(cleaned);
     final isSynchronouslyValid =
@@ -297,7 +304,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       isUsernameAvailable: isSynchronouslyValid,
       usernameValidationError:
           takenUsernames.contains(cleaned)
-              ? 'Sorry, username already taken.'
+              ? 'Username is already taken.'
               : (!validation.isValid ? validation.errorMessage : null),
     );
 
@@ -313,7 +320,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
             isCheckingUsername: false,
             isUsernameAvailable: available,
             usernameValidationError:
-                available ? null : 'Sorry, username already taken.',
+                available ? null : 'Username is already taken.',
           );
         }
       } catch (e) {
@@ -323,7 +330,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
             isCheckingUsername: false,
             isUsernameAvailable: null,
             usernameValidationError:
-                'Could not verify username due to network error.',
+                'Could not verify username. Check your connection.',
           );
         }
       }

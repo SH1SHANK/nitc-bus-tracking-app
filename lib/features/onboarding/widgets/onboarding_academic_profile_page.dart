@@ -153,17 +153,17 @@ class _OnboardingAcademicProfilePageState
               children: [
                 const TextSpan(
                   text:
-                      'Tell us a few details about your academic profile so we can personalize your transit timings and campus bus routes. Why do we ask for this information? ',
+                      'Add your details to customize campus bus routes and arrival times. Why we ask: ',
                 ),
                 TextSpan(
-                  text: 'Tap to Learn More.',
+                  text: 'Learn more.',
                   style: const TextStyle(
                     color: TrackletColors.tertiaryText,
                     fontWeight: FontWeight.w700,
                   ),
                   recognizer: _learnMoreRecognizer,
                 ),
-                const TextSpan(text: " Can't find your branch or batch? "),
+                const TextSpan(text: " Can't find yours? "),
                 TextSpan(
                   text: 'Request here',
                   style: const TextStyle(
@@ -200,7 +200,7 @@ class _OnboardingAcademicProfilePageState
                     child: Text(
                       widget.departmentsError ??
                           widget.hostelsError ??
-                          'Unable to load campus options.',
+                          'Could not load campus options.',
                       style: const TextStyle(
                         fontFamily: TrackletTypography.primaryFontFamily,
                         fontSize: 12,
@@ -321,7 +321,7 @@ class _OnboardingAcademicProfilePageState
                 widget.isLoadingDepartments
                     ? 'Loading departments...'
                     : widget.departmentsError != null
-                    ? 'Failed to load departments'
+                    ? 'Could not load departments'
                     : widget.branches.isEmpty
                     ? 'No departments found'
                     : 'Select Branch',
@@ -368,7 +368,7 @@ class _OnboardingAcademicProfilePageState
                 widget.isLoadingHostels
                     ? 'Loading hostels...'
                     : widget.hostelsError != null
-                    ? 'Failed to load hostels'
+                    ? 'Could not load hostels'
                     : widget.hostels.isEmpty
                     ? 'No hostels found'
                     : 'Select Hostel',
@@ -434,7 +434,7 @@ class _OnboardingAcademicProfilePageState
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Complete each field and agree to the Terms of Service and Privacy Policy to continue.',
+                      'Complete all fields and accept the terms to continue.',
                       style: TrackletTypography.labelSmall.copyWith(
                         color: TrackletColors.textSecondary,
                         fontSize: 12,

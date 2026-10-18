@@ -122,7 +122,7 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: TrackletSpacing.sm),
                             Text(
-                              'Failed to load campus stops',
+                              'Could not load campus stops',
                               style: TrackletFonts.outfit(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,

@@ -44,7 +44,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Sorry, username already taken'), findsOneWidget);
+    expect(find.text('Username is already taken'), findsOneWidget);
     expect(find.text('Username available'), findsNothing);
     expect(
       tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
@@ -65,7 +65,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Username available'), findsOneWidget);
-    expect(find.text('Sorry, username already taken'), findsNothing);
+    expect(find.text('Username is already taken'), findsNothing);
     expect(
       tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
       isNotNull,

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../design_system/tokens/tracklet_fonts.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/preferences/user_preferences.dart';
@@ -18,6 +20,7 @@ import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
 import '../../services/location/location_service.dart';
 import '../auth/providers/auth_provider.dart';
+import '../profile/dialogs/avatar_picker_sheet.dart';
 import '../profile/providers/profile_provider.dart';
 import 'dialogs/change_display_name_dialog.dart';
 import 'dialogs/change_password_dialog.dart';
@@ -334,11 +337,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   children: [
                     Row(
                       children: [
-                        VoxelAvatar(
-                          email: profile.email,
-                          name: profile.name,
-                          size: TrackletSpacing.avatar,
-                          isGuest: isGuest,
+                        GestureDetector(
+                          onTap:
+                              () => AvatarPickerSheet.show(
+                                context,
+                                currentSeed: profile.avatarSeed,
+                                userEmail: profile.email,
+                                userName: profile.name,
+                              ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              VoxelAvatar(
+                                email: profile.email,
+                                name: profile.name,
+                                avatarSeed: profile.avatarSeed,
+                                size: TrackletSpacing.avatar,
+                                isGuest: isGuest,
+                              ),
+                              Positioned(
+                                bottom: -2,
+                                right: -2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: TrackletColors.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: TrackletColors.adaptiveSurface(
+                                        context,
+                                      ),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: const animated.LucideAnimatedIcon(
+                                    icon: animated.sparkles,
+                                    size: 12,
+                                    color: Colors.white,
+                                    trigger: animated.AnimationTrigger.manual,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(width: TrackletSpacing.compactLg),
                         Expanded(
@@ -404,28 +445,84 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: TrackletSpacing.xs),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: TrackletSpacing.sm,
-                                  vertical: TrackletSpacing.xxs,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: TrackletColors.primary.withValues(
-                                    alpha: 0.1,
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: TrackletSpacing.sm,
+                                      vertical: TrackletSpacing.xxs,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: TrackletColors.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: TrackletRadii.roundedXs,
+                                    ),
+                                    child: Text(
+                                      isGuest
+                                          ? 'Guest Account'
+                                          : (profile.rollNumber ??
+                                              'Student Account'),
+                                      style: TrackletFonts.robotoMono(
+                                        fontSize: 11.0,
+                                        fontWeight: FontWeight.w600,
+                                        color: TrackletColors.primary,
+                                      ),
+                                    ),
                                   ),
-                                  borderRadius: TrackletRadii.roundedXs,
-                                ),
-                                child: Text(
-                                  isGuest
-                                      ? 'Guest Account'
-                                      : (profile.rollNumber ??
-                                          'Student Account'),
-                                  style: TrackletFonts.robotoMono(
-                                    fontSize: 11.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: TrackletColors.primary,
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap:
+                                        () => AvatarPickerSheet.show(
+                                          context,
+                                          currentSeed: profile.avatarSeed,
+                                          userEmail: profile.email,
+                                          userName: profile.name,
+                                        ),
+                                    borderRadius: TrackletRadii.roundedXs,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: TrackletSpacing.sm,
+                                        vertical: TrackletSpacing.xxs,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            TrackletColors.isDark(context)
+                                                ? TrackletColors
+                                                    .darkSurfaceElevated
+                                                : TrackletColors.background,
+                                        borderRadius: TrackletRadii.roundedXs,
+                                        border: Border.all(
+                                          color: TrackletColors.primary
+                                              .withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          animated.LucideAnimatedIcon(
+                                            icon: animated.sparkles,
+                                            size: 12,
+                                            color: TrackletColors.primary,
+                                            trigger:
+                                                animated
+                                                    .AnimationTrigger
+                                                    .manual,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Change Avatar',
+                                            style: TextStyle(
+                                              fontSize: 11.0,
+                                              fontWeight: FontWeight.w600,
+                                              color: TrackletColors.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ],
                           ),
@@ -447,7 +544,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           const SizedBox(width: TrackletSpacing.compactMd),
                           Expanded(
                             child: Text(
-                              'You are browsing BusTracker in guest mode on this device. Live campus bus tracking, active routes, and timetables are fully available. Sign in with your verified @nitc.ac.in student account to sync your profile, bookmarks, and settings across devices.',
+                              'You are using BusTracker in guest mode. Live tracking, routes, and timetables are available on this device. Sign in with your @nitc.ac.in email to sync bookmarks and preferences.',
                               style: TrackletTypography.bodySmall.copyWith(
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
@@ -613,7 +710,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ),
                     const SizedBox(height: TrackletSpacing.md),
                     Text(
-                      'BusTracker uses your approximate location exclusively while viewing the campus map to calculate walking distance to nearest stops and show your blue locator dot. Location data never leaves your device.',
+                      'BusTracker uses your location while viewing the map to calculate walking distances to nearby stops and show your position. Location data stays on your device.',
                       style: TrackletTypography.bodySmall.copyWith(
                         fontSize: 12.5,
                         height: 1.45,

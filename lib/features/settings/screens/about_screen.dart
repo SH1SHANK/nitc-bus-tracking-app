@@ -95,43 +95,26 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
               child: Column(
                 children: [
-                  Container(
+                  Image.asset(
+                    'assets/branding/bustracker_bus_icon.png',
                     width: 76,
                     height: 76,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          TrackletColors.permissionHeaderGradientStart,
-                          TrackletColors.primary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: TrackletRadii.roundedPill,
-                      boxShadow: [
-                        BoxShadow(
-                          color: TrackletColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      'assets/branding/bustracker_bus_icon.png',
-                      fit: BoxFit.contain,
-                    ),
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    cacheWidth: 156,
                   ),
                   const SizedBox(height: TrackletSpacing.md),
                   Image.asset(
                     'assets/branding/bustracker_wordmark.png',
                     height: 28,
                     fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    cacheHeight: 84,
                     color: isDark ? TrackletColors.darkTextPrimary : null,
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'BusTracker · NITC Campus Public Transit Tracking',
+                    'BusTracker · NITC campus transit tracking',
                     textAlign: TextAlign.center,
                     style: TrackletFonts.outfit(
                       fontSize: 13,
@@ -187,7 +170,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Campus Transit Utility',
+                    'Campus transit',
                     style: TrackletFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -196,7 +179,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'BusTracker is an official campus mobility platform developed specifically for the students, faculty, and residents of the National Institute of Technology Calicut.\n\nFeaturing live GPS vehicle positions, arrival timeline calculations, and interactive transit cartography grounded in OpenStreetMap.',
+                    'BusTracker provides campus transit tracking for students, staff, and residents of the National Institute of Technology Calicut. It shows live vehicle locations, estimated arrival times, and campus route maps.',
                     style: TrackletFonts.outfit(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w400,
@@ -264,7 +247,7 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Crafted for the NITC Commute',
+              'Built for the NITC campus',
               style: TrackletFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,

@@ -123,7 +123,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: TrackletSpacing.sm),
                             Text(
-                              'Failed to load campus routes',
+                              'Could not load campus routes',
                               style: TrackletFonts.outfit(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,

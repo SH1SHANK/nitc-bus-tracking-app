@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/motion.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 
@@ -46,7 +47,11 @@ class SettingsChoiceChips<T> extends StatelessWidget {
               onTap: () => _handleSelect(option),
               borderRadius: TrackletRadii.roundedLg,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: TrackletMotion.adaptiveDuration(
+                  context,
+                  TrackletMotion.fast,
+                ),
+                curve: TrackletMotion.standardCurve,
                 padding: const EdgeInsets.symmetric(
                   horizontal: TrackletSpacing.compactLg,
                   vertical: TrackletSpacing.sm,

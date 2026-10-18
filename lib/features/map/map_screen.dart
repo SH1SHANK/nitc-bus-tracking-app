@@ -12,6 +12,7 @@ import '../../design_system/components/tracklet_error_state.dart';
 import '../../design_system/components/tracklet_skeleton.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
+import '../../design_system/tokens/motion.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/shadows.dart';
 import '../../design_system/tokens/spacing.dart';
@@ -225,7 +226,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ? 'Location services are disabled on your device.'
               : isDeniedForever
               ? 'Location permission is denied. Enable it in settings.'
-              : 'Unable to get your location.');
+              : 'Could not determine your location.');
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1270,9 +1271,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
               right: TrackletSpacing.screenMargin,
               bottom: sheetBottom,
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
+                duration: TrackletMotion.adaptiveDuration(
+                  context,
+                  TrackletMotion.standard,
+                ),
+                switchInCurve: TrackletMotion.easeOut,
+                switchOutCurve: TrackletMotion.easeIn,
                 transitionBuilder: (child, animation) {
                   return SlideTransition(
                     position: Tween<Offset>(
@@ -1553,7 +1557,7 @@ class _FleetErrorCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Unable to load bus locations',
+                    'Could not load bus locations',
                     style: TrackletTypography.titleSmall.copyWith(
                       fontWeight: FontWeight.w700,
                       color: TrackletColors.adaptiveTextPrimary(context),
@@ -1561,7 +1565,7 @@ class _FleetErrorCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    errorMessage ?? 'Temporary network or telemetry error.',
+                    errorMessage ?? 'Connection or telemetry error.',
                     style: TrackletTypography.bodySmall.copyWith(
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),

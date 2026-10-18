@@ -19,16 +19,23 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
   }
 
   Future<void> updateDisplayName(String name) async {
-    final current = state.value;
-    if (current != null) {
-      final updated = current.copyWith(name: name);
-      final repo = ref.read(profileRepositoryProvider);
-      await repo.saveProfile(updated);
-      state = AsyncData(updated);
-    }
+    final current = state.value ?? await future;
+    final updated = current.copyWith(name: name);
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.saveProfile(updated);
+    state = AsyncData(updated);
+  }
+
+  Future<void> updateAvatarSeed(String avatarSeed) async {
+    final current = state.value ?? await future;
+    final updated = current.copyWith(avatarSeed: avatarSeed);
+    state = AsyncData(updated);
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.saveProfile(updated);
   }
 
   Future<void> updateProfile(Profile profile) async {
+    state = AsyncData(profile);
     final repo = ref.read(profileRepositoryProvider);
     await repo.saveProfile(profile);
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 
 import '../../../core/formatting/transit_formatter.dart';
 import '../../../core/geo/geo_point.dart';
@@ -158,7 +160,12 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    Icon(TrackletIcons.search, color: textSecondary, size: 20),
+                    animated.LucideAnimatedIcon(
+                      icon: animated.search,
+                      color: textSecondary,
+                      size: 20,
+                      trigger: animated.AnimationTrigger.manual,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
@@ -222,7 +229,6 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                         ),
                       )
                       : ListView.separated(
-                        shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         itemCount: filteredStops.length,
                         separatorBuilder:

@@ -6,6 +6,7 @@ class Profile {
     this.username,
     this.rollNumber,
     required this.email,
+    this.avatarSeed,
     this.role = 'Student',
     this.department = '',
     this.branch = '',
@@ -22,6 +23,7 @@ class Profile {
   final String? username;
   final String? rollNumber;
   final String email;
+  final String? avatarSeed;
   final String role;
   final String department;
   final String branch;
@@ -32,12 +34,17 @@ class Profile {
   final bool locationPermissionGranted;
   final bool hasCompletedOnboarding;
 
-  /// Deterministic DiceBear Voxel Art avatar URL generated dynamically from user email.
+  /// Deterministic DiceBear Voxel Art avatar URL generated dynamically from avatarSeed or user email.
   String get avatarUrl {
+    final explicit = avatarSeed?.trim();
     final seed =
-        email.trim().isNotEmpty
-            ? email.trim().toLowerCase()
-            : (name.trim().isNotEmpty ? name.trim().toLowerCase() : 'guest');
+        (explicit != null && explicit.isNotEmpty)
+            ? explicit
+            : (email.trim().isNotEmpty
+                ? email.trim().toLowerCase()
+                : (name.trim().isNotEmpty
+                    ? name.trim().toLowerCase()
+                    : 'guest'));
     return 'https://api.dicebear.com/10.x/voxel-art/png?seed=${Uri.encodeComponent(seed)}&size=150&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf';
   }
 
@@ -47,6 +54,7 @@ class Profile {
     String? username,
     String? rollNumber,
     String? email,
+    String? avatarSeed,
     String? role,
     String? department,
     String? branch,
@@ -63,6 +71,7 @@ class Profile {
       username: username ?? this.username,
       rollNumber: rollNumber ?? this.rollNumber,
       email: email ?? this.email,
+      avatarSeed: avatarSeed ?? this.avatarSeed,
       role: role ?? this.role,
       department: department ?? this.department,
       branch: branch ?? this.branch,
@@ -83,6 +92,7 @@ class Profile {
     'username': username,
     'roll_number': rollNumber,
     'email': email,
+    'avatar_seed': avatarSeed,
     'role': role,
     'department': department,
     'branch': branch,
@@ -102,6 +112,7 @@ class Profile {
       username: json['username'] as String?,
       rollNumber: json['roll_number'] as String?,
       email: json['email'] as String? ?? '',
+      avatarSeed: json['avatar_seed'] as String?,
       role: json['role'] as String? ?? 'Student',
       department:
           json['department'] as String? ??
@@ -140,6 +151,7 @@ class Profile {
           runtimeType == other.runtimeType &&
           id == other.id &&
           email == other.email &&
+          avatarSeed == other.avatarSeed &&
           username == other.username &&
           hasCompletedOnboarding == other.hasCompletedOnboarding &&
           notificationsEnabled == other.notificationsEnabled;
@@ -148,6 +160,7 @@ class Profile {
   int get hashCode => Object.hash(
     id,
     email,
+    avatarSeed,
     username,
     notificationsEnabled,
     hasCompletedOnboarding,
@@ -155,5 +168,5 @@ class Profile {
 
   @override
   String toString() =>
-      'Profile(id: $id, name: $name, username: $username, branch: $branch, batch: $batch, semester: $semester)';
+      'Profile(id: $id, name: $name, username: $username, avatarSeed: $avatarSeed, branch: $branch, batch: $batch, semester: $semester)';
 }

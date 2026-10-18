@@ -22,6 +22,7 @@ import '../../design_system/components/voxel_avatar.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/components/tracklet_brand_lockup.dart';
+import '../../design_system/tokens/motion.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
@@ -91,7 +92,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         error:
             (error, stack) => SafeArea(
               child: TrackletErrorState(
-                message: 'Unable to load campus buses',
+                message: 'Could not load campus buses',
                 onRetry: () {
                   ref.invalidate(homeStateProvider);
                   ref
@@ -167,8 +168,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   : RepaintBoundary(
                     child: header
                         .animate()
-                        .fadeIn(duration: 380.ms)
-                        .slideY(begin: -0.025),
+                        .fadeIn(
+                          duration: TrackletMotion.medium,
+                          curve: TrackletMotion.easeOut,
+                        )
+                        .slideY(
+                          begin: -0.025,
+                          duration: TrackletMotion.medium,
+                          curve: TrackletMotion.easeOut,
+                        ),
                   );
 
           return RefreshIndicator(
@@ -303,8 +311,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 18, 20, 8),
-              child: TrackletBrandLockup(logoSize: 34, wordmarkHeight: 20),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: TrackletBrandLockup(
+                logoSize: 38,
+                wordmarkHeight: 24,
+                spacing: 10,
+              ),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -347,6 +359,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 VoxelAvatar(
                                   email: profile.email,
                                   name: profile.name,
+                                  avatarSeed: profile.avatarSeed,
                                   size: 46,
                                 ),
                                 const SizedBox(width: 12),
@@ -632,16 +645,8 @@ class _HomeHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            isDark
-                ? TrackletColors.headerGradientStartDark
-                : TrackletColors.headerGradientStart,
+        color:
             isDark ? TrackletColors.darkBackground : TrackletColors.background,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(TrackletRadii.avatar),
         ),
@@ -657,36 +662,11 @@ class _HomeHeader extends StatelessWidget {
                 onTap: () => scaffoldKey.currentState?.openDrawer(),
               ),
               const SizedBox(width: 12),
-              Container(
+              Image.asset(
+                'assets/branding/bustracker_bus_icon.png',
                 width: 38,
                 height: 38,
-                decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? TrackletColors.darkSurfaceElevated
-                          : TrackletColors.surfaceElevated,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color:
-                        isDark
-                            ? TrackletColors.darkCardBorder
-                            : TrackletColors.cardBorder,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: TrackletColors.primary.withValues(
-                        alpha: isDark ? 0.25 : 0.12,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(5),
-                child: Image.asset(
-                  'assets/branding/bustracker_bus_icon.png',
-                  fit: BoxFit.contain,
-                ),
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -694,42 +674,19 @@ class _HomeHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'BusTracker',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color:
-                                      isDark
-                                          ? TrackletColors.darkTextPrimary
-                                          : TrackletColors.textPrimary,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.6,
-                                ),
-                              ),
-                            ),
-                            if (constraints.maxWidth > 140) ...[
-                              const SizedBox(width: 6),
-                              Image.asset(
-                                'assets/branding/bustracker_wordmark.png',
-                                height: 16,
-                                fit: BoxFit.contain,
-                                color:
-                                    isDark
-                                        ? TrackletColors.darkTextPrimary
-                                        : null,
-                              ),
-                            ],
-                          ],
-                        );
-                      },
+                    Text(
+                      'BusTracker',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color:
+                            isDark
+                                ? TrackletColors.darkTextPrimary
+                                : TrackletColors.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.6,
+                      ),
                     ),
                     const SizedBox(height: 1),
                     Text(
@@ -797,6 +754,7 @@ class _HomeHeader extends StatelessWidget {
                   child: VoxelAvatar(
                     email: profile.email,
                     name: profile.name,
+                    avatarSeed: profile.avatarSeed,
                     size: 44,
                   ),
                 ),
@@ -1243,8 +1201,16 @@ class _LiveBusesSection extends ConsumerWidget {
             : RepaintBoundary(
               child: nextBusCard
                   .animate()
-                  .fadeIn(delay: 80.ms, duration: 420.ms)
-                  .slideY(begin: 0.06, curve: Curves.easeOutCubic),
+                  .fadeIn(
+                    delay: TrackletMotion.fast,
+                    duration: TrackletMotion.medium,
+                    curve: TrackletMotion.easeOut,
+                  )
+                  .slideY(
+                    begin: 0.06,
+                    duration: TrackletMotion.medium,
+                    curve: TrackletMotion.easeOut,
+                  ),
             ),
         if (relevantBuses.length > 1) ...[
           const SizedBox(height: TrackletSpacing.lg),

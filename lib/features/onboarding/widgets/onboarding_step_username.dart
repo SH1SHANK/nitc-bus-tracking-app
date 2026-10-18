@@ -3,9 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/validation/username_validator.dart';
-import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
-import 'package:tracklet/design_system/tokens/radii.dart';
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/motion.dart';
+import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import 'onboarding_entrance.dart';
@@ -118,7 +119,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
       icon = TrackletIcons.checkCircle2;
       trailing = null;
     } else if (widget.isAvailable == false) {
-      message = 'Sorry, username already taken';
+      message = 'Username is already taken';
       color = TrackletColors.errorBorder;
       icon = TrackletIcons.alertTriangle;
       trailing = null;
@@ -132,15 +133,17 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
       trailing = null;
     }
 
-    final duration =
-        MediaQuery.disableAnimationsOf(context) ? Duration.zero : 180.ms;
+    final duration = TrackletMotion.adaptiveDuration(
+      context,
+      TrackletMotion.fast,
+    );
 
     return SizedBox(
       height: 24,
       child: AnimatedSwitcher(
         duration: duration,
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
+        switchInCurve: TrackletMotion.easeOut,
+        switchOutCurve: TrackletMotion.easeIn,
         transitionBuilder:
             (child, animation) => FadeTransition(
               opacity: animation,
@@ -244,10 +247,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
               children: [
                 const TextSpan(
                   text:
-                      "This is how you'll be known across BusTracker. Craft something uniquely yours, or tap the ",
+                      "This is how you'll be known across BusTracker. Enter a username, or tap the ",
                 ),
                 TextSpan(
-                  text: 'magic wand',
+                  text: 'suggestion button',
                   style: TrackletTypography.bodyMedium.copyWith(
                     fontFamily: TrackletTypography.secondaryFontFamily,
                     color: TrackletColors.tertiary,
@@ -255,7 +258,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                     fontSize: 14,
                   ),
                 ),
-                const TextSpan(text: ' for a suggestion.'),
+                const TextSpan(text: ' to generate one.'),
               ],
             ),
           ).enterOnboarding(context, delay: 70.ms),

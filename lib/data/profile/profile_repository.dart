@@ -26,6 +26,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
     'root',
     'support',
     'nitc',
+    'bustracker',
     'tracklet',
   };
 
@@ -161,6 +162,13 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
     final currentUser = client?.auth.currentUser;
     if (client != null && currentUser != null && !currentUser.isAnonymous) {
       try {
+        if (profile.avatarSeed != null) {
+          try {
+            await client.auth.updateUser(
+              UserAttributes(data: {'avatar_seed': profile.avatarSeed}),
+            );
+          } catch (_) {}
+        }
         await client.rpc<dynamic>(
           'update_my_profile',
           params: {
@@ -243,6 +251,10 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
           authUser.email?.split('@').first ??
           'student',
       email: authUser.email ?? 'student@nitc.ac.in',
+      avatarSeed:
+          authUser.userMetadata?['avatar_seed'] as String? ??
+          row['avatar_seed'] as String? ??
+          _cachedProfile?.avatarSeed,
       role: 'Student',
       department:
           row['department_name'] as String? ??

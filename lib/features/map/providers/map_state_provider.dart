@@ -154,7 +154,7 @@ class MapStateNotifier extends Notifier<MapScreenState> {
       );
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Unable to load transit stops right now.',
+        errorMessage: 'Could not load transit stops.',
       );
     } finally {
       _isLoadingTransitData = false;

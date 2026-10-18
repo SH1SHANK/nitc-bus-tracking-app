@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/motion.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -37,22 +38,10 @@ class OnboardingStepLoading extends StatelessWidget {
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors:
-                  isDark
-                      ? const [
-                        TrackletColors.darkSurface,
-                        TrackletColors.darkBackground,
-                        TrackletColors.darkSurfaceContainerLowest,
-                      ]
-                      : const [
-                        TrackletColors.pure,
-                        TrackletColors.background2,
-                        TrackletColors.background,
-                      ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+            color:
+                isDark
+                    ? TrackletColors.darkBackground
+                    : TrackletColors.background,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -100,7 +89,7 @@ class OnboardingStepLoading extends StatelessWidget {
                 ).enterOnboarding(context, delay: 100.ms),
                 const SizedBox(height: 8),
                 Text(
-                  'Find campus buses and keep your next ride in reach.',
+                  'View live campus buses and track arrival times.',
                   textAlign: TextAlign.center,
                   style: TrackletTypography.adaptiveSecondary(
                     context,
@@ -118,15 +107,8 @@ class OnboardingStepLoading extends StatelessWidget {
                             (context, error, stackTrace) => Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    TrackletColors.permissionPinkIcon
-                                        .withValues(alpha: 0.5),
-                                    TrackletColors.velvetSky.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    Colors.transparent,
-                                  ],
+                                color: TrackletColors.primary.withValues(
+                                  alpha: 0.15,
                                 ),
                               ),
                             ),
@@ -135,9 +117,12 @@ class OnboardingStepLoading extends StatelessWidget {
                   ),
                 ),
                 AnimatedSwitcher(
-                  duration: reduceMotion ? Duration.zero : 180.ms,
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
+                  duration: TrackletMotion.adaptiveDuration(
+                    context,
+                    TrackletMotion.fast,
+                  ),
+                  switchInCurve: TrackletMotion.easeOut,
+                  switchOutCurve: TrackletMotion.easeIn,
                   child: Row(
                     key: ValueKey(statusText),
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -165,7 +150,7 @@ class OnboardingStepLoading extends StatelessWidget {
                 const SizedBox(height: 14),
                 if (errorMessage != null) ...[
                   Text(
-                    'We could not save your setup. Check your connection and try again.',
+                    'Could not save setup. Check your connection and try again.',
                     textAlign: TextAlign.center,
                     style: TrackletTypography.bodySmall.copyWith(
                       color: TrackletColors.errorBorder,

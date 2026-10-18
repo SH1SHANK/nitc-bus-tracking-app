@@ -85,7 +85,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Please check your network connection and try again.',
+                      'Check your connection and try again.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),

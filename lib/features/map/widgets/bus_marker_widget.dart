@@ -6,6 +6,7 @@ import '../../../data/transit/bus.dart';
 import '../../../data/transit/bus_telemetry.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
+import '../../../design_system/tokens/motion.dart';
 import '../../../design_system/tokens/shadows.dart';
 
 import '../../../services/maps/map_config.dart';
@@ -43,8 +44,8 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
     _headingAnimation = AnimationController(
       vsync: this,
       value: 1,
-      duration: const Duration(milliseconds: 350),
-    )..addListener(() => setState(() {}));
+      duration: TrackletMotion.medium,
+    );
   }
 
   @override
@@ -96,8 +97,6 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
             ? 'stationary'
             : 'moving';
 
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-
     // Direction indicators should only be displayed when reliable:
     // 1. Bus is actively moving (not stale, not stationary)
     // 2. Hardware telemetry provided a genuine heading
@@ -107,14 +106,6 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
         !stationary &&
         bus.position.hasHeading &&
         bus.position.speedKmH >= BusTelemetry.stationarySpeedThresholdKmH;
-
-    final double displayAngle =
-        isDirectionReliable
-            ? (_headingFrom +
-                    (_headingTo - _headingFrom) * _headingAnimation.value) *
-                math.pi /
-                180
-            : 0.0;
 
     return Semantics(
       button: widget.onTap != null,
@@ -145,10 +136,11 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
                 clipBehavior: Clip.none,
                 children: [
                   AnimatedContainer(
-                    duration:
-                        reduceMotion
-                            ? Duration.zero
-                            : const Duration(milliseconds: 180),
+                    duration: TrackletMotion.adaptiveDuration(
+                      context,
+                      TrackletMotion.fast,
+                    ),
+                    curve: TrackletMotion.standardCurve,
                     width:
                         widget.isSelected
                             ? MapConfig.selectedBusMarkerSize
@@ -189,9 +181,23 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
                       ],
                     ),
                     child: Center(
-                      child: Transform.rotate(
-                        // Map headings use north=0° and increase clockwise.
-                        angle: displayAngle,
+                      child: AnimatedBuilder(
+                        animation: _headingAnimation,
+                        builder: (context, child) {
+                          final double displayAngle =
+                              isDirectionReliable
+                                  ? (_headingFrom +
+                                          (_headingTo - _headingFrom) *
+                                              _headingAnimation.value) *
+                                      math.pi /
+                                      180
+                                  : 0.0;
+                          return Transform.rotate(
+                            // Map headings use north=0° and increase clockwise.
+                            angle: displayAngle,
+                            child: child,
+                          );
+                        },
                         child: Icon(
                           stationary ? TrackletIcons.pause : TrackletIcons.bus,
                           size: widget.isSelected ? 24 : 20,

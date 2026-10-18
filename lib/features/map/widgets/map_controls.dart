@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
@@ -78,6 +80,7 @@ class MapControls extends StatelessWidget {
             ],
             _ControlButton(
               icon: TrackletIcons.compass,
+              animatedIcon: animated.compass,
               tooltip: 'Recenter on NIT Calicut campus',
               onPressed: onRecenterCampus,
             ),
@@ -99,11 +102,13 @@ class MapControls extends StatelessWidget {
 class _ControlButton extends StatelessWidget {
   const _ControlButton({
     required this.icon,
+    this.animatedIcon,
     required this.tooltip,
     required this.onPressed,
   });
 
   final IconData icon;
+  final animated.LucideAnimatedIconData? animatedIcon;
   final String tooltip;
   final VoidCallback onPressed;
 
@@ -116,7 +121,17 @@ class _ControlButton extends StatelessWidget {
       child: IconButton(
         onPressed: onPressed,
         tooltip: tooltip,
-        icon: Icon(icon, size: 21),
+        icon:
+            animatedIcon != null
+                ? IgnorePointer(
+                  child: animated.LucideAnimatedIcon(
+                    icon: animatedIcon!,
+                    size: 21,
+                    color: TrackletColors.adaptiveTextPrimary(context),
+                    trigger: animated.AnimationTrigger.manual,
+                  ),
+                )
+                : Icon(icon, size: 21),
         color: TrackletColors.adaptiveTextPrimary(context),
         focusColor: TrackletColors.primary.withValues(alpha: 0.18),
         hoverColor: TrackletColors.adaptiveBorder(

@@ -99,7 +99,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to delete account: $e',
+              'Could not delete account. Try again.',
               style: TrackletFonts.outfit(
                 fontWeight: FontWeight.w500,
                 fontSize: 12.5,

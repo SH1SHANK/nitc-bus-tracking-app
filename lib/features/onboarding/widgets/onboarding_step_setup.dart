@@ -50,7 +50,7 @@ class OnboardingStepSetup extends StatelessWidget {
 
           // Header
           Text(
-            'Campus Transit Preferences',
+            'Campus transit preferences',
             style: TrackletTypography.displayLarge.copyWith(
               fontSize: 26,
               fontWeight: FontWeight.w800,
@@ -58,14 +58,14 @@ class OnboardingStepSetup extends StatelessWidget {
           ),
           const SizedBox(height: TrackletSpacing.xs),
           const Text(
-            'Choose your hostel and favorite stop for instant one-tap tracking from your home screen.',
+            'Select your hostel and primary stop for quick access from the home screen.',
             style: TrackletTypography.bodyMedium,
           ),
           const SizedBox(height: TrackletSpacing.xl),
 
           // 1. Hostel / Mess
           Text(
-            'Choose your hostel',
+            'Select your hostel',
             style: TrackletTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -74,7 +74,7 @@ class OnboardingStepSetup extends StatelessWidget {
           TrackletDropdown(
             items: effectiveHostels,
             initialItem: selectedHostel.isNotEmpty ? selectedHostel : null,
-            hintText: 'Select Hostel',
+            hintText: 'Select hostel',
             prefixIcon: const Icon(
               TrackletIcons.building2,
               color: TrackletColors.secondaryText,
@@ -87,7 +87,7 @@ class OnboardingStepSetup extends StatelessWidget {
 
           // 2. Primary Bus Stop
           Text(
-            'Choose your primary bus stop',
+            'Select your primary bus stop',
             style: TrackletTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -96,7 +96,7 @@ class OnboardingStepSetup extends StatelessWidget {
           TrackletDropdown(
             items: effectiveStops,
             initialItem: selectedStop.isNotEmpty ? selectedStop : null,
-            hintText: 'Select Primary Stop',
+            hintText: 'Select primary stop',
             prefixIcon: const Icon(
               TrackletIcons.bus,
               color: TrackletColors.secondaryText,
@@ -166,7 +166,7 @@ class OnboardingStepSetup extends StatelessWidget {
 
           // Continue Button
           TrackletButton(
-            label: 'Complete Setup',
+            label: 'Complete setup',
             icon: const TrackletIcon(
               TrackletIcons.check,
               color: TrackletColors.textInverse,

@@ -81,12 +81,19 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
       return;
     }
 
-    const reserved = ['admin', 'root', 'support', 'nitc', 'tracklet'];
+    const reserved = [
+      'admin',
+      'root',
+      'support',
+      'nitc',
+      'bustracker',
+      'tracklet',
+    ];
     if (reserved.contains(clean)) {
       setState(() {
         _isChecking = false;
         _isAvailable = false;
-        _errorMessage = 'Sorry, this username is reserved.';
+        _errorMessage = 'This username is reserved.';
       });
       return;
     }
@@ -163,7 +170,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to change username: ${e.toString().replaceAll("Exception: ", "")}',
+            'Could not update username: ${e.toString().replaceAll("Exception: ", "")}',
             style: TrackletFonts.outfit(
               fontWeight: FontWeight.w600,
               fontSize: 13.0,

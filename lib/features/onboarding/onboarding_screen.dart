@@ -132,25 +132,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         backgroundColor:
             isDark ? TrackletColors.darkBackground : TrackletColors.background,
         body: DecoratedBox(
-          decoration:
-              state.currentStep == 1
-                  ? BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors:
-                          isDark
-                              ? TrackletColors.onboardingGradientDark
-                              : TrackletColors.onboardingGradientLight,
-                      stops: const [0, 0.43, 1],
-                    ),
-                  )
-                  : BoxDecoration(
-                    color:
-                        isDark
-                            ? TrackletColors.darkBackground
-                            : TrackletColors.background,
-                  ),
+          decoration: BoxDecoration(
+            color:
+                isDark
+                    ? TrackletColors.darkBackground
+                    : TrackletColors.background,
+          ),
           child: SafeArea(
             child: Column(
               children: [

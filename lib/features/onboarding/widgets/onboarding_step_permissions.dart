@@ -85,20 +85,10 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               height: 140,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors:
-                      isDark
-                          ? const [
-                            TrackletColors.primaryContainerDark,
-                            TrackletColors.primary,
-                          ]
-                          : const [
-                            TrackletColors.permissionHeaderGradientStart,
-                            TrackletColors.primary,
-                          ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color:
+                    isDark
+                        ? TrackletColors.darkSurfaceElevated
+                        : TrackletColors.primary,
                 borderRadius: TrackletRadii.roundedPill,
                 boxShadow: [
                   BoxShadow(
@@ -157,7 +147,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           ).enterOnboarding(context, delay: 50.ms),
           const SizedBox(height: 6),
           Text(
-            'BusTracker uses your location exclusively on campus to identify nearby stops and calculate walking times.',
+            'BusTracker uses your location on campus to identify nearby stops and calculate walking times.',
             style: TrackletTypography.bodyMedium.copyWith(
               color:
                   isDark
@@ -205,7 +195,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '100% On-Device Privacy',
+                        'On-device privacy',
                         style: TrackletTypography.labelMedium.copyWith(
                           color:
                               isDark
@@ -216,7 +206,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Your coordinates are never sent to our servers or stored. Location data stays strictly on your device.',
+                        'Location data stays on your device and is never stored or sent to remote servers.',
                         style: TrackletTypography.bodySmall.copyWith(
                           color:
                               isDark
@@ -248,7 +238,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                     : TrackletColors.permissionBlueIcon,
             title: 'Campus Live Location',
             subtitle:
-                'Locate nearest bus stops, calculate walking distance, and track live buses around campus.',
+                'Find nearest stops, calculate walking distance, and view buses around campus.',
             isSelected: _locationSelected,
             isGranted: isGranted,
             isDeniedForever: isDeniedForever,
@@ -267,7 +257,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               child: TextButton.icon(
                 onPressed: widget.onOpenSettings,
                 icon: const Icon(TrackletIcons.settings, size: 16),
-                label: const Text('Open App Settings'),
+                label: const Text('Open app settings'),
                 style: TextButton.styleFrom(
                   foregroundColor: TrackletColors.primary,
                   textStyle: TrackletTypography.bodySmall.copyWith(

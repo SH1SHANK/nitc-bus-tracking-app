@@ -35,14 +35,7 @@ class OnboardingStepLocation extends StatelessWidget {
             height: 200,
             width: double.infinity,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  TrackletColors.locationBlueBg,
-                  TrackletColors.permissionBlueBg,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+              color: TrackletColors.locationBlueBg,
               borderRadius: TrackletRadii.roundedPill,
             ),
             child: Stack(

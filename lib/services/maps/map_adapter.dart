@@ -504,7 +504,7 @@ class _AnimatedMarkerLayerState extends State<_AnimatedMarkerLayer>
       width: incoming.width,
       height: incoming.height,
       alignment: incoming.alignment,
-      child: incoming.child,
+      child: RepaintBoundary(child: incoming.child),
     );
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../design_system/tokens/motion.dart';
+
 /// A restrained, reduced-motion-aware entrance for onboarding content.
 extension OnboardingEntrance on Widget {
   Widget enterOnboarding(
@@ -9,7 +11,7 @@ extension OnboardingEntrance on Widget {
   }) {
     if (MediaQuery.disableAnimationsOf(context)) return this;
 
-    const duration = Duration(milliseconds: 280);
+    const duration = TrackletMotion.standard;
     return animate()
         .fadeIn(duration: duration, delay: delay)
         .slideY(
@@ -17,7 +19,7 @@ extension OnboardingEntrance on Widget {
           end: 0,
           duration: duration,
           delay: delay,
-          curve: Curves.easeOutCubic,
+          curve: TrackletMotion.easeOut,
         );
   }
 }

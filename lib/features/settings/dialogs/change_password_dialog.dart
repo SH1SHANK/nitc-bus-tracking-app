@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
+    as animated;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/auth/auth_repository.dart';
@@ -83,7 +85,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
           SnackBar(
             content: Text(
               result.errorMessage ??
-                  'Failed to update password. Please check your credentials.',
+                  'Could not update password. Check your credentials and try again.',
               style: TrackletFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 12.0,
@@ -101,7 +103,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update password. Please check your credentials.',
+              'Could not update password. Check your credentials and try again.',
               style: TrackletFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 12.0,
@@ -168,10 +170,14 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
         vertical: TrackletSpacing.md,
       ),
       suffixIcon: IconButton(
-        icon: Icon(
-          isVisible ? TrackletIcons.eye : TrackletIcons.eyeOff,
-          color: TrackletColors.adaptiveTextSecondary(context),
-          size: 20.0,
+        icon: IgnorePointer(
+          child: animated.LucideAnimatedIcon(
+            key: ValueKey(isVisible),
+            icon: isVisible ? animated.eye : animated.eye_off,
+            trigger: animated.AnimationTrigger.manual,
+            color: TrackletColors.adaptiveTextSecondary(context),
+            size: 20.0,
+          ),
         ),
         onPressed: onToggleVisibility,
       ),
@@ -282,7 +288,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'You signed in with your official NITC Google account. Your password is managed securely through your Google Account settings, so you do not need a separate BusTracker password.',
+                              'You signed in with your NITC Google account. Your password is managed through Google Account settings, so a separate BusTracker password is not required.',
                               style: TrackletFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w400,
@@ -315,7 +321,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                       ),
                     ),
                     child: Text(
-                      'Understood',
+                      'Done',
                       style: TrackletFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,

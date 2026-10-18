@@ -93,7 +93,7 @@ class _ChangeDisplayNameDialogState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update display name. Please try again.',
+              'Could not update display name. Try again.',
               style: TrackletFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 12.0,

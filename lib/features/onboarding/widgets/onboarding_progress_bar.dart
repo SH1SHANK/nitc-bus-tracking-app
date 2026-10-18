@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/motion.dart';
 import '../../../design_system/tokens/radii.dart';
 
 /// Segmented progress for the three onboarding steps and final setup state.
@@ -16,10 +17,10 @@ class OnboardingProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration =
-        MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : const Duration(milliseconds: 260);
+    final duration = TrackletMotion.adaptiveDuration(
+      context,
+      TrackletMotion.standard,
+    );
 
     return Semantics(
       label: 'Onboarding progress',
@@ -36,7 +37,7 @@ class OnboardingProgressBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: AnimatedContainer(
                   duration: duration,
-                  curve: Curves.easeInOutCubic,
+                  curve: TrackletMotion.standardCurve,
                   height: isActive ? 5 : 4,
                   decoration: BoxDecoration(
                     color:
