@@ -230,7 +230,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   }
 
   void nextStep() {
-    if (state.currentStep < 10) {
+    if (state.currentStep < 1) {
       state = state.copyWith(currentStep: state.currentStep + 1);
     }
   }
@@ -374,9 +374,15 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     // Use the authenticated user's real ID and email, falling back gracefully
     // when running without Supabase credentials (e.g. development seed mode).
     final currentUser = _ref.read(supabaseClientProvider)?.auth.currentUser;
+    final fallbackName = currentUser?.userMetadata?['full_name'] as String? ??
+        currentUser?.userMetadata?['name'] as String? ??
+        (currentUser?.email != null && currentUser!.email!.isNotEmpty
+            ? currentUser.email!.split('@').first
+            : 'Student');
+
     final profile = Profile(
       id: currentUser?.id ?? 'user-${state.username}',
-      name: state.name,
+      name: state.name.trim().isNotEmpty ? state.name.trim() : fallbackName,
       username: state.username,
       email: currentUser?.email ?? '',
       department: state.branch,
@@ -385,7 +391,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       semester: '',
       hostel: state.hostel,
       notificationsEnabled: false,
-      locationPermissionGranted: state.locationPermissionGranted,
+      locationPermissionGranted: false,
       hasCompletedOnboarding: true,
     );
 

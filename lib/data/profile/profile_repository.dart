@@ -210,21 +210,51 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         completed) {
       try {
         final current = _cachedProfile ?? await getProfile();
-        await client.rpc<dynamic>(
-          'complete_onboarding',
-          params: {
-            'p_full_name': current.name,
-            'p_department_id': _departmentNameToId(current.department),
-            'p_batch': current.batch,
-            'p_hostel': current.hostel,
-            'p_notification_prefs': {
-              'location_permission_granted': current.locationPermissionGranted,
+        final effectiveName = current.name.trim().isNotEmpty
+            ? current.name.trim()
+            : (currentUser.userMetadata?['full_name'] as String? ??
+                currentUser.userMetadata?['name'] as String? ??
+                (currentUser.email != null && currentUser.email!.isNotEmpty
+                    ? currentUser.email!.split('@').first
+                    : 'Student'));
+        final deptId = _departmentNameToId(current.department);
+
+        try {
+          await client.rpc<dynamic>(
+            'complete_onboarding',
+            params: {
+              'p_full_name': effectiveName,
+              'p_department_id': deptId,
+              'p_batch': current.batch.trim().isNotEmpty ? current.batch.trim() : null,
+              'p_hostel': current.hostel.trim().isNotEmpty ? current.hostel.trim() : null,
+              'p_notification_prefs': {
+                'location_permission_granted': current.locationPermissionGranted,
+              },
+              if (current.username != null && current.username!.trim().isNotEmpty)
+                'p_username': current.username!.trim(),
             },
-            if (current.username != null && current.username!.trim().isNotEmpty)
-              'p_username': current.username!.trim(),
-          },
+          );
+        } catch (rpcError) {
+          // Fallback for database instances that still enforce non-null academic fields
+          await client.rpc<dynamic>(
+            'complete_onboarding',
+            params: {
+              'p_full_name': effectiveName,
+              'p_department_id': deptId,
+              'p_batch': current.batch.trim().isNotEmpty ? current.batch.trim() : 'B24',
+              'p_hostel': current.hostel.trim().isNotEmpty ? current.hostel.trim() : 'Mega Hostel',
+              'p_notification_prefs': {
+                'location_permission_granted': current.locationPermissionGranted,
+              },
+              if (current.username != null && current.username!.trim().isNotEmpty)
+                'p_username': current.username!.trim(),
+            },
+          );
+        }
+        _cachedProfile = current.copyWith(
+          name: effectiveName,
+          hasCompletedOnboarding: completed,
         );
-        _cachedProfile = current.copyWith(hasCompletedOnboarding: completed);
         AppLogger.info('Onboarding completed synced to Supabase');
       } catch (e) {
         AppLogger.error('Error completing onboarding in Supabase: $e');

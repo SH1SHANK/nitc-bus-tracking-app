@@ -7,19 +7,14 @@ import '../../design_system/components/icons/tracklet_icons.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/tracklet_fonts.dart';
 import '../../design_system/tokens/spacing.dart';
-import '../../services/location/location_service.dart';
 import 'providers/onboarding_provider.dart';
-import 'widgets/onboarding_academic_profile_page.dart';
 import 'widgets/onboarding_progress_bar.dart';
 import 'widgets/onboarding_step_loading.dart';
-import 'widgets/onboarding_step_permissions.dart';
 import 'widgets/onboarding_step_username.dart';
 
-/// Streamlined Onboarding Experience matching Attendrix Layout.
-/// 0: Academic Profile (Name, Branch, Batch, Hostel)
-/// 1: Username with Magic Wand Generator
-/// 2: Combined Permissions (Location & Notifications)
-/// 3: Final Welcome & Loading Sequence -> Home
+/// Streamlined Onboarding Experience:
+/// 0: Choose Username with Magic Wand Generator
+/// 1: Final Welcome & Loading Sequence -> Home
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -32,7 +27,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _isCompleting = false;
   String? _completionError;
 
-  static const int kTotalSteps = 4;
+  static const int kTotalSteps = 2;
 
   @override
   void initState() {
@@ -115,8 +110,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
-
-    final showBackButton = state.currentStep < kTotalSteps - 1;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope<Object?>(
@@ -124,7 +117,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop &&
             state.currentStep > 0 &&
-            state.currentStep < kTotalSteps - 1) {
+            state.currentStep < kTotalSteps - 1 &&
+            !_isCompleting) {
           _previous();
         }
       },
@@ -141,37 +135,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // The username step uses the reference's clean segmented header.
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal:
-                        state.currentStep == 1
-                            ? TrackletSpacing.lg
-                            : TrackletSpacing.md,
-                    vertical: TrackletSpacing.xs,
-                  ),
-                  child: Column(
-                    children: [
-                      if (state.currentStep != 1) ...[
+                // Top navigation & progress bar (visible on username step)
+                if (state.currentStep == 0) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.md,
+                      vertical: TrackletSpacing.xs,
+                    ),
+                    child: Column(
+                      children: [
                         Row(
                           children: [
-                            if (showBackButton)
-                              IconButton(
-                                icon: const TrackletIcon(
-                                  TrackletIcons.chevronLeft,
-                                  size: 22,
-                                  color: TrackletColors.textPrimary,
-                                ),
-                                onPressed: _previous,
-                                tooltip: 'Back',
-                              )
-                            else
-                              const SizedBox(width: 48, height: 48),
+                            IconButton(
+                              icon: const TrackletIcon(
+                                TrackletIcons.chevronLeft,
+                                size: 22,
+                                color: TrackletColors.textPrimary,
+                              ),
+                              onPressed: _previous,
+                              tooltip: 'Back',
+                            ),
                             const Spacer(),
                             Text(
-                              showBackButton
-                                  ? 'Step ${state.currentStep + 1} of $kTotalSteps'
-                                  : 'Setting up BusTracker',
+                              'Step 1 of $kTotalSteps',
                               style: TrackletFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -182,51 +168,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: OnboardingProgressBar(
+                            currentStep: 0,
+                            totalSteps: kTotalSteps,
+                          ),
+                        ),
                       ],
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: state.currentStep == 1 ? 0 : 12,
-                        ),
-                        child: OnboardingProgressBar(
-                          currentStep: state.currentStep,
-                          totalSteps: kTotalSteps,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
 
-                // Page Sequence
+                // Page Sequence: Username -> Welcome
                 Expanded(
                   child: PageView(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      // 0. Academic Profile (Name, Branch, Batch, Hostel)
-                      OnboardingAcademicProfilePage(
-                        name: state.name,
-                        branch: state.branch,
-                        batch: state.batch,
-                        hostel: state.hostel,
-                        agreedToTerms: state.agreedToTerms,
-                        branches: state.departments.map((d) => d.name).toList(),
-                        hostels: state.hostels.map((h) => h.name).toList(),
-                        batches: kNitcBatches,
-                        isLoadingDepartments: state.isLoadingDepartments,
-                        isLoadingHostels: state.isLoadingHostels,
-                        departmentsError: state.departmentsError,
-                        hostelsError: state.hostelsError,
-                        onRetryDepartments: notifier.loadDepartments,
-                        onRetryHostels: notifier.loadHostels,
-                        onNameChanged: (n) => notifier.setName(n),
-                        onBranchChanged: (b) => notifier.setBranch(b),
-                        onBatchChanged: (b) => notifier.setBatch(b),
-                        onHostelChanged: (h) => notifier.setHostel(h),
-                        onAgreementChanged: notifier.toggleTerms,
-                        onContinue: _next,
-                      ),
-
-                      // 1. Username with Attendrix Gradient & Magic Generator
+                      // 0. Choose Your Username
                       OnboardingStepUsername(
                         initialUsername: state.username,
                         isAvailable: state.isUsernameAvailable,
@@ -238,33 +198,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         onContinue: _next,
                       ),
 
-                      // 2. Campus Location Permission
-                      OnboardingStepPermissions(
-                        locationGranted: state.locationPermissionGranted,
-                        onEnableLocation: ({
-                          required bool enableLocation,
-                        }) async {
-                          if (enableLocation) {
-                            final perm =
-                                await ref
-                                    .read(locationStateProvider.notifier)
-                                    .requestPermission();
-                            notifier.setLocationPermission(
-                              perm == LocationPermissionState.granted,
-                            );
-                          } else {
-                            notifier.setLocationPermission(false);
-                          }
-
-                          _next();
-                        },
-                        onSkip: () {
-                          notifier.setLocationPermission(false);
-                          _next();
-                        },
-                      ),
-
-                      // 3. Final Welcome & Animated Loading Sequence (`flow.gif`)
+                      // 1. Final Welcome & Animated Loading Sequence (`flow.gif`)
                       OnboardingStepLoading(
                         progress: state.loadingProgress,
                         statusText: state.loadingStatus,
@@ -273,8 +207,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             _completionError == null
                                 ? null
                                 : () {
-                                  _startCompletion();
-                                },
+                                    _startCompletion();
+                                  },
                       ),
                     ],
                   ),

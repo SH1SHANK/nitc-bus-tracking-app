@@ -5,6 +5,8 @@ import 'package:tracklet/data/academic/department.dart';
 import 'package:tracklet/data/academic/department_repository.dart';
 import 'package:tracklet/data/campus/hostel.dart';
 import 'package:tracklet/data/campus/hostel_repository.dart';
+import 'package:tracklet/data/profile/profile.dart';
+import 'package:tracklet/data/profile/profile_repository.dart';
 import 'package:tracklet/features/onboarding/onboarding_screen.dart';
 import 'package:tracklet/features/onboarding/providers/onboarding_provider.dart';
 import 'package:tracklet/features/onboarding/widgets/onboarding_progress_bar.dart';
@@ -44,6 +46,38 @@ class TestHostelRepo implements HostelRepository {
   }
 }
 
+class TestProfileRepo implements ProfileRepository {
+  Profile? savedProfile;
+  bool onboardingCompleted = false;
+
+  @override
+  Future<Profile> getProfile() async =>
+      savedProfile ??
+      const Profile(id: '1', name: 'Student', email: 'student@nitc.ac.in');
+
+  @override
+  Future<void> saveProfile(Profile profile) async {
+    savedProfile = profile;
+  }
+
+  @override
+  Future<void> setOnboardingCompleted(bool completed) async {
+    onboardingCompleted = completed;
+  }
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async => true;
+
+  @override
+  Future<Profile> changeUsername(String newUsername) async {
+    final updated = (savedProfile ??
+            const Profile(id: '1', name: 'Student', email: 'student@nitc.ac.in'))
+        .copyWith(username: newUsername);
+    savedProfile = updated;
+    return updated;
+  }
+}
+
 void main() {
   group('OnboardingScreen Widget Tests', () {
     testWidgets('welcome state shows BusTracker copy and setup progress', (
@@ -75,7 +109,7 @@ void main() {
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders step 1 Academic Profile screen initially', (
+    testWidgets('renders Step 1 Username screen initially', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
@@ -87,39 +121,16 @@ void main() {
         overrides: [
           departmentRepositoryProvider.overrideWithValue(TestDepartmentRepo()),
           hostelRepositoryProvider.overrideWithValue(TestHostelRepo()),
+          profileRepositoryProvider.overrideWithValue(TestProfileRepo()),
         ],
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Step 1 of 4'), findsOneWidget);
-      expect(find.text("Let's Set Up Your Academic Profile"), findsOneWidget);
-      expect(find.text('Shashank Mergu'), findsNothing);
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
-      final agreementRow = tester.widget<Row>(
-        find
-            .ancestor(of: find.byType(Checkbox), matching: find.byType(Row))
-            .first,
-      );
-      expect(agreementRow.crossAxisAlignment, CrossAxisAlignment.center);
-      expect(
-        find.text('I agree to the Terms of Service and Privacy Policy.'),
-        findsOneWidget,
-      );
-      expect(
-        tester
-            .widget<ElevatedButton>(
-              find.widgetWithText(ElevatedButton, 'Continue'),
-            )
-            .onPressed,
-        isNull,
-      );
-      expect(find.text('What is your full name?'), findsOneWidget);
-      expect(find.text('Which branch do you belong to?'), findsOneWidget);
-      expect(find.text('Which batch do you belong to?'), findsOneWidget);
-      expect(find.textContaining('semester'), findsNothing);
-      expect(find.text('Which hostel do you belong to?'), findsOneWidget);
-      expect(find.text('Select Hostel'), findsOneWidget);
-      expect(find.text('Select Hostel / Residence'), findsNothing);
+      expect(find.text('Step 1 of 2'), findsOneWidget);
+      expect(find.text('Choose Your Username'), findsOneWidget);
+      expect(find.text("Let's Set Up Your Academic Profile"), findsNothing);
+      expect(find.byType(OnboardingProgressBar), findsOneWidget);
+      expect(find.byTooltip('Generate a username'), findsOneWidget);
       expect(find.text('Continue'), findsOneWidget);
     });
 
@@ -128,6 +139,7 @@ void main() {
         overrides: [
           departmentRepositoryProvider.overrideWithValue(TestDepartmentRepo()),
           hostelRepositoryProvider.overrideWithValue(TestHostelRepo()),
+          profileRepositoryProvider.overrideWithValue(TestProfileRepo()),
         ],
       );
       addTearDown(container.dispose);
@@ -141,16 +153,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Choose Your Username'), findsOneWidget);
-      expect(find.text("Let's Set Up Your Academic Profile"), findsNothing);
+      expect(find.text('Welcome to BusTracker'), findsOneWidget);
+      expect(find.text('Choose Your Username'), findsNothing);
     });
 
     testWidgets(
-      'keeps Continue disabled until all profile fields and agreement are complete',
+      'generates username with magic wand and navigates to Welcome page on Continue',
       (tester) async {
         tester.view.physicalSize = const Size(800, 1600);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(() => tester.view.resetPhysicalSize());
+
+        final profileRepo = TestProfileRepo();
 
         await tester.pumpTrackletWidget(
           const OnboardingScreen(),
@@ -159,117 +173,27 @@ void main() {
               TestDepartmentRepo(),
             ),
             hostelRepositoryProvider.overrideWithValue(TestHostelRepo()),
-          ],
-        );
-        await tester.pumpAndSettle();
-        await _completeAcademicProfile(tester, agreeToTerms: false);
-
-        var continueButton = tester.widget<ElevatedButton>(
-          find.widgetWithText(ElevatedButton, 'Continue'),
-        );
-        expect(continueButton.onPressed, isNull);
-
-        await tester.tap(find.byType(Checkbox));
-        await tester.pumpAndSettle();
-        continueButton = tester.widget<ElevatedButton>(
-          find.widgetWithText(ElevatedButton, 'Continue'),
-        );
-        expect(continueButton.onPressed, isNotNull);
-      },
-    );
-
-    testWidgets(
-      'navigates from Academic Profile to Username step on Continue',
-      (tester) async {
-        tester.view.physicalSize = const Size(800, 1600);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() => tester.view.resetPhysicalSize());
-
-        await tester.pumpTrackletWidget(
-          const OnboardingScreen(),
-          overrides: [
-            departmentRepositoryProvider.overrideWithValue(
-              TestDepartmentRepo(),
-            ),
-            hostelRepositoryProvider.overrideWithValue(TestHostelRepo()),
+            profileRepositoryProvider.overrideWithValue(profileRepo),
           ],
         );
         await tester.pumpAndSettle();
 
-        await _completeAcademicProfile(tester);
+        expect(find.text('Choose Your Username'), findsOneWidget);
+
+        // Tap magic wand to generate a valid username
+        await tester.tap(find.byTooltip('Generate a username'));
+        await tester.pumpAndSettle();
+
+        // Tap Continue
         final continueButton = find.text('Continue');
         expect(continueButton, findsOneWidget);
-
         await tester.tap(continueButton);
         await tester.pumpAndSettle();
 
-        expect(find.byType(OnboardingProgressBar), findsOneWidget);
-        expect(find.text('Choose Your Username'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'navigates from Username to Permissions step on tapping Continue',
-      (tester) async {
-        tester.view.physicalSize = const Size(800, 1600);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() => tester.view.resetPhysicalSize());
-
-        await tester.pumpTrackletWidget(
-          const OnboardingScreen(),
-          overrides: [
-            departmentRepositoryProvider.overrideWithValue(
-              TestDepartmentRepo(),
-            ),
-            hostelRepositoryProvider.overrideWithValue(TestHostelRepo()),
-          ],
-        );
-        await tester.pumpAndSettle();
-
-        // Step 1 -> Step 2
-        await _completeAcademicProfile(tester);
-        await tester.tap(find.text('Continue'));
-        await tester.pumpAndSettle();
-
-        // Step 2 -> Step 3
-        await tester.tap(find.byTooltip('Generate a username'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Continue'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Step 3 of 4'), findsOneWidget);
-        expect(find.text('Permissions & Access'), findsOneWidget);
-        expect(find.text('Campus Live Location'), findsOneWidget);
-        expect(find.text('Transit & Arrival Alerts'), findsNothing);
-        expect(find.text('Continue without permissions'), findsOneWidget);
+        // Should now be on Welcome / Loading screen
+        expect(find.text('Welcome to BusTracker'), findsOneWidget);
+        expect(find.text('Campus transit, made simple.', findRichText: true), findsOneWidget);
       },
     );
   });
-}
-
-Future<void> _completeAcademicProfile(
-  WidgetTester tester, {
-  bool agreeToTerms = true,
-}) async {
-  await tester.enterText(find.byType(TextFormField).first, 'Taylor Student');
-
-  await tester.tap(find.text('Select Branch'));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('Architecture & Planning').last);
-  await tester.pumpAndSettle();
-
-  await tester.tap(find.text('Select Batch'));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text(kNitcBatches.first).last);
-  await tester.pumpAndSettle();
-
-  await tester.tap(find.text('Select Hostel'));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('A Hostel').last);
-  await tester.pumpAndSettle();
-
-  if (agreeToTerms) {
-    await tester.tap(find.byType(Checkbox));
-    await tester.pumpAndSettle();
-  }
 }

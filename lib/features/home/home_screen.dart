@@ -53,7 +53,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
+        final locState = ref.read(locationStateProvider);
+        if (!locState.hasPermission &&
+            locState.permissionState != LocationPermissionState.deniedForever) {
+          ref.read(locationStateProvider.notifier).requestAndFetchLocation();
+        } else {
+          ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
+        }
       }
     });
   }

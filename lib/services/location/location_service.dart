@@ -359,7 +359,6 @@ class LocationNotifier extends Notifier<LocationState> {
   Future<GeoPoint?> requestAndFetchLocation() async {
     if (_isOperationInProgress) return state.currentLocation;
     _isOperationInProgress = true;
-    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final service = ref.read(locationServiceProvider);
@@ -375,6 +374,7 @@ class LocationNotifier extends Notifier<LocationState> {
         return null;
       }
 
+      state = state.copyWith(isLoading: true, clearError: true);
       final point = await service.getCurrentLocation();
       if (point != null) {
         state = state.copyWith(
