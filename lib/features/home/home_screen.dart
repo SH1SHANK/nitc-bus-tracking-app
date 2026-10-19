@@ -482,7 +482,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       title: 'Settings',
                       onTap: () {
                         Navigator.pop(context);
-                        context.push('/profile');
+                        context.go('/profile');
                       },
                     ),
                     _drawerItem(

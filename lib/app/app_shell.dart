@@ -25,7 +25,15 @@ class AppShell extends StatelessWidget {
     final surfaceColor = TrackletColors.adaptiveSurface(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return PopScope<Object?>(
+      canPop: currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (currentIndex != 0) {
+          navigationShell.goBranch(0);
+        }
+      },
+      child: Scaffold(
       body: navigationShell,
       bottomNavigationBar: Stack(
         clipBehavior: Clip.none,
@@ -94,8 +102,9 @@ class AppShell extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _onTabSelected(int index) {
     if (index != navigationShell.currentIndex) {
@@ -103,7 +112,7 @@ class AppShell extends StatelessWidget {
     }
     navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == 0 || index == navigationShell.currentIndex,
     );
   }
 }

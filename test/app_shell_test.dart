@@ -125,5 +125,73 @@ void main() {
 
       expect(find.byType(MapScreen), findsOneWidget);
     });
+
+    testWidgets('tapping Back to Home button on Profile screen navigates back to Home', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            routerProvider.overrideWithValue(
+              createRouter(initialLocation: '/'),
+            ),
+            activeBusesStreamProvider.overrideWith(
+              (ref) => Stream.value(<Bus>[]),
+            ),
+          ],
+          child: const TrackletApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      // Navigate to Profile
+      await tester.tap(find.text('Profile'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProfileScreen), findsOneWidget);
+
+      // Find leading back button and tap it
+      final backButton = find.byTooltip('Back to Home');
+      expect(backButton, findsOneWidget);
+      await tester.tap(backButton);
+      await tester.pumpAndSettle();
+
+      // Successfully returned to Home
+      expect(find.byType(HomeScreen), findsOneWidget);
+    });
+
+    testWidgets('pressing system back from Profile screen returns to Home', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            routerProvider.overrideWithValue(
+              createRouter(initialLocation: '/'),
+            ),
+            activeBusesStreamProvider.overrideWith(
+              (ref) => Stream.value(<Bus>[]),
+            ),
+          ],
+          child: const TrackletApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      // Navigate to Profile
+      await tester.tap(find.text('Profile'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProfileScreen), findsOneWidget);
+
+      // Simulate system back button / gesture
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      // Returned to Home instead of exiting
+      expect(find.byType(HomeScreen), findsOneWidget);
+    });
   });
 }

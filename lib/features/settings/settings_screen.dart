@@ -269,24 +269,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               hostel: 'MBH II',
             ));
 
-    return Scaffold(
-      backgroundColor: TrackletColors.adaptiveBackground(context),
-      appBar: AppBar(
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: TrackletColors.adaptiveBackground(context),
-        foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-        automaticallyImplyLeading: false,
-        elevation: 0.0,
-        scrolledUnderElevation: 0.0,
-        title: Text(
-          'App Settings',
-          style: TrackletFonts.outfit(
-            fontSize: 22.0,
-            fontWeight: FontWeight.bold,
-            color: TrackletColors.adaptiveTextPrimary(context),
+        appBar: AppBar(
+          backgroundColor: TrackletColors.adaptiveBackground(context),
+          foregroundColor: TrackletColors.adaptiveTextPrimary(context),
+          elevation: 0.0,
+          scrolledUnderElevation: 0.0,
+          leading: IconButton(
+            icon: const Icon(TrackletIcons.chevronLeft, size: 22),
+            tooltip: 'Back to Home',
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
           ),
+          title: Text(
+            'App Settings',
+            style: TrackletFonts.outfit(
+              fontSize: 22.0,
+              fontWeight: FontWeight.bold,
+              color: TrackletColors.adaptiveTextPrimary(context),
+            ),
+          ),
+          centerTitle: false,
         ),
-        centerTitle: false,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -1016,8 +1036,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDivider(BuildContext context) {
     return Divider(height: 1, color: TrackletColors.adaptiveBorder(context));
