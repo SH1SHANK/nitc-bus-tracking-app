@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 402 774" width="402" height="774">
+  <style>
+    .building { fill: #E0E4E2; stroke: #CDD4D0; stroke-width: 1px; stroke-linejoin: round; stroke-linecap: round; }
+  </style>
+  <g id="Buildings">
+    <g id="Academic">
+      <path id="Building — ELHC" class="building" d="M 191.74 384.96 L 205.47 384.87 L 193.84 384.99 L 191.74 384.96 Z" />
+      <path id="Building — DEPARTMENT OF ARCHITECTURE AND PLANNNING" class="building" d="M 285.21 384.77 L 293.52 384.69 L 307.61 385.15 L 287.55 384.85 L 285.21 384.77 Z" />
+      <path id="Building — Department Building" class="building" d="M 218.15 384.96 L 249.21 385.25 L 224.07 384.85 L 218.15 384.96 Z" />
+      <path id="Building — Material Science &amp; Engineering Department" class="building" d="M 275.42 385.04 L 268.37 385.17 Z" />
+      <path id="Building — CSED" class="building" d="M 201.37 385.14 L 203.76 385.17 Z" />
+      <path id="Building — Electrical PG Block" class="building" d="M 252.87 384.59 L 248.94 384.52 Z" />
+      <path id="Building — ECED (Block.II)" class="building" d="M 257.92 384.76 L 261.55 384.82 Z" />
+      <path id="Building — NLHC" class="building" d="M 162.70 385.35 L 165.51 385.39 Z" />
+      <path id="Building — Production Engineering Block" class="building" d="M 257.97 385.28 L 259.84 385.31 Z" />
+      <path id="Building — Central Computer Center" class="building" d="M 191.58 385.51 L 200.12 385.54 L 191.40 385.52 L 191.58 385.51 Z" />
+      <path id="Building — Electrical Measurements Lab" class="building" d="M 230.05 384.80 L 236.86 384.91 Z" />
+      <path id="Building — Electrical Machines Lab" class="building" d="M 234.84 384.70 L 238.74 384.77 Z" />
+      <path id="Building — Hydraulics Lab" class="building" d="M 243.99 385.66 L 257.51 385.88 Z" />
+      <path id="Building — Mechanical Lab" class="building" d="M 259.40 385.34 L 277.38 385.74 L 256.26 385.40 L 259.40 385.34 Z" />
+      <path id="Building — PG Block" class="building" d="M 236.20 385.40 L 235.22 385.41 Z" />
+      <path id="Building — IT Lab Complex" class="building" d="M 205.85 384.81 L 213.38 384.69 Z" />
+      <path id="Building — Physics Department" class="building" d="M 332.82 384.36 L 343.45 384.59 L 334.50 384.49 L 332.82 384.36 Z" />
+      <path id="Building — Chemistry Department" class="building" d="M 345.17 384.31 L 354.58 384.44 L 348.70 384.57 L 345.17 384.31 Z" />
+      <path id="Building — Mathematics Department" class="building" d="M 336.90 384.21 L 334.38 384.22 Z" />
+      <path id="Building — East Campus Lecture Hall Complex (ECLHC)" class="building" d="M 322.34 385.12 L 318.19 384.76 L 331.61 384.71 L 337.84 385.10 L 330.09 385.13 L 322.34 385.12 Z" />
+      <path id="Building — New Academic Building" class="building" d="M 231.08 384.46 L 215.41 384.58 Z" />
+      <path id="Building — T.E LAB" class="building" d="M 247.19 384.87 L 254.73 384.99 Z" />
+      <path id="Building — S.M LAB" class="building" d="M 248.97 384.84 L 256.40 384.96 Z" />
+      <path id="Building — Concrete LAB" class="building" d="M 250.99 384.80 L 257.17 384.91 Z" />
+      <path id="Building — Structural Engineering LAB" class="building" d="M 252.96 384.77 L 259.18 384.87 Z" />
+      <path id="Building — ECED (Block.I)" class="building" d="M 208.11 385.05 L 209.18 385.07 Z" />
+    </g>
+    <g id="Administration">
+      <path id="Building — Administrative Block" class="building" d="M 151.63 385.89 L 160.03 386.01 L 155.84 386.16 L 142.97 386.05 L 148.92 385.94 L 151.63 385.89 Z" />
+      <path id="Building — Center for Career Development" class="building" d="M 237.19 385.67 L 238.75 385.69 Z" />
+      <path id="Building — BSNL Office" class="building" d="M 93.23 386.27 L 92.19 386.30 Z" />
+      <path id="Building — Old Admin Block" class="building" d="M 169.59 385.82 L 163.39 385.94 Z" />
+      <path id="Building — Panchayath Office, Chathamangalam" class="building" d="M 387.98 386.77 L 383.11 386.88 L 388.09 386.79 L 387.98 386.77 Z" />
+    </g>
+    <g id="Library">
+      <path id="Building — Old Library Building" class="building" d="M 224.86 385.13 L 236.26 385.23 L 220.98 385.20 L 224.86 385.13 Z" />
+    </g>
+    <g id="Hostels">
+      <path id="Building — Ladies Hostel" class="building" d="M 120.77 387.79 L 109.48 387.51 L 99.97 387.60 L 109.69 387.89 L 120.77 387.79 Z" />
+      <path id="Building — B Hostel" class="building" d="M 251.33 386.09 L 277.27 386.09 L 252.99 386.35 L 251.33 386.09 Z" />
+      <path id="Building — PG II Hostel" class="building" d="M 250.52 386.47 L 278.41 386.45 L 255.89 386.35 L 250.52 386.47 Z" />
+      <path id="Building — E Hostel" class="building" d="M 339.51 386.74 L 358.29 386.43 L 338.84 386.65 L 339.51 386.74 Z" />
+      <path id="Building — D Hostel" class="building" d="M 315.76 386.32 L 334.02 386.35 L 316.11 386.38 L 315.76 386.32 Z" />
+      <path id="Building — PG I Hostel" class="building" d="M 246.38 386.29 L 228.10 386.40 L 245.58 386.43 L 246.38 386.29 Z" />
+      <path id="Building — Mega Hostel Boys" class="building" d="M 260.35 387.51 L 255.48 387.88 L 287.58 388.01 L 262.70 387.80 L 266.23 387.53 L 260.35 387.51 Z" />
+      <path id="Building — Dayapuram Residential School" class="building" d="M 148.88 383.79 L 170.56 384.16 L 145.29 384.06 L 148.88 383.79 Z" />
+      <path id="Building — Upper LH NIT hostel" class="building" d="M 356.35 384.78 L 354.95 384.88 Z" />
+      <path id="Building — Bottom LH Hostel NIT" class="building" d="M 354.55 384.91 L 350.35 385.02 Z" />
+      <path id="Building — Maliyekkal Apartments" class="building" d="M 319.22 384.18 L 324.82 384.10 L 318.33 384.12 L 319.22 384.18 Z" />
+      <path id="Building — MBA Hostel NIT" class="building" d="M 151.36 388.84 L 163.34 389.26 L 169.54 389.14 L 168.21 388.83 L 151.36 388.84 Z" />
+      <path id="Building — A Hostel" class="building" d="M 224.59 386.00 L 250.61 386.20 L 224.81 386.04 L 224.59 386.00 Z" />
+      <path id="Building — Mega Hostel for Ladies" class="building" d="M 90.65 387.98 L 116.50 388.35 L 89.08 388.00 L 90.65 387.98 Z" />
+    </g>
+    <g id="Facilities">
+      <path id="Building — ABC Auditorium Complex" class="building" d="M 207.07 385.74 L 216.56 385.89 L 210.80 386.03 L 203.77 385.81 L 207.07 385.74 Z" />
+      <path id="Building — Swadhistam Canteen NITC" class="building" d="M 144.24 386.36 L 146.54 386.35 Z" />
+      <path id="Building — Sampthrupthi Mini Canteen" class="building" d="M 291.66 385.95 L 283.12 385.93 L 292.19 385.90 L 291.66 385.95 Z" />
+      <path id="Building — NIT Calicut Gymkhana" class="building" d="M 123.05 386.50 L 126.63 386.55 Z" />
+      <path id="Building — NITC Co-operative Store" class="building" d="M 109.64 386.28 L 105.48 386.39 Z" />
+      <path id="Building — Auditorium" class="building" d="M 257.59 385.06 L 271.98 384.98 L 262.58 385.15 L 257.59 385.06 Z" />
+      <path id="Building — St.Josephs NIT Campus Church" class="building" d="M 266.21 384.10 L 270.61 384.07 Z" />
+      <path id="Building — Open Air Theatre" class="building" d="M 180.72 385.29 L 193.09 385.11 L 179.92 385.21 L 180.72 385.29 Z" />
+      <path id="Building — Cafe plus restaurant" class="building" d="M 366.96 387.17 L 365.90 387.21 Z" />
+      <path id="Building — Kerala Gramin Bank" class="building" d="M 381.26 387.07 L 390.33 386.98 L 382.94 387.12 L 381.26 387.07 Z" />
+      <path id="Building — Sweets Valley Bakery and Coolbar" class="building" d="M 383.26 387.13 L 384.44 387.17 Z" />
+      <path id="Building — Chicken Park Restaurant" class="building" d="M 372.83 387.19 L 371.33 387.27 Z" />
+      <path id="Building — NITC Guest House" class="building" d="M 200.92 387.31 L 195.79 387.57 L 203.62 387.53 L 200.92 387.31 Z" />
+      <path id="Building — Dayapuram Masjid" class="building" d="M 213.50 384.00 L 221.42 384.06 Z" />
+      <path id="Building — MHB-I MESS" class="building" d="M 292.97 387.86 L 289.25 388.15 L 308.86 388.23 L 312.59 387.93 L 292.97 387.86 Z" />
+      <path id="Building — State Bank of India" class="building" d="M 81.34 386.56 L 85.40 386.62 Z" />
+      <path id="Building — SUMEDHYAM" class="building" d="M 309.11 384.77 L 310.92 384.87 Z" />
+      <path id="Building — ATM Complex (SBI,BOB)" class="building" d="M 229.09 385.69 L 227.83 385.72 Z" />
+      <path id="Building — MHB-II MESS 2" class="building" d="M 329.62 388.42 L 314.64 388.65 L 324.20 388.39 L 329.62 388.42 Z" />
+      <path id="Building — MHB-II MESS 1" class="building" d="M 334.14 388.45 L 329.68 388.73 L 340.96 388.78 L 348.50 388.61 L 339.31 388.47 L 334.14 388.45 Z" />
+      <path id="Building — Micro Canteen" class="building" d="M 230.11 385.26 L 231.17 385.28 Z" />
+      <path id="Building — State Bank of India ATM" class="building" d="M 226.37 385.74 L 227.83 385.72 Z" />
+      <path id="Building — Bank of Baroda ATM" class="building" d="M 227.83 385.72 L 229.46 385.74 Z" />
+      <path id="Building — TECHOLOGY BUSINESS INCUBATOR" class="building" d="M 190.17 387.06 L 191.24 387.10 Z" />
+      <path id="Building — Domino’s Pizza" class="building" d="M 333.53 386.89 L 325.72 386.95 L 331.80 387.00 L 333.53 386.89 Z" />
+      <path id="Building — Amul Ice Cream Parlour" class="building" d="M 176.26 385.69 L 178.54 385.64 Z" />
+    </g>
+    <g id="Other">
+      <path id="Building — Electrical Maintenance Unit" class="building" d="M 212.45 386.29 L 220.29 386.30 L 212.14 386.35 L 212.45 386.29 Z" />
+      <path id="Building — OSM 360977431" class="building" d="M 279.02 384.42 L 274.70 384.66 L 276.66 384.77 L 268.02 384.63 L 278.71 384.42 L 255.34 384.44 L 283.31 384.41 L 279.02 384.42 Z" />
+      <path id="Building — OSM 360977434" class="building" d="M 212.73 386.07 L 218.14 386.06 L 213.26 386.15 L 212.73 386.07 Z" />
+      <path id="Building — OSM 360977439" class="building" d="M 243.27 384.92 L 253.13 385.08 L 240.78 384.97 L 243.27 384.92 Z" />
+      <path id="Building — OSM 360977441" class="building" d="M 253.04 385.26 L 243.43 385.46 Z" />
+      <path id="Building — OSM 360977442" class="building" d="M 207.43 386.16 L 210.99 386.17 L 206.75 386.32 L 207.43 386.16 Z" />
+      <path id="Building — OSM 360977445" class="building" d="M 266.57 385.86 L 269.42 385.91 Z" />
+      <path id="Building — OSM 360977446" class="building" d="M 99.72 386.23 L 97.75 386.28 Z" />
+      <path id="Building — OSM 360977448" class="building" d="M 249.83 385.53 L 265.45 385.78 Z" />
+      <path id="Building — OSM 360977449" class="building" d="M 218.51 385.89 L 220.49 385.89 L 218.33 385.98 L 218.51 385.89 Z" />
+      <path id="Building — OSM 360977452" class="building" d="M 120.99 386.30 L 119.52 386.33 Z" />
+      <path id="Building — OSM 360977453" class="building" d="M 265.89 385.24 L 274.78 385.37 Z" />
+      <path id="Building — OSM 366413164" class="building" d="M 128.46 387.57 L 132.01 387.58 Z" />
+      <path id="Building — OSM 400361366" class="building" d="M 240.83 386.74 L 245.29 386.92 L 240.83 386.71 L 240.83 386.74 Z" />
+      <path id="Building — Thottungal House" class="building" d="M 358.92 389.88 L 363.43 389.88 Z" />
+      <path id="Building — Asuralankavu Madham" class="building" d="M 359.08 389.72 L 361.08 389.71 Z" />
+      <path id="Building — St.Peter&#x27;s Jacobite Congregation" class="building" d="M 352.31 389.97 L 354.25 389.96 Z" />
+      <path id="Building — OSM 846709731" class="building" d="M 68.21 386.78 L 61.72 387.10 Z" />
+      <path id="Building — OSM 846709732" class="building" d="M 66.66 387.11 L 75.09 387.16 Z" />
+      <path id="Building — OSM 847452178" class="building" d="M 196.37 387.04 L 204.10 386.72 L 195.37 386.67 L 201.33 386.64 L 219.23 386.75 L 205.45 387.05 L 196.37 387.04 Z" />
+      <path id="Building — Indico fashion" class="building" d="M 376.61 387.30 L 375.06 387.37 Z" />
+      <path id="Building — Main Building" class="building" d="M 215.74 385.60 L 210.75 385.52 Z" />
+      <path id="Building — OSM 1352096585" class="building" d="M 190.52 384.61 L 185.28 384.61 Z" />
+      <path id="Building — OSM 1352099386" class="building" d="M 287.09 387.35 L 293.65 387.38 Z" />
+      <path id="Building — OSM 1352101432" class="building" d="M 312.08 386.83 L 313.18 386.83 Z" />
+      <path id="Building — OSM 1352106325" class="building" d="M 215.58 384.96 L 213.40 384.96 Z" />
+      <path id="Building — OSM 1381344155" class="building" d="M 175.35 389.00 L 169.19 389.01 Z" />
+    </g>
+  </g>
+</svg>
