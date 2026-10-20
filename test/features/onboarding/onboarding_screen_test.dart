@@ -71,7 +71,11 @@ class TestProfileRepo implements ProfileRepository {
   @override
   Future<Profile> changeUsername(String newUsername) async {
     final updated = (savedProfile ??
-            const Profile(id: '1', name: 'Student', email: 'student@nitc.ac.in'))
+            const Profile(
+              id: '1',
+              name: 'Student',
+              email: 'student@nitc.ac.in',
+            ))
         .copyWith(username: newUsername);
     savedProfile = updated;
     return updated;
@@ -109,9 +113,7 @@ void main() {
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders Step 1 Username screen initially', (
-      tester,
-    ) async {
+    testWidgets('renders Step 1 Username screen initially', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -192,7 +194,10 @@ void main() {
 
         // Should now be on Welcome / Loading screen
         expect(find.text('Welcome to BusTracker'), findsOneWidget);
-        expect(find.text('Campus transit, made simple.', findRichText: true), findsOneWidget);
+        expect(
+          find.text('Campus transit, made simple.', findRichText: true),
+          findsOneWidget,
+        );
       },
     );
   });

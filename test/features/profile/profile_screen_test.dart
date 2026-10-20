@@ -25,15 +25,14 @@ void main() {
       },
     );
 
-    testWidgets(
-      'renders Back to Home leading button in AppBar',
-      (tester) async {
-        await tester.pumpTrackletWidget(const ProfileScreen());
-        await tester.pumpAndSettle();
+    testWidgets('renders Back to Home leading button in AppBar', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(const ProfileScreen());
+      await tester.pumpAndSettle();
 
-        final backBtn = find.byTooltip('Back to Home');
-        expect(backBtn, findsOneWidget);
-      },
-    );
+      final backBtn = find.byTooltip('Back to Home');
+      expect(backBtn, findsOneWidget);
+    });
   });
 }

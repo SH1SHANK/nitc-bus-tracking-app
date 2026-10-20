@@ -210,13 +210,14 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         completed) {
       try {
         final current = _cachedProfile ?? await getProfile();
-        final effectiveName = current.name.trim().isNotEmpty
-            ? current.name.trim()
-            : (currentUser.userMetadata?['full_name'] as String? ??
-                currentUser.userMetadata?['name'] as String? ??
-                (currentUser.email != null && currentUser.email!.isNotEmpty
-                    ? currentUser.email!.split('@').first
-                    : 'Student'));
+        final effectiveName =
+            current.name.trim().isNotEmpty
+                ? current.name.trim()
+                : (currentUser.userMetadata?['full_name'] as String? ??
+                    currentUser.userMetadata?['name'] as String? ??
+                    (currentUser.email != null && currentUser.email!.isNotEmpty
+                        ? currentUser.email!.split('@').first
+                        : 'Student'));
         final deptId = _departmentNameToId(current.department);
 
         try {
@@ -225,12 +226,18 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
             params: {
               'p_full_name': effectiveName,
               'p_department_id': deptId,
-              'p_batch': current.batch.trim().isNotEmpty ? current.batch.trim() : null,
-              'p_hostel': current.hostel.trim().isNotEmpty ? current.hostel.trim() : null,
+              'p_batch':
+                  current.batch.trim().isNotEmpty ? current.batch.trim() : null,
+              'p_hostel':
+                  current.hostel.trim().isNotEmpty
+                      ? current.hostel.trim()
+                      : null,
               'p_notification_prefs': {
-                'location_permission_granted': current.locationPermissionGranted,
+                'location_permission_granted':
+                    current.locationPermissionGranted,
               },
-              if (current.username != null && current.username!.trim().isNotEmpty)
+              if (current.username != null &&
+                  current.username!.trim().isNotEmpty)
                 'p_username': current.username!.trim(),
             },
           );
@@ -241,12 +248,20 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
             params: {
               'p_full_name': effectiveName,
               'p_department_id': deptId,
-              'p_batch': current.batch.trim().isNotEmpty ? current.batch.trim() : 'B24',
-              'p_hostel': current.hostel.trim().isNotEmpty ? current.hostel.trim() : 'Mega Hostel',
+              'p_batch':
+                  current.batch.trim().isNotEmpty
+                      ? current.batch.trim()
+                      : 'B24',
+              'p_hostel':
+                  current.hostel.trim().isNotEmpty
+                      ? current.hostel.trim()
+                      : 'Mega Hostel',
               'p_notification_prefs': {
-                'location_permission_granted': current.locationPermissionGranted,
+                'location_permission_granted':
+                    current.locationPermissionGranted,
               },
-              if (current.username != null && current.username!.trim().isNotEmpty)
+              if (current.username != null &&
+                  current.username!.trim().isNotEmpty)
                 'p_username': current.username!.trim(),
             },
           );

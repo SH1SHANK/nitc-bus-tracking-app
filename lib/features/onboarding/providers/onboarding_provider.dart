@@ -374,7 +374,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     // Use the authenticated user's real ID and email, falling back gracefully
     // when running without Supabase credentials (e.g. development seed mode).
     final currentUser = _ref.read(supabaseClientProvider)?.auth.currentUser;
-    final fallbackName = currentUser?.userMetadata?['full_name'] as String? ??
+    final fallbackName =
+        currentUser?.userMetadata?['full_name'] as String? ??
         currentUser?.userMetadata?['name'] as String? ??
         (currentUser?.email != null && currentUser!.email!.isNotEmpty
             ? currentUser.email!.split('@').first
