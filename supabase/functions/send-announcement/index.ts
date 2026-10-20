@@ -1,6 +1,11 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { sendOneSignalNotification } from "../_shared/onesignal.ts";
+import { sendOneSignalNotificationToTargets } from "../_shared/onesignal.ts";
+import {
+  fetchAllPages,
+  type NotificationSubscription,
+  partitionSubscriptionRecipients,
+} from "../_shared/notification_recipients.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -22,7 +27,10 @@ Deno.serve(async (req: Request) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: "Missing Authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -33,7 +41,8 @@ Deno.serve(async (req: Request) => {
     });
 
     // Verify caller identity
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -42,11 +51,18 @@ Deno.serve(async (req: Request) => {
     }
 
     // Verify admin role via RPC
-    const { data: isAdmin, error: adminCheckError } = await supabaseClient.rpc("is_current_user_admin");
+    const { data: isAdmin, error: adminCheckError } = await supabaseClient.rpc(
+      "is_current_user_admin",
+    );
     if (adminCheckError || !isAdmin) {
       return new Response(
-        JSON.stringify({ error: "Forbidden: Caller is not an authorized administrator" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Forbidden: Caller is not an authorized administrator",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -63,14 +79,22 @@ Deno.serve(async (req: Request) => {
     if (!title || !content) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: title, body" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     if (type === "disruption" && !target_route_id) {
       return new Response(
-        JSON.stringify({ error: "Route-targeted disruption requires target_route_id" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Route-targeted disruption requires target_route_id",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -83,6 +107,25 @@ Deno.serve(async (req: Request) => {
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false },
     });
+
+    const audienceSnapshotAt = new Date().toISOString();
+    const subscriptions = await fetchAllPages<NotificationSubscription>(
+      async (afterId, limit) => {
+        let query = adminSupabase
+          .from("notification_subscriptions")
+          .select("id, user_id, guest_device_id, onesignal_subscription_id")
+          .eq("is_enabled", true)
+          .lte("created_at", audienceSnapshotAt);
+        if (type === "disruption") {
+          query = query.contains("subscribed_route_ids", [target_route_id]);
+        }
+        if (afterId !== null) query = query.gt("id", afterId);
+        const { data, error } = await query.order("id").limit(limit);
+        return { data, error };
+      },
+    );
+    const { userIds, guestIds, externalIds, subscriptionIds } =
+      partitionSubscriptionRecipients(subscriptions);
 
     // 1. Insert announcement into public.notification_announcements matching migration schema
     const { data: announcement, error: insertError } = await adminSupabase
@@ -108,86 +151,35 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 2. Determine target audience and recipients
+    // 2. Dispatch to the exact Supabase audience, in separate OneSignal target groups
     let pushResult;
-    const targetUserIds: string[] = [];
-    const targetGuestIds: string[] = [];
-    const externalIds: string[] = [];
-    const subIds: string[] = [];
-
-    if (type === "general") {
-      // Broadcast to all active users/subscribers
-      const { data: allSubs } = await adminSupabase
-        .from("notification_subscriptions")
-        .select("user_id, guest_device_id, onesignal_subscription_id")
-        .eq("is_enabled", true);
-
-      for (const sub of allSubs ?? []) {
-        if (sub.user_id) {
-          targetUserIds.push(sub.user_id);
-          externalIds.push(sub.user_id);
-        } else if (sub.guest_device_id) {
-          targetGuestIds.push(sub.guest_device_id);
-          if (sub.onesignal_subscription_id) subIds.push(sub.onesignal_subscription_id);
-        } else if (sub.onesignal_subscription_id) {
-          subIds.push(sub.onesignal_subscription_id);
-        }
-      }
-
-      pushResult = await sendOneSignalNotification({
-        headings: { en: title },
-        contents: { en: content },
-        included_segments: ["Subscribed Users"],
-        data: {
+    pushResult = await sendOneSignalNotificationToTargets({
+      headings: type === "disruption"
+        ? { en: `Update for your route: ${title}` }
+        : { en: title },
+      contents: { en: content },
+      data: type === "disruption"
+        ? {
           announcement_id: announcement.id,
-          type: "announcement",
-          priority,
-        },
-      });
-    } else {
-      // Disruption targeting a specific route
-      const { data: routeSubs } = await adminSupabase
-        .from("notification_subscriptions")
-        .select("user_id, guest_device_id, onesignal_subscription_id")
-        .contains("subscribed_route_ids", [target_route_id])
-        .eq("is_enabled", true);
-
-      for (const sub of routeSubs ?? []) {
-        if (sub.user_id) {
-          targetUserIds.push(sub.user_id);
-          externalIds.push(sub.user_id);
-        } else if (sub.guest_device_id) {
-          targetGuestIds.push(sub.guest_device_id);
-          if (sub.onesignal_subscription_id) subIds.push(sub.onesignal_subscription_id);
-        } else if (sub.onesignal_subscription_id) {
-          subIds.push(sub.onesignal_subscription_id);
+          type: "disruption",
+          route_id: target_route_id,
         }
-      }
-
-      if (externalIds.length > 0 || subIds.length > 0) {
-        pushResult = await sendOneSignalNotification({
-          headings: { en: `Route Alert: ${title}` },
-          contents: { en: content },
-          include_aliases: externalIds.length > 0 ? { external_id: externalIds } : undefined,
-          include_subscription_ids: subIds.length > 0 ? subIds : undefined,
-          data: {
-            announcement_id: announcement.id,
-            type: "disruption",
-            route_id: target_route_id,
-          },
-        });
-      } else {
-        pushResult = { success: true, recipients: 0 };
-      }
-    }
+        : { announcement_id: announcement.id, type: "announcement", priority },
+    }, {
+      externalIds,
+      subscriptionIds,
+      idempotencyKey: announcement.id,
+    });
 
     // 3. Persist in-app inbox notifications so messages appear in the 7-day inbox even if push fails/is denied
     const inboxEntries = [];
-    for (const uid of targetUserIds) {
+    for (const uid of userIds) {
       inboxEntries.push({
         user_id: uid,
         announcement_id: announcement.id,
-        notification_type: type === "disruption" ? "disruption" : "announcement",
+        notification_type: type === "disruption"
+          ? "disruption"
+          : "announcement",
         title,
         body: content,
         data: {
@@ -197,11 +189,13 @@ Deno.serve(async (req: Request) => {
         expires_at: effectiveExpiresAt,
       });
     }
-    for (const gid of targetGuestIds) {
+    for (const gid of guestIds) {
       inboxEntries.push({
         guest_device_id: gid,
         announcement_id: announcement.id,
-        notification_type: type === "disruption" ? "disruption" : "announcement",
+        notification_type: type === "disruption"
+          ? "disruption"
+          : "announcement",
         title,
         body: content,
         data: {
@@ -222,6 +216,7 @@ Deno.serve(async (req: Request) => {
       .update({
         metadata: {
           priority,
+          push_accepted: pushResult.success,
           onesignal_id: pushResult.id,
           recipients: pushResult.recipients,
           errors: pushResult.errors,
@@ -233,17 +228,26 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
+        push_accepted: pushResult.success,
         announcement,
         push: pushResult,
         inbox_count: inboxEntries.length,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (err) {
     console.error("[send-announcement] Unexpected error:", err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

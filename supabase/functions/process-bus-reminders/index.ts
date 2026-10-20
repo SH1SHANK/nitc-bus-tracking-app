@@ -1,7 +1,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifySchedulerOrServiceRole } from "../_shared/auth.ts";
-import { sendOneSignalNotification } from "../_shared/onesignal.ts";
+import { sendOneSignalNotificationToTargets } from "../_shared/onesignal.ts";
 
 interface BoardingReminder {
   id: string;
@@ -58,14 +58,18 @@ Deno.serve(async (req: Request) => {
       .eq("is_enabled", true);
 
     if (fetchError) {
-      console.error("[process-bus-reminders] Error fetching reminders:", fetchError);
+      console.error(
+        "[process-bus-reminders] Error fetching reminders:",
+        fetchError,
+      );
       return new Response(JSON.stringify({ error: fetchError.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const reminderList = (reminders || []) as (BoardingReminder & { stops?: { name: string } })[];
+    const reminderList =
+      (reminders || []) as (BoardingReminder & { stops?: { name: string } })[];
     const processed = [];
     const nowUtc = new Date();
 
@@ -82,9 +86,16 @@ Deno.serve(async (req: Request) => {
         hour12: false,
       });
       const parts = formatter.formatToParts(nowUtc);
-      const weekdayStr = parts.find((p) => p.type === "weekday")?.value ?? "Mon";
-      const hourVal = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10);
-      const minuteVal = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0", 10);
+      const weekdayStr = parts.find((p) => p.type === "weekday")?.value ??
+        "Mon";
+      const hourVal = parseInt(
+        parts.find((p) => p.type === "hour")?.value ?? "0",
+        10,
+      );
+      const minuteVal = parseInt(
+        parts.find((p) => p.type === "minute")?.value ?? "0",
+        10,
+      );
 
       // ISO weekday: Monday = 1 ... Sunday = 7
       const weekdayMap: Record<string, number> = {
@@ -105,13 +116,21 @@ Deno.serve(async (req: Request) => {
       }
 
       // Format today's date in target timezone (YYYY-MM-DD)
-      const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).formatToParts(nowUtc);
-      const todayDateStr = `${dateParts.find((p) => p.type === "year")?.value}-${dateParts.find(
-        (p) => p.type === "month"
-      )?.value}-${dateParts.find((p) => p.type === "day")?.value}`;
+      const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: tz })
+        .formatToParts(nowUtc);
+      const todayDateStr = `${
+        dateParts.find((p) => p.type === "year")?.value
+      }-${
+        dateParts.find(
+          (p) => p.type === "month",
+        )?.value
+      }-${dateParts.find((p) => p.type === "day")?.value}`;
 
       // Check if already processed/sent today
-      if (rem.last_processed_date === todayDateStr && rem.last_processed_status === "sent") {
+      if (
+        rem.last_processed_date === todayDateStr &&
+        rem.last_processed_status === "sent"
+      ) {
         continue;
       }
 
@@ -142,16 +161,20 @@ Deno.serve(async (req: Request) => {
       }
 
       // 4. Telemetry Check via RPC: check_bus_availability_for_stop
-      const { data: availabilityRows, error: availError } = await adminSupabase.rpc(
-        "check_bus_availability_for_stop",
-        {
-          p_stop_id: rem.stop_id,
-          p_max_stale_seconds: 90,
-        }
-      );
+      const { data: availabilityRows, error: availError } = await adminSupabase
+        .rpc(
+          "check_bus_availability_for_stop",
+          {
+            p_stop_id: rem.stop_id,
+            p_max_stale_seconds: 90,
+          },
+        );
 
       if (availError) {
-        console.error(`[process-bus-reminders] RPC error for stop ${rem.stop_id}:`, availError);
+        console.error(
+          `[process-bus-reminders] RPC error for stop ${rem.stop_id}:`,
+          availError,
+        );
         continue;
       }
 
@@ -179,31 +202,41 @@ Deno.serve(async (req: Request) => {
       }
 
       // 6. Bus is confirmed active; build reminder message
-      const formattedLeaveTime = `${String(leaveHour).padStart(2, "0")}:${String(
-        leaveMinute
-      ).padStart(2, "0")}`;
-      const title = `Boarding Reminder for ${stopName}`;
-      const body = `Your intended leave time is ${formattedLeaveTime}. Bus ${freshBus.bus_number} (${freshBus.route_name}) is currently active and serving ${stopName}.`;
+      const formattedLeaveTime = `${String(leaveHour).padStart(2, "0")}:${
+        String(
+          leaveMinute,
+        ).padStart(2, "0")
+      }`;
+      const title = "Time to get ready";
+      const body =
+        `Your planned departure is at ${formattedLeaveTime}. Bus ${freshBus.bus_number} on ${freshBus.route_name} is active for ${stopName}. Check BusTracker for the latest location.`;
 
       let pushSucceeded = false;
       let pushResult = null;
 
       if (rem.user_id) {
         try {
-          pushResult = await sendOneSignalNotification({
+          pushResult = await sendOneSignalNotificationToTargets({
             headings: { en: title },
             contents: { en: body },
-            include_aliases: { external_id: [rem.user_id] },
+            ttl: 1800,
             data: {
               type: "reminder",
               reminder_id: rem.id,
               stop_id: rem.stop_id,
               leave_time: rem.intended_leave_time,
             },
+          }, {
+            externalIds: [rem.user_id],
+            subscriptionIds: [],
+            idempotencyKey: `${rem.id}:${todayDateStr}`,
           });
           pushSucceeded = pushResult.success;
         } catch (pushErr) {
-          console.error(`[process-bus-reminders] Push failed for user ${rem.user_id}:`, pushErr);
+          console.error(
+            `[process-bus-reminders] Push failed for user ${rem.user_id}:`,
+            pushErr,
+          );
         }
 
         // Add to user in-app inbox
@@ -233,19 +266,26 @@ Deno.serve(async (req: Request) => {
 
         if (guestSub?.onesignal_subscription_id) {
           try {
-            pushResult = await sendOneSignalNotification({
+            pushResult = await sendOneSignalNotificationToTargets({
               headings: { en: title },
               contents: { en: body },
-              include_subscription_ids: [guestSub.onesignal_subscription_id],
+              ttl: 1800,
               data: {
                 type: "reminder",
                 reminder_id: rem.id,
                 stop_id: rem.stop_id,
               },
+            }, {
+              externalIds: [],
+              subscriptionIds: [guestSub.onesignal_subscription_id],
+              idempotencyKey: `${rem.id}:${todayDateStr}`,
             });
             pushSucceeded = pushResult.success;
           } catch (pushErr) {
-            console.error(`[process-bus-reminders] Push failed for guest ${rem.guest_device_id}:`, pushErr);
+            console.error(
+              `[process-bus-reminders] Push failed for guest ${rem.guest_device_id}:`,
+              pushErr,
+            );
           }
         } else {
           pushSucceeded = true;
@@ -299,13 +339,21 @@ Deno.serve(async (req: Request) => {
         checked_count: reminderList.length,
         processed,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (err) {
     console.error("[process-bus-reminders] Unexpected error:", err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

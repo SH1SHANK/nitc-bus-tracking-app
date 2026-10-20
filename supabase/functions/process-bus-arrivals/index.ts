@@ -1,7 +1,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifySchedulerOrServiceRole } from "../_shared/auth.ts";
-import { sendOneSignalNotification } from "../_shared/onesignal.ts";
+import { sendOneSignalNotificationToTargets } from "../_shared/onesignal.ts";
 
 interface ApproachingBus {
   bus_id: string;
@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
       {
         p_radius_meters: 300.0,
         p_max_stale_seconds: 90,
-      }
+      },
     );
 
     if (approachError) {
@@ -61,7 +61,8 @@ Deno.serve(async (req: Request) => {
     // 3. For each approaching bus-stop pair, record arrival event and notify subscribers
     for (const item of approachingList) {
       // Build unique approach key per trip (or day if unassigned) to prevent duplicate alerts
-      const datePrefix = new Date(item.last_seen || Date.now()).toISOString().slice(0, 10);
+      const datePrefix = new Date(item.last_seen || Date.now()).toISOString()
+        .slice(0, 10);
       const tripSegment = item.trip_id ?? `notrip-${datePrefix}`;
       const approachKey = `${item.bus_id}:${item.stop_id}:${tripSegment}`;
 
@@ -73,11 +74,14 @@ Deno.serve(async (req: Request) => {
           p_stop_id: item.stop_id,
           p_trip_id: item.trip_id,
           p_approach_key: approachKey,
-        }
+        },
       );
 
       if (eventError) {
-        console.error("[process-bus-arrivals] Error recording arrival event:", eventError);
+        console.error(
+          "[process-bus-arrivals] Error recording arrival event:",
+          eventError,
+        );
         continue;
       }
 
@@ -91,10 +95,15 @@ Deno.serve(async (req: Request) => {
         .from("notification_subscriptions")
         .select("user_id, guest_device_id, onesignal_subscription_id")
         .eq("is_enabled", true)
-        .or(`subscribed_stop_ids.cs.{"${item.stop_id}"},subscribed_route_ids.cs.{"${item.route_id}"}`);
+        .or(
+          `subscribed_stop_ids.cs.{"${item.stop_id}"},subscribed_route_ids.cs.{"${item.route_id}"}`,
+        );
 
       if (subError) {
-        console.error("[process-bus-arrivals] Error fetching subscribers:", subError);
+        console.error(
+          "[process-bus-arrivals] Error fetching subscribers:",
+          subError,
+        );
         continue;
       }
 
@@ -117,10 +126,12 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      const title = `Bus Approaching ${item.stop_name}`;
-      const message = `Bus ${item.bus_number} (${item.route_name}) is within ${Math.round(
-        item.distance_meters
-      )}m of ${item.stop_name}.`;
+      const title = "Your bus is approaching";
+      const message = `Bus ${item.bus_number} on ${item.route_name} is about ${
+        Math.round(
+          item.distance_meters,
+        )
+      } m from ${item.stop_name}. Check BusTracker for its latest location.`;
 
       // 5. Send push notification via OneSignal if recipients exist
       let pushSucceeded = false;
@@ -128,22 +139,28 @@ Deno.serve(async (req: Request) => {
 
       if (externalIds.length > 0 || subIds.length > 0) {
         try {
-          pushResult = await sendOneSignalNotification({
+          pushResult = await sendOneSignalNotificationToTargets({
             headings: { en: title },
             contents: { en: message },
-            include_aliases: externalIds.length > 0 ? { external_id: externalIds } : undefined,
-            include_subscription_ids: subIds.length > 0 ? subIds : undefined,
+            ttl: 900,
             data: {
               type: "arrival",
               bus_id: item.bus_id,
               stop_id: item.stop_id,
               route_id: item.route_id,
             },
+          }, {
+            externalIds,
+            subscriptionIds: subIds,
+            idempotencyKey: approachKey,
           });
           pushSucceeded = pushResult.success;
           if (pushSucceeded) notificationsDispatched++;
         } catch (pushErr) {
-          console.error("[process-bus-arrivals] OneSignal push failed:", pushErr);
+          console.error(
+            "[process-bus-arrivals] OneSignal push failed:",
+            pushErr,
+          );
         }
       } else {
         // No external push targets registered, but still a valid arrival event
@@ -207,13 +224,21 @@ Deno.serve(async (req: Request) => {
         dispatched_count: notificationsDispatched,
         details: results,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (err) {
     console.error("[process-bus-arrivals] Unexpected error:", err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
