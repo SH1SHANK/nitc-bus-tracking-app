@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v1.1.0] - 2026-10-20
+
+### Added
+- **Shared design token system** with documented reference palettes, semantic light/dark roles, and consistent typography, spacing, sizing, radius, and elevation tokens. Migrated app screens and components to the shared tokens.
+- **Android nearest-bus home-screen widget** with selected-stop details, walking distance/time to the stop, nearest-bus distance, telemetry freshness, refresh feedback, and intentional loading, empty, stale, and error states.
+- **Notifications and boarding reminders** with an in-app inbox, read/unread state, route and stop subscriptions, recurring reminders, announcements, and Supabase Edge Functions for delivery and cleanup.
+- **App update checks** that inspect published GitHub releases and present available Android downloads in the settings screen.
+
+### Changed
+- Updated web push setup, service-worker/cache handling, Content Security Policy, and deployment configuration for OneSignal.
+- Updated the Android application version to `1.1.0+3` and kept Android theme resources compatible with the minimum supported SDK.
+
+### Fixed
+- Corrected the widget refresh icon and distinguished the user's walk to the selected stop from the bus's distance to that stop.
+- Improved design-token consistency and light/dark semantic color coverage across shared UI components and screens.
+
+### Verification
+- `dart format --output=none --set-exit-if-changed .`, `flutter analyze`, `flutter test`, architecture verification, secret scan, Android manifest checks, Android debug build, and Android Lint.
+
 ## [v1.0.0-rc-1] - 2026-10-18
 
 ### 🚀 First Public Release Candidate
