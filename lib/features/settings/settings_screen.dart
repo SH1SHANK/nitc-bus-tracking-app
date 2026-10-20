@@ -21,6 +21,8 @@ import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../design_system/tokens/typography.dart';
 import '../../services/location/location_service.dart';
+import '../../services/notifications/notification_push_state.dart';
+import '../../services/notifications/onesignal_service.dart';
 import '../auth/providers/auth_provider.dart';
 import '../profile/dialogs/avatar_picker_sheet.dart';
 import '../profile/providers/profile_provider.dart';
@@ -32,6 +34,7 @@ import 'dialogs/transit_faq_dialog.dart';
 import 'dialogs/app_update_dialog.dart';
 import '../../services/updates/app_update_service.dart';
 import 'widgets/settings_card.dart';
+import 'widgets/settings_notifications_section.dart';
 import 'widgets/settings_row_item.dart';
 import 'widgets/settings_theme_selector.dart';
 
@@ -47,6 +50,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
   bool _isCheckingUpdate = false;
+  bool _isPushBusy = false;
+  PushNotificationState _pushState = PushNotificationState.checking;
   @override
   void initState() {
     super.initState();
@@ -54,6 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     // Refresh location permission status when settings page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
+      _refreshPushState();
     });
   }
 
@@ -68,8 +74,86 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     if (state == AppLifecycleState.resumed) {
       ref.read(locationStateProvider.notifier).refreshPermission();
       ref.read(locationStateProvider.notifier).refreshLocationIfPermitted();
+      _refreshPushState();
     }
   }
+
+  Future<void> _refreshPushState() async {
+    final preference =
+        ref.read(userPreferencesProvider).pushNotificationsEnabled;
+    final state = await OneSignalService.reconcilePushPreference(preference);
+    if (!mounted) return;
+    setState(() => _pushState = state);
+    if (state == PushNotificationState.unavailable ||
+        state == PushNotificationState.registrationPending) {
+      return;
+    }
+    final enabled = state == PushNotificationState.enabled;
+    if (preference != enabled) {
+      await ref
+          .read(userPreferencesProvider.notifier)
+          .setPushNotificationsEnabled(enabled);
+    }
+  }
+
+  Future<void> _changePushNotifications(bool enabled) async {
+    if (_isPushBusy) return;
+    setState(() => _isPushBusy = true);
+    late final PushNotificationState state;
+    late final bool changed;
+    if (enabled) {
+      state = await OneSignalService.enablePushNotifications();
+      changed = state == PushNotificationState.enabled;
+    } else {
+      changed = await OneSignalService.disablePushNotifications();
+      state =
+          changed
+              ? await OneSignalService.getPushNotificationState()
+              : PushNotificationState.registrationFailed;
+    }
+    if (!mounted) return;
+    if (changed) {
+      await ref
+          .read(userPreferencesProvider.notifier)
+          .setPushNotificationsEnabled(enabled);
+    } else if (enabled &&
+        state != PushNotificationState.registrationPending &&
+        state != PushNotificationState.unavailable) {
+      await ref
+          .read(userPreferencesProvider.notifier)
+          .setPushNotificationsEnabled(false);
+    }
+    if (!mounted) return;
+    setState(() {
+      _pushState = state;
+      _isPushBusy = false;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(_pushMessage(state, enabled))));
+  }
+
+  String _pushMessage(PushNotificationState state, bool enabling) =>
+      switch (state) {
+        PushNotificationState.enabled =>
+          'Push notifications are enabled on this device.',
+        PushNotificationState.checking =>
+          'Checking notification permission and subscription.',
+        PushNotificationState.permissionRequired =>
+          'Allow notification permission to enable push notifications.',
+        PushNotificationState.permissionDenied =>
+          'Notifications are blocked in device settings.',
+        PushNotificationState.registrationPending =>
+          'Waiting for OneSignal to register this device.',
+        PushNotificationState.registrationFailed =>
+          enabling
+              ? 'This device could not register. You can retry from Settings.'
+              : 'Push notifications could not be disabled. Try again.',
+        PushNotificationState.unavailable =>
+          'Push notifications are unavailable on this device.',
+        PushNotificationState.disabled =>
+          'Push notifications are off on this device.',
+      };
 
   void _showWebLocationHelpDialog() {
     showDialog<void>(
@@ -650,6 +734,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ],
                     ],
                   ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                _buildSectionHeader('Notifications'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsNotificationsSection(
+                  pushState: _pushState,
+                  isBusy: _isPushBusy,
+                  onPushChanged: (enabled) {
+                    unawaited(_changePushNotifications(enabled));
+                  },
                 ),
                 const SizedBox(height: TrackletSpacing.section),
 

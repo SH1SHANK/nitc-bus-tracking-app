@@ -21,7 +21,7 @@ void main() {
         expect(find.text('Support & Feedback'), findsOneWidget);
         expect(find.text('About BusTracker & Legal'), findsOneWidget);
         expect(find.text('Account Actions'), findsOneWidget);
-        expect(find.text('Notifications'), findsNothing);
+        expect(find.text('Notifications'), findsOneWidget);
       },
     );
 

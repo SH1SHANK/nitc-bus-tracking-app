@@ -79,7 +79,8 @@ void main() {
         expect(find.text('Location & Permissions'), findsOneWidget);
         expect(find.text('Appearance & Display'), findsOneWidget);
         expect(find.text('Commute Preferences'), findsNothing);
-        expect(find.text('Notifications'), findsNothing);
+        expect(find.text('Notifications'), findsOneWidget);
+        expect(find.text('Push notifications'), findsOneWidget);
       },
     );
 

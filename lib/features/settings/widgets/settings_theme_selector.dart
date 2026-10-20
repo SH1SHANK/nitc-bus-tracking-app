@@ -36,105 +36,104 @@ class SettingsThemeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = TrackletColors.isDark(context);
-    final disableAnimations =
-        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final containerBg =
-        isDark
-            ? TrackletColors.darkSurfaceElevated
-            : TrackletColors.surfaceElevated;
-    final borderColor =
-        isDark ? TrackletColors.darkBorder : TrackletColors.cardBorder;
+    final colorScheme = Theme.of(context).colorScheme;
+    final animationDuration = TrackletMotion.adaptiveDuration(
+      context,
+      TrackletMotion.tabSwitch,
+    );
+    final selectedModeIndex = _modes.indexWhere(
+      (mode) => mode.key == selectedMode,
+    );
+    final selectedIndex = selectedModeIndex < 0 ? 0 : selectedModeIndex;
 
     return Container(
       decoration: BoxDecoration(
-        color: containerBg,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: TrackletRadii.roundedLg,
-        border: Border.all(color: borderColor, width: 1.0),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1.0),
       ),
       padding: const EdgeInsets.all(TrackletSpacing.xs),
-      child: Row(
-        children:
-            _modes.map((mode) {
-              final isSelected = mode.key == selectedMode;
-              return Expanded(
-                child: Semantics(
-                  button: true,
-                  selected: isSelected,
-                  label: '${mode.label} theme mode',
-                  child: InkWell(
-                    onTap: () => _handleSelect(mode.key),
-                    borderRadius: TrackletRadii.roundedMd,
-                    child: AnimatedContainer(
-                      duration:
-                          disableAnimations
-                              ? Duration.zero
-                              : TrackletMotion.adaptiveDuration(
-                                context,
-                                TrackletMotion.fast,
-                              ),
-                      curve: TrackletMotion.standardCurve,
-                      constraints: const BoxConstraints(minHeight: 44.0),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: TrackletSpacing.compactMd,
-                        horizontal: TrackletSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? TrackletColors.primary
-                                : Colors.transparent,
-                        borderRadius: TrackletRadii.roundedMd,
-                        boxShadow:
-                            isSelected
-                                ? [
-                                  BoxShadow(
-                                    color: TrackletColors.primary.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                                : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            mode.icon,
-                            size: 16.0,
-                            color:
-                                isSelected
-                                    ? TrackletColors.textInverse
-                                    : TrackletColors.adaptiveTextSecondary(
-                                      context,
-                                    ),
-                          ),
-                          const SizedBox(width: TrackletSpacing.xs),
-                          Text(
-                            mode.label,
-                            style: TrackletTypography.labelMedium.copyWith(
-                              fontSize: TrackletTypography.fontSize13,
-                              fontWeight:
-                                  isSelected
-                                      ? TrackletTypography.weightSemiBold
-                                      : TrackletTypography.weightMedium,
-                              color:
-                                  isSelected
-                                      ? TrackletColors.textInverse
-                                      : TrackletColors.adaptiveTextPrimary(
-                                        context,
-                                      ),
-                            ),
-                          ),
-                        ],
-                      ),
+      child: SizedBox(
+        height: 44,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: AnimatedAlign(
+                key: const Key('theme-selection-indicator'),
+                alignment: Alignment(selectedIndex * 1.0 - 1.0, 0),
+                duration: animationDuration,
+                curve: TrackletMotion.standardCurve,
+                child: FractionallySizedBox(
+                  widthFactor: 1 / _modes.length,
+                  heightFactor: 1,
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: TrackletColors.primary,
+                      borderRadius: TrackletRadii.roundedMd,
                     ),
                   ),
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+            Row(
+              children:
+                  _modes.map((mode) {
+                    final isSelected = mode.key == selectedMode;
+                    final foreground =
+                        isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurfaceVariant;
+                    return Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: isSelected,
+                        label: '${mode.label} theme mode',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _handleSelect(mode.key),
+                            borderRadius: TrackletRadii.roundedMd,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedScale(
+                                    scale: isSelected ? 1.08 : 1,
+                                    duration: animationDuration,
+                                    curve: TrackletMotion.standardCurve,
+                                    child: Icon(
+                                      mode.icon,
+                                      size: 16,
+                                      color: foreground,
+                                    ),
+                                  ),
+                                  const SizedBox(width: TrackletSpacing.xs),
+                                  Text(
+                                    mode.label,
+                                    style: TrackletTypography.labelMedium
+                                        .copyWith(
+                                          fontSize:
+                                              TrackletTypography.fontSize13,
+                                          fontWeight:
+                                              isSelected
+                                                  ? TrackletTypography
+                                                      .weightSemiBold
+                                                  : TrackletTypography
+                                                      .weightMedium,
+                                          color: foreground,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

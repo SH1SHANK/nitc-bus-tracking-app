@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tracklet/data/preferences/user_preferences.dart';
+import 'package:tracklet/services/storage/storage_service.dart';
 
 void main() {
   group('UserPreferences Model & Notifier Tests', () {
@@ -38,6 +40,31 @@ void main() {
       expect(restored.hapticFeedbackEnabled, isFalse);
       expect(restored.map3DBuildingsEnabled, isFalse);
     });
+
+    test(
+      'persists push preference and theme across provider recreation',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final sharedPreferences = await SharedPreferences.getInstance();
+        final overrides = [
+          sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        ];
+        final first = ProviderContainer(overrides: overrides);
+        await first.read(userPreferencesProvider.notifier).setThemeMode('Dark');
+        await first
+            .read(userPreferencesProvider.notifier)
+            .setPushNotificationsEnabled(true);
+        first.dispose();
+
+        final restored = ProviderContainer(overrides: overrides);
+        addTearDown(restored.dispose);
+        expect(restored.read(userPreferencesProvider).themeMode, 'Dark');
+        expect(
+          restored.read(userPreferencesProvider).pushNotificationsEnabled,
+          isTrue,
+        );
+      },
+    );
 
     test('handles malformed, corrupt, or out-of-range JSON gracefully', () {
       final corruptJson = <String, dynamic>{

@@ -102,5 +102,62 @@ void main() {
       final lightSemantics = tester.widget<Semantics>(lightFinder);
       expect(lightSemantics.properties.selected, isFalse);
     });
+
+    testWidgets('uses a single motion-aware sliding selection indicator', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: Scaffold(
+              body: SettingsThemeSelector(
+                selectedMode: 'Dark',
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final indicator = tester.widget<AnimatedAlign>(
+        find.byKey(const Key('theme-selection-indicator')),
+      );
+      expect(indicator.duration, Duration.zero);
+      expect(find.byType(AnimatedAlign), findsOneWidget);
+    });
+
+    testWidgets('moves the selected thumb without changing segment geometry', (
+      tester,
+    ) async {
+      var selected = 'Light';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder:
+                  (context, setState) => SettingsThemeSelector(
+                    selectedMode: selected,
+                    enableHaptics: false,
+                    onChanged: (mode) => setState(() => selected = mode),
+                  ),
+            ),
+          ),
+        ),
+      );
+      final indicator = find.descendant(
+        of: find.byKey(const Key('theme-selection-indicator')),
+        matching: find.byType(DecoratedBox),
+      );
+      final start = tester.getCenter(indicator);
+      final darkTarget = tester.getCenter(find.text('Dark'));
+      await tester.tap(find.text('Dark'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 110));
+      final halfway = tester.getCenter(indicator);
+
+      expect(halfway.dx, greaterThan(start.dx));
+      expect(halfway.dx, lessThan(darkTarget.dx));
+    });
   });
 }
