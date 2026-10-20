@@ -125,7 +125,7 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
                 Text(
                   'Idea Submitted!',
                   style: TrackletTypography.headlineMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -135,7 +135,7 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
                   textAlign: TextAlign.center,
                   style: TrackletTypography.bodyMedium.copyWith(
                     color: TrackletColors.adaptiveTextSecondary(context),
-                    height: 1.45,
+                    height: TrackletTypography.lineHeightBodyRelaxed,
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.section),
@@ -212,7 +212,7 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
                         'Have an idea for a new transit route indicator, notification, or campus feature? Let us know!',
                         style: TrackletTypography.bodySmall.copyWith(
                           color: TrackletColors.adaptiveTextPrimary(context),
-                          height: 1.35,
+                          height: TrackletTypography.lineHeightBodyCompact,
                         ),
                       ),
                     ),
@@ -292,7 +292,9 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
                               value: p.split(' ').first,
                               child: Text(
                                 p,
-                                style: const TextStyle(fontSize: 13.5),
+                                style: const TextStyle(
+                                  fontSize: TrackletTypography.fontSize13_5,
+                                ),
                               ),
                             );
                           }).toList(),
@@ -341,14 +343,14 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: TrackletColors.textInverse,
                           ),
                         )
                         : const Text(
                           'Submit Feature Idea',
                           style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize15,
+                            fontWeight: TrackletTypography.weightSemiBold,
                           ),
                         ),
               ),
@@ -393,8 +395,8 @@ class _FeatureSuggestionScreenState extends State<FeatureSuggestionScreen> {
       child: Text(
         text,
         style: TrackletFonts.outfit(
-          fontSize: 13.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize13,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.adaptiveTextPrimary(context),
         ),
       ),

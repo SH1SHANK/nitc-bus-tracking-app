@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/tokens/spacing.dart';
@@ -56,7 +58,7 @@ class LegalContentDialog extends StatelessWidget {
     final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
         vertical: TrackletSpacing.spacious,
@@ -99,8 +101,8 @@ class LegalContentDialog extends StatelessWidget {
                   Text(
                     title,
                     style: TrackletFonts.outfit(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize20,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -127,8 +129,8 @@ class LegalContentDialog extends StatelessWidget {
                 child: Text(
                   content,
                   style: TrackletFonts.outfit(
-                    fontSize: 13.5,
-                    height: 1.5,
+                    fontSize: TrackletTypography.fontSize13_5,
+                    height: TrackletTypography.lineHeightRelaxed,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -158,7 +160,9 @@ class LegalContentDialog extends StatelessWidget {
                   ),
                   child: Text(
                     'Close',
-                    style: TrackletFonts.outfit(fontWeight: FontWeight.w600),
+                    style: TrackletFonts.outfit(
+                      fontWeight: TrackletTypography.weightSemiBold,
+                    ),
                   ),
                 ),
               ),

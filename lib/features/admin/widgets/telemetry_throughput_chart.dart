@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -36,7 +37,7 @@ class TelemetryThroughputChart extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(7),
+                padding: const EdgeInsets.all(TrackletSpacing.iconBadgeInset),
                 decoration: BoxDecoration(
                   color: TrackletColors.primary.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
@@ -56,13 +57,13 @@ class TelemetryThroughputChart extends StatelessWidget {
                       'Telemetry Ingestion Throughput',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontSize: TrackletTypography.fontSize15,
                       ),
                     ),
                     Text(
                       'Hourly packet throughput (Past 24 Hours)',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: TrackletTypography.fontSize11_5,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -70,7 +71,10 @@ class TelemetryThroughputChart extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.sm,
+                  vertical: TrackletSpacing.xs,
+                ),
                 decoration: BoxDecoration(
                   color: TrackletColors.primary.withValues(alpha: 0.1),
                   borderRadius: TrackletRadii.roundedSm,
@@ -81,7 +85,7 @@ class TelemetryThroughputChart extends StatelessWidget {
                 child: Text(
                   '$totalPackets24h pkts / 24h',
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: TrackletTypography.fontSize11,
                     fontWeight: FontWeight.bold,
                     color: TrackletColors.primary,
                     fontFamily: 'monospace',
@@ -98,7 +102,7 @@ class TelemetryThroughputChart extends StatelessWidget {
               child: Text(
                 'No telemetry packets recorded in the last 24 hours.',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextMuted(context),
                 ),
               ),
@@ -114,7 +118,7 @@ class TelemetryThroughputChart extends StatelessWidget {
                   lineColor: TrackletColors.primary,
                   gridColor:
                       isDark
-                          ? Colors.white.withValues(alpha: 0.08)
+                          ? TrackletColors.textInverse.withValues(alpha: 0.08)
                           : Colors.black.withValues(alpha: 0.08),
                   textColor: TrackletColors.adaptiveTextMuted(context),
                 ),
@@ -127,7 +131,7 @@ class TelemetryThroughputChart extends StatelessWidget {
                 Text(
                   _formatHour(buckets.first.timestamp),
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: TrackletTypography.fontSize10,
                     fontFamily: 'monospace',
                     color: TrackletColors.adaptiveTextMuted(context),
                   ),
@@ -135,15 +139,15 @@ class TelemetryThroughputChart extends StatelessWidget {
                 Text(
                   'Peak: $maxCount pkts/hr',
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize10,
+                    fontWeight: TrackletTypography.weightSemiBold,
                     color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                 ),
                 Text(
                   _formatHour(buckets.last.timestamp),
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: TrackletTypography.fontSize10,
                     fontFamily: 'monospace',
                     color: TrackletColors.adaptiveTextMuted(context),
                   ),
@@ -184,7 +188,7 @@ class TelemetryThroughputChart extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10.5,
+            fontSize: TrackletTypography.fontSize10_5,
             color: TrackletColors.adaptiveTextMuted(context),
           ),
         ),
@@ -192,7 +196,7 @@ class TelemetryThroughputChart extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: TrackletTypography.fontSize13,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
           ),
@@ -292,7 +296,7 @@ class _ThroughputChartPainter extends CustomPainter {
 
     // Draw marker dots
     final dotPaint = Paint()..color = lineColor;
-    final dotInnerPaint = Paint()..color = Colors.white;
+    final dotInnerPaint = Paint()..color = TrackletColors.textInverse;
 
     for (int i = 0; i < points.length; i++) {
       if (buckets.length > 12 && i % 2 != 0) continue;

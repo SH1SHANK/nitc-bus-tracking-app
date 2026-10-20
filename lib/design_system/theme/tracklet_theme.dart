@@ -4,6 +4,7 @@ import 'package:moon_design/moon_design.dart' as md;
 
 import '../tokens/colors.dart';
 import '../tokens/radii.dart';
+import '../tokens/shadows.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
 
@@ -14,24 +15,44 @@ class TrackletTheme {
   static ThemeData get lightTheme {
     const colorScheme = ColorScheme.light(
       primary: TrackletColors.primary,
+      surfaceTint: TrackletColors.surfaceTint,
+      inversePrimary: TrackletColors.inversePrimary,
       onPrimary: TrackletColors.textInverse,
       primaryContainer: TrackletColors.primaryContainer,
       onPrimaryContainer: TrackletColors.onPrimaryContainer,
+      primaryFixed: TrackletColors.primaryFixed,
+      primaryFixedDim: TrackletColors.primaryFixedDim,
+      onPrimaryFixed: TrackletColors.onPrimaryFixed,
+      onPrimaryFixedVariant: TrackletColors.onPrimaryFixedVariant,
       secondary: TrackletColors.secondary,
       onSecondary: TrackletColors.textInverse,
       secondaryContainer: TrackletColors.secondaryContainer,
       onSecondaryContainer: TrackletColors.onSecondaryContainer,
+      secondaryFixed: TrackletColors.secondaryFixed,
+      secondaryFixedDim: TrackletColors.secondaryFixedDim,
+      onSecondaryFixed: TrackletColors.onSecondaryFixed,
+      onSecondaryFixedVariant: TrackletColors.onSecondaryFixedVariant,
       tertiary: TrackletColors.tertiary,
       onTertiary: TrackletColors.textInverse,
       tertiaryContainer: TrackletColors.tertiaryContainer,
       onTertiaryContainer: TrackletColors.onTertiaryContainer,
+      tertiaryFixed: TrackletColors.tertiaryFixed,
+      tertiaryFixedDim: TrackletColors.tertiaryFixedDim,
+      onTertiaryFixed: TrackletColors.onTertiaryFixed,
+      onTertiaryFixedVariant: TrackletColors.onTertiaryFixedVariant,
       surface: TrackletColors.surface,
+      surfaceDim: TrackletColors.surfaceDim,
+      surfaceBright: TrackletColors.surfaceBright,
+      surfaceContainerLow: TrackletColors.surfaceContainerLow,
+      surfaceContainerHighest: TrackletColors.surfaceContainerHighest,
+      inverseSurface: TrackletColors.inverseSurface,
+      onInverseSurface: TrackletColors.onInverseSurface,
+      shadow: TrackletColors.shadow,
+      scrim: TrackletColors.scrim,
       onSurface: TrackletColors.textPrimary,
       surfaceContainerLowest: TrackletColors.surfaceContainerLowest,
-      surfaceContainerLow: TrackletColors.surfaceContainer,
       surfaceContainer: TrackletColors.surfaceContainer,
       surfaceContainerHigh: TrackletColors.surfaceContainerHigh,
-      surfaceContainerHighest: TrackletColors.surfaceElevated,
       onSurfaceVariant: TrackletColors.textSecondary,
       outline: TrackletColors.border,
       outlineVariant: TrackletColors.cardBorder,
@@ -54,7 +75,7 @@ class TrackletTheme {
       ],
       cardTheme: const CardThemeData(
         color: TrackletColors.surfaceElevated,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: TrackletRadii.roundedCard,
@@ -64,8 +85,8 @@ class TrackletTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: TrackletColors.background,
         foregroundColor: TrackletColors.textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
+        scrolledUnderElevation: TrackletShadows.elevationLevel0,
         centerTitle: false,
         titleTextStyle: TrackletTypography.titleLarge,
         systemOverlayStyle: SystemUiOverlayStyle(
@@ -101,11 +122,11 @@ class TrackletTheme {
         ),
         floatingLabelStyle: TrackletTypography.labelMedium.copyWith(
           color: TrackletColors.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: TrackletTypography.weightBold,
         ),
         errorStyle: TrackletTypography.labelSmall.copyWith(
           color: TrackletColors.errorBorder,
-          fontWeight: FontWeight.w600,
+          fontWeight: TrackletTypography.weightSemiBold,
         ),
         border: const OutlineInputBorder(
           borderRadius: TrackletRadii.roundedInput,
@@ -145,12 +166,12 @@ class TrackletTheme {
         backgroundColor: TrackletColors.surface,
         modalBackgroundColor: TrackletColors.surface,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         shape: RoundedRectangleBorder(borderRadius: TrackletRadii.roundedTopLg),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: TrackletColors.surface,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         indicatorColor: TrackletColors.primary.withValues(alpha: 0.12),
       ),
       chipTheme: const ChipThemeData(
@@ -175,7 +196,7 @@ class TrackletTheme {
             borderRadius: TrackletRadii.roundedButton,
           ),
           textStyle: TrackletTypography.labelLarge,
-          elevation: 0,
+          elevation: TrackletShadows.elevationLevel0,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -211,24 +232,44 @@ class TrackletTheme {
   static ThemeData get darkTheme {
     const colorScheme = ColorScheme.dark(
       primary: TrackletColors.primary,
+      surfaceTint: TrackletColors.darkSurfaceTint,
+      inversePrimary: TrackletColors.darkInversePrimary,
       onPrimary: TrackletColors.textInverse,
       primaryContainer: TrackletColors.primaryContainerDark,
       onPrimaryContainer: TrackletColors.onPrimaryContainerDark,
+      primaryFixed: TrackletColors.primaryFixed,
+      primaryFixedDim: TrackletColors.primaryFixedDim,
+      onPrimaryFixed: TrackletColors.onPrimaryFixed,
+      onPrimaryFixedVariant: TrackletColors.onPrimaryFixedVariant,
       secondary: TrackletColors.secondary,
       onSecondary: TrackletColors.textInverse,
       secondaryContainer: TrackletColors.secondaryContainerDark,
       onSecondaryContainer: TrackletColors.onSecondaryContainerDark,
+      secondaryFixed: TrackletColors.secondaryFixed,
+      secondaryFixedDim: TrackletColors.secondaryFixedDim,
+      onSecondaryFixed: TrackletColors.onSecondaryFixed,
+      onSecondaryFixedVariant: TrackletColors.onSecondaryFixedVariant,
       tertiary: TrackletColors.tertiary,
       onTertiary: TrackletColors.textInverse,
       tertiaryContainer: TrackletColors.tertiaryContainerDark,
       onTertiaryContainer: TrackletColors.onTertiaryContainerDark,
+      tertiaryFixed: TrackletColors.tertiaryFixed,
+      tertiaryFixedDim: TrackletColors.tertiaryFixedDim,
+      onTertiaryFixed: TrackletColors.onTertiaryFixed,
+      onTertiaryFixedVariant: TrackletColors.onTertiaryFixedVariant,
       surface: TrackletColors.darkSurface,
+      surfaceDim: TrackletColors.darkSurfaceDim,
+      surfaceBright: TrackletColors.darkSurfaceBright,
+      surfaceContainerLow: TrackletColors.darkSurfaceContainerLow,
+      surfaceContainerHighest: TrackletColors.darkSurfaceContainerHighest,
+      inverseSurface: TrackletColors.darkInverseSurface,
+      onInverseSurface: TrackletColors.darkOnInverseSurface,
+      shadow: TrackletColors.shadow,
+      scrim: TrackletColors.scrim,
       onSurface: TrackletColors.darkTextPrimary,
       surfaceContainerLowest: TrackletColors.darkSurfaceContainerLowest,
-      surfaceContainerLow: TrackletColors.darkSurface,
       surfaceContainer: TrackletColors.darkSurfaceContainer,
       surfaceContainerHigh: TrackletColors.darkSurfaceContainerHigh,
-      surfaceContainerHighest: TrackletColors.darkSurfaceElevated,
       onSurfaceVariant: TrackletColors.darkTextSecondary,
       outline: TrackletColors.darkBorder,
       outlineVariant: TrackletColors.darkCardBorder,
@@ -251,7 +292,7 @@ class TrackletTheme {
       ],
       cardTheme: const CardThemeData(
         color: TrackletColors.darkSurfaceElevated,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: TrackletRadii.roundedCard,
@@ -261,8 +302,8 @@ class TrackletTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: TrackletColors.darkBackground,
         foregroundColor: TrackletColors.darkTextPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
+        scrolledUnderElevation: TrackletShadows.elevationLevel0,
         centerTitle: false,
         titleTextStyle: TrackletTypography.titleLarge,
         systemOverlayStyle: SystemUiOverlayStyle(
@@ -298,11 +339,11 @@ class TrackletTheme {
         ),
         floatingLabelStyle: TrackletTypography.labelMedium.copyWith(
           color: TrackletColors.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: TrackletTypography.weightBold,
         ),
         errorStyle: TrackletTypography.labelSmall.copyWith(
           color: TrackletColors.errorBorder,
-          fontWeight: FontWeight.w600,
+          fontWeight: TrackletTypography.weightSemiBold,
         ),
         border: const OutlineInputBorder(
           borderRadius: TrackletRadii.roundedInput,
@@ -342,12 +383,12 @@ class TrackletTheme {
         backgroundColor: TrackletColors.darkSurface,
         modalBackgroundColor: TrackletColors.darkSurface,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         shape: RoundedRectangleBorder(borderRadius: TrackletRadii.roundedTopLg),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: TrackletColors.darkSurface,
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         indicatorColor: TrackletColors.primary.withValues(alpha: 0.12),
       ),
       chipTheme: const ChipThemeData(
@@ -372,7 +413,7 @@ class TrackletTheme {
             borderRadius: TrackletRadii.roundedButton,
           ),
           textStyle: TrackletTypography.labelLarge,
-          elevation: 0,
+          elevation: TrackletShadows.elevationLevel0,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

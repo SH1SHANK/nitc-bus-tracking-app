@@ -311,7 +311,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             style: Theme.of(
                               sheetContext,
                             ).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: TrackletTypography.weightBold,
                               color: TrackletColors.adaptiveTextPrimary(
                                 sheetContext,
                               ),
@@ -475,7 +475,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                   color: TrackletColors.adaptiveTextPrimary(
                                     sheetContext,
                                   ),
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: TrackletTypography.weightBold,
                                 ),
                               ),
                             ),
@@ -521,7 +521,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           minLeadingWidth: 44,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: TrackletSpacing.sm,
-                            vertical: 2,
+                            vertical: TrackletSpacing.xxs,
                           ),
                           leading: Container(
                             width: 44,
@@ -540,7 +540,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: routeColor,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                           ),
@@ -554,8 +554,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               ),
                               fontWeight:
                                   isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w600,
+                                      ? TrackletTypography.weightBold
+                                      : TrackletTypography.weightSemiBold,
                             ),
                           ),
                           subtitle:
@@ -976,7 +976,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               shape: BoxShape.circle,
               color: TrackletColors.primary.withValues(alpha: 0.18),
             ),
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(TrackletSpacing.xs),
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -1201,7 +1201,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       color: TrackletColors.adaptiveBorder(context),
                     ),
                   ),
-                  elevation: 2,
+                  elevation: TrackletShadows.elevationLevel2,
                   child: TextButton.icon(
                     onPressed: () => ref.invalidate(campusBuildingsProvider),
                     icon: const Icon(TrackletIcons.refreshCw, size: 18),
@@ -1210,7 +1210,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       foregroundColor: TrackletColors.adaptiveTextSecondary(
                         context,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TrackletSpacing.md,
+                      ),
                       minimumSize: const Size(0, 40),
                     ),
                   ),
@@ -1485,14 +1487,14 @@ class _FleetLoadingCard extends StatelessWidget {
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
       borderRadius: TrackletRadii.roundedLg,
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.14),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TrackletSpacing.md,
-          vertical: TrackletSpacing.sm + 4,
+          vertical: TrackletSpacing.sm + TrackletSpacing.xs,
         ),
         decoration: BoxDecoration(
           borderRadius: TrackletRadii.roundedLg,
@@ -1519,7 +1521,7 @@ class _FleetLoadingCard extends StatelessWidget {
               child: Text(
                 'Connecting to live bus fleet...',
                 style: TrackletTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TrackletTypography.weightSemiBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
@@ -1543,7 +1545,7 @@ class _FleetErrorCard extends StatelessWidget {
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
       borderRadius: TrackletRadii.roundedLg,
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.14),
@@ -1578,7 +1580,7 @@ class _FleetErrorCard extends StatelessWidget {
                   Text(
                     'Could not load bus locations',
                     style: TrackletTypography.titleSmall.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -1619,7 +1621,7 @@ class _EmptyFleetCard extends StatelessWidget {
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
       borderRadius: TrackletRadii.roundedLg,
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.14),
@@ -1657,7 +1659,7 @@ class _EmptyFleetCard extends StatelessWidget {
                   Text(
                     'No active buses right now',
                     style: TrackletTypography.titleSmall.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -1701,14 +1703,14 @@ class _FleetOverviewCard extends StatelessWidget {
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
       borderRadius: TrackletRadii.roundedLg,
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.14),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TrackletSpacing.md,
-          vertical: TrackletSpacing.sm + 2,
+          vertical: TrackletSpacing.sm + TrackletSpacing.xxs,
         ),
         decoration: BoxDecoration(
           borderRadius: TrackletRadii.roundedLg,
@@ -1742,7 +1744,7 @@ class _FleetOverviewCard extends StatelessWidget {
                   Text(
                     'Campus Transit Fleet',
                     style: TrackletTypography.titleSmall.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -1780,7 +1782,7 @@ class _LegendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
+    padding: const EdgeInsets.symmetric(vertical: TrackletSpacing.xs),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [

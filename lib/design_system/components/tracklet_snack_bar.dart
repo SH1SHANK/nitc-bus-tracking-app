@@ -1,7 +1,9 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 
 import '../tokens/colors.dart';
 import '../tokens/radii.dart';
+import '../tokens/shadows.dart';
 import '../tokens/spacing.dart';
 import '../tokens/tracklet_fonts.dart';
 
@@ -127,7 +129,7 @@ class TrackletSnackBar {
         behavior: SnackBarBehavior.floating,
         backgroundColor: bgColor,
         duration: effectiveDuration,
-        elevation: 4.0,
+        elevation: TrackletShadows.elevationLevel4,
         margin: const EdgeInsets.symmetric(
           horizontal: TrackletSpacing.screenMargin,
           vertical: TrackletSpacing.sm,
@@ -144,9 +146,9 @@ class TrackletSnackBar {
                 message,
                 style: TrackletFonts.outfit(
                   color: TrackletColors.textInverse,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  height: 1.35,
+                  fontSize: TrackletTypography.fontSize13_5,
+                  fontWeight: TrackletTypography.weightMedium,
+                  height: TrackletTypography.lineHeightBodyCompact,
                 ),
               ),
             ),

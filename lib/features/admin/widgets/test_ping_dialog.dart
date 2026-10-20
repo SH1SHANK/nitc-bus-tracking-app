@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -98,7 +99,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(TrackletSpacing.sm),
             decoration: BoxDecoration(
               color: TrackletColors.primary.withValues(alpha: 0.12),
               borderRadius: TrackletRadii.roundedSm,
@@ -113,7 +114,10 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
           const Expanded(
             child: Text(
               'Test Device Gateway',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: TrackletTypography.fontSize18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -129,13 +133,13 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                 'Execute live reboot-session handshake for tracker ${widget.deviceId} against the telemetry ingest gateway.',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 13,
+                  fontSize: TrackletTypography.fontSize13,
                 ),
               ),
               const SizedBox(height: TrackletSpacing.md),
               if (isSimulator)
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(TrackletSpacing.compactMd),
                   margin: const EdgeInsets.only(bottom: TrackletSpacing.md),
                   decoration: BoxDecoration(
                     color: TrackletColors.primary.withValues(alpha: 0.08),
@@ -156,7 +160,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                         child: Text(
                           'Pre-filled with verified hardware test credentials from simulator workbench.',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
@@ -199,7 +203,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
               if (_errorMessage != null) ...[
                 const SizedBox(height: TrackletSpacing.md),
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(TrackletSpacing.compactMd),
                   decoration: BoxDecoration(
                     color: TrackletColors.error.withValues(alpha: 0.1),
                     borderRadius: TrackletRadii.roundedSm,
@@ -220,7 +224,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                           _errorMessage!,
                           style: const TextStyle(
                             color: TrackletColors.error,
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                           ),
                         ),
                       ),
@@ -272,7 +276,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
             : TrackletColors.error;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(TrackletSpacing.md),
       decoration: BoxDecoration(
         color:
             ok
@@ -304,13 +308,16 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                       : 'Gateway Handshake Failed',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: TrackletTypography.fontSize13,
                     color: ok ? TrackletColors.success : TrackletColors.error,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.compact,
+                  vertical: TrackletSpacing.xxs,
+                ),
                 decoration: BoxDecoration(
                   color: latencyColor.withValues(alpha: 0.15),
                   borderRadius: TrackletRadii.roundedSm,
@@ -318,7 +325,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                 child: Text(
                   '$latency ms',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TrackletTypography.fontSize11,
                     fontWeight: FontWeight.bold,
                     color: latencyColor,
                   ),
@@ -329,27 +336,37 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
           const SizedBox(height: 8),
           if (epoch != null)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                vertical: TrackletSpacing.xxs,
+              ),
               child: Text(
                 'Negotiated Epoch: $epoch ${idempotent ? '(Idempotent Retry)' : '(Fresh Epoch)'}',
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                style: const TextStyle(
+                  fontSize: TrackletTypography.fontSize12,
+                  fontFamily: 'monospace',
+                ),
               ),
             ),
           if (httpStatus != null)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(
+                vertical: TrackletSpacing.xxs,
+              ),
               child: Text(
                 'HTTP Status: $httpStatus',
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                style: const TextStyle(
+                  fontSize: TrackletTypography.fontSize12,
+                  fontFamily: 'monospace',
+                ),
               ),
             ),
           if (result['message'] != null)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: TrackletSpacing.xs),
               child: Text(
                 result['message'].toString(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),

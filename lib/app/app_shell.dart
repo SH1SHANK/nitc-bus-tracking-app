@@ -34,77 +34,77 @@ class AppShell extends StatelessWidget {
         }
       },
       child: Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Background Curved Bar Container
-          Container(
-            height:
-                TrackletSpacing.bottomBarHeight +
-                MediaQuery.of(context).padding.bottom,
-            decoration: BoxDecoration(
-              color: surfaceColor,
-              borderRadius: TrackletRadii.roundedTopCurvedBar,
-              border: Border(
-                top: BorderSide(
-                  color:
-                      isDark
-                          ? TrackletColors.darkCardBorder
-                          : TrackletColors.cardBorder,
-                  width: 1.0,
+        body: navigationShell,
+        bottomNavigationBar: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
+          children: [
+            // Background Curved Bar Container
+            Container(
+              height:
+                  TrackletSpacing.bottomBarHeight +
+                  MediaQuery.of(context).padding.bottom,
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: TrackletRadii.roundedTopCurvedBar,
+                border: Border(
+                  top: BorderSide(
+                    color:
+                        isDark
+                            ? TrackletColors.darkCardBorder
+                            : TrackletColors.cardBorder,
+                    width: 1.0,
+                  ),
+                ),
+                boxShadow: TrackletShadows.adaptiveBottomBar(context),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.xl,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 1. Home Item
+                      _NavBarItem(
+                        animatedIcon: animated.home,
+                        label: 'Home',
+                        isSelected: currentIndex == 0,
+                        onTap: () => _onTabSelected(0),
+                      ),
+
+                      // Placeholder spacing for center elevated button
+                      const SizedBox(width: TrackletSpacing.bottomBarHeight),
+
+                      // 3. Profile Item
+                      _NavBarItem(
+                        animatedIcon: animated.user,
+                        label: 'Profile',
+                        isSelected: currentIndex == 2,
+                        onTap: () => _onTabSelected(2),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              boxShadow: TrackletShadows.adaptiveBottomBar(context),
             ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TrackletSpacing.xl,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // 1. Home Item
-                    _NavBarItem(
-                      animatedIcon: animated.home,
-                      label: 'Home',
-                      isSelected: currentIndex == 0,
-                      onTap: () => _onTabSelected(0),
-                    ),
 
-                    // Placeholder spacing for center elevated button
-                    const SizedBox(width: TrackletSpacing.bottomBarHeight),
-
-                    // 3. Profile Item
-                    _NavBarItem(
-                      animatedIcon: animated.user,
-                      label: 'Profile',
-                      isSelected: currentIndex == 2,
-                      onTap: () => _onTabSelected(2),
-                    ),
-                  ],
-                ),
+            // Center Floating Elevated MAP Action Button
+            Positioned(
+              top: -20,
+              child: _ElevatedCenterMapButton(
+                isSelected: currentIndex == 1,
+                onTap: () => _onTabSelected(1),
+                ringColor: surfaceColor,
               ),
             ),
-          ),
-
-          // Center Floating Elevated MAP Action Button
-          Positioned(
-            top: -20,
-            child: _ElevatedCenterMapButton(
-              isSelected: currentIndex == 1,
-              onTap: () => _onTabSelected(1),
-              ringColor: surfaceColor,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _onTabSelected(int index) {
     if (index != navigationShell.currentIndex) {
@@ -222,7 +222,10 @@ class _NavBarItemState extends State<_NavBarItem> {
                   curve: TrackletMotion.easeOut,
                   style: TrackletTypography.caption.copyWith(
                     color: isSelected ? activeColor : inactiveColor,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                    fontWeight:
+                        isSelected
+                            ? TrackletTypography.weightExtraBold
+                            : TrackletTypography.weightMedium,
                   ),
                   child: Text(label),
                 ),
@@ -235,7 +238,7 @@ class _NavBarItemState extends State<_NavBarItem> {
                   width: isSelected ? 14 : 0,
                   decoration: BoxDecoration(
                     color: isSelected ? activeColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: TrackletRadii.roundedXxs,
                   ),
                 ),
               ],
@@ -341,7 +344,10 @@ class _ElevatedCenterMapButtonState extends State<_ElevatedCenterMapButton> {
                         : (isDark
                             ? TrackletColors.darkTextSecondary
                             : TrackletColors.textSecondary),
-                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                fontWeight:
+                    isSelected
+                        ? TrackletTypography.weightBlack
+                        : TrackletTypography.weightBold,
                 letterSpacing: 0.8,
               ),
               child: const Text('MAP'),
@@ -355,7 +361,7 @@ class _ElevatedCenterMapButtonState extends State<_ElevatedCenterMapButton> {
               width: isSelected ? 14 : 0,
               decoration: BoxDecoration(
                 color: isSelected ? primaryColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: TrackletRadii.roundedXxs,
               ),
             ),
           ],

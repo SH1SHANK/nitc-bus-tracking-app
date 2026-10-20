@@ -111,8 +111,8 @@ class StopMarkerWidget extends StatelessWidget {
                         style: TrackletTypography.labelSmall.copyWith(
                           fontWeight:
                               isSelected || isRouteStop || isCurrent || isNext
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                                  ? TrackletTypography.weightBold
+                                  : TrackletTypography.weightMedium,
                           color:
                               isSelected
                                   ? TrackletColors.textInverse

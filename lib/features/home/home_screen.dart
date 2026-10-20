@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/formatting/transit_formatter.dart';
 import '../../core/geo/geo_point.dart';
 import '../../data/auth/auth_repository.dart';
+import '../../data/notifications/notification_repository.dart';
 import '../../data/profile/profile.dart';
 import '../../data/transit/bus.dart';
 import '../../data/transit/bus_route.dart';
@@ -26,6 +28,8 @@ import '../../design_system/tokens/motion.dart';
 import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
 import '../../services/location/location_service.dart';
+import '../../services/notifications/onesignal_service.dart';
+import '../../services/widget/widget_sync_service.dart';
 import '../admin/providers/admin_provider.dart';
 import '../map/providers/map_state_provider.dart';
 import 'home_transit_logic.dart';
@@ -53,7 +57,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // Observe push subscription registration and display completion dialog once registered
+        OneSignalService.setupPushSubscriptionObserver(
+          context,
+          onRegistered: (subId) {
+            final authRepo = ref.read(authRepositoryProvider);
+            if (authRepo.isAuthenticated) {
+              ref
+                  .read(notificationRepositoryProvider)
+                  .updateSubscription(
+                    platform:
+                        Theme.of(context).platform == TargetPlatform.iOS
+                            ? 'ios'
+                            : 'android',
+                    oneSignalSubId: subId,
+                  );
+            }
+          },
+        );
+
         final locState = ref.read(locationStateProvider);
+        if (locState.currentLocation != null) {
+          WidgetSyncService.setUserLocation(
+            latitude: locState.currentLocation!.latitude,
+            longitude: locState.currentLocation!.longitude,
+          );
+        }
+
         if (!locState.hasPermission &&
             locState.permissionState != LocationPermissionState.deniedForever) {
           ref.read(locationStateProvider.notifier).requestAndFetchLocation();
@@ -62,6 +92,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         }
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Push reference data (stops + route-stop maps) to the Android widget store once the
+    // home state resolves. This supersedes the hardcoded fallback in WidgetPreferences.kt.
+    ref.listenManual(homeStateProvider, (_, next) {
+      next.whenData((state) {
+        if (state.stops.isNotEmpty && state.routes.isNotEmpty) {
+          WidgetSyncService.syncReferenceData(
+            stops: state.stops,
+            routes: state.routes,
+          );
+        }
+      });
+    });
+    // Keep the widget state fresh whenever live bus positions update while the app is open.
+    ref.listenManual(liveTransitPollingProvider, (_, next) {
+      if (!next.isRefreshing) {
+        _pushWidgetBusState(next.buses);
+      }
+    });
+    // Keep the widget GPS position in sync whenever the user's location updates.
+    ref.listenManual(locationStateProvider, (_, next) {
+      final loc = next.currentLocation;
+      if (loc != null) {
+        WidgetSyncService.setUserLocation(
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+        );
+      }
+    });
+  }
+
+  /// Resolves the nearest qualifying bus for the current boarding stop and pushes
+  /// it to the Android home-screen widget cache.
+  void _pushWidgetBusState(List<Bus> buses) {
+    final homeStateValue = ref.read(homeStateProvider).value;
+    if (homeStateValue == null) return;
+
+    final stops = homeStateValue.stops;
+    final routes = homeStateValue.routes;
+    final locationState = ref.read(locationStateProvider);
+
+    // Replicate boarding-stop resolution identical to the build() logic.
+    final nearestStop =
+        locationState.currentLocation == null
+            ? null
+            : nearestCampusStopTo(locationState.currentLocation!, stops);
+
+    final boardingStop =
+        _manualBoardingStop != null
+            ? (stops
+                    .where((s) => s.id == _manualBoardingStop!.id)
+                    .firstOrNull ??
+                _manualBoardingStop!)
+            : (nearestStop ??
+                stops
+                    .where(
+                      (s) =>
+                          s.sourceStopId == 'main_gate' ||
+                          s.name == 'Main Gate',
+                    )
+                    .firstOrNull ??
+                stops.firstOrNull);
+
+    if (boardingStop == null) return;
+
+    final routesById = {for (final r in routes) r.id: r};
+
+    // Find the closest qualifying bus (route serves boardingStop, valid position,
+    // not (0,0)) — mirrors the Kotlin widget logic.
+    Bus? nearestBus;
+    double? nearestDistanceMeters;
+
+    for (final bus in buses) {
+      final route = routesById[bus.routeId];
+      if (route == null) continue;
+      if (!route.stopIds.contains(boardingStop.id)) continue;
+      if (!bus.hasValidLocation) continue;
+      if (bus.position.point.latitude == 0.0 &&
+          bus.position.point.longitude == 0.0) {
+        continue;
+      }
+
+      final dist = bus.position.point.distanceToMeters(boardingStop.location);
+      if (nearestDistanceMeters == null || dist < nearestDistanceMeters) {
+        nearestBus = bus;
+        nearestDistanceMeters = dist;
+      }
+    }
+
+    WidgetSyncService.updateWidgetState(
+      stopName: boardingStop.name,
+      bus: nearestBus,
+      distanceMeters: nearestDistanceMeters,
+    );
   }
 
   @override
@@ -221,6 +349,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           onResetToAuto: () {
                             HapticFeedback.selectionClick();
                             setState(() => _manualBoardingStop = null);
+                            WidgetSyncService.setPinnedStop(
+                              stopId: null,
+                              stopName: null,
+                            );
                           },
                           onChange:
                               () => _openStopSelector(
@@ -275,6 +407,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         setState(() {
           _manualBoardingStop = selected;
         });
+        WidgetSyncService.setPinnedStop(
+          stopId: selected.id,
+          stopName: selected.name,
+        );
       },
     );
   }
@@ -336,14 +472,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         'Account Options',
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightExtraBold,
+                          letterSpacing: TrackletTypography.letterSpacingWide,
                         ),
                       ),
                     ),
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: TrackletSpacing.lg,
+                      ),
                       decoration: BoxDecoration(
                         color: TrackletColors.adaptiveSurfaceElevated(context),
                         borderRadius: TrackletRadii.roundedCardLg,
@@ -360,7 +498,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           },
                           borderRadius: TrackletRadii.roundedCardLg,
                           child: Padding(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(
+                              TrackletSpacing.compactLg,
+                            ),
                             child: Row(
                               children: [
                                 VoxelAvatar(
@@ -386,8 +526,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                               TrackletColors.adaptiveTextPrimary(
                                                 context,
                                               ),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w800,
+                                          fontSize:
+                                              TrackletTypography.fontSize14,
+                                          fontWeight:
+                                              TrackletTypography
+                                                  .weightExtraBold,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -402,7 +545,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                               TrackletColors.adaptiveTextSecondary(
                                                 context,
                                               ),
-                                          fontSize: 12,
+                                          fontSize:
+                                              TrackletTypography.fontSize12,
                                         ),
                                       ),
                                     ],
@@ -423,12 +567,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                       child: Text(
-                        'CAMPUS',
+                        'CAMPUS TRANSIT',
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextMuted(context),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
+                          fontSize: TrackletTypography.fontSize10,
+                          fontWeight: TrackletTypography.weightExtraBold,
+                          letterSpacing:
+                              TrackletTypography.letterSpacingExpanded,
                         ),
                       ),
                     ),
@@ -441,6 +586,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         context.go('/map');
                       },
                     ),
+                    _drawerItem(
+                      context: context,
+                      icon: TrackletIcons.calendar,
+                      title: 'Bus Timetable & Schedule',
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/schedule');
+                      },
+                    ),
+                    _drawerItem(
+                      context: context,
+                      icon: TrackletIcons.notifications,
+                      title: 'Announcements & Inbox',
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/notifications');
+                      },
+                    ),
+                    _drawerItem(
+                      context: context,
+                      icon: TrackletIcons.clock,
+                      title: 'Boarding Reminders',
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/reminders');
+                      },
+                    ),
                     if (isAdmin) ...[
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -448,9 +620,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           'ADMIN CONTROLS',
                           style: TextStyle(
                             color: TrackletColors.adaptiveTextMuted(context),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1,
+                            fontSize: TrackletTypography.fontSize10,
+                            fontWeight: TrackletTypography.weightExtraBold,
+                            letterSpacing:
+                                TrackletTypography.letterSpacingExpanded,
                           ),
                         ),
                       ),
@@ -470,9 +643,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         'PREFERENCES & SUPPORT',
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextMuted(context),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
+                          fontSize: TrackletTypography.fontSize10,
+                          fontWeight: TrackletTypography.weightExtraBold,
+                          letterSpacing:
+                              TrackletTypography.letterSpacingExpanded,
                         ),
                       ),
                     ),
@@ -491,11 +665,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       title: 'Report Errors/Bugs',
                       onTap: () {
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Opening bug report form...'),
-                          ),
-                        );
+                        context.push('/bug-report');
+                      },
+                    ),
+                    _drawerItem(
+                      context: context,
+                      icon: TrackletIcons.sparkles,
+                      title: 'Suggest a Feature',
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/feature-suggestion');
+                      },
+                    ),
+                    _drawerItem(
+                      context: context,
+                      icon: TrackletIcons.helpCircle,
+                      title: 'About & Information',
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/about');
                       },
                     ),
                   ],
@@ -515,7 +703,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 'BusTracker v1.0.0 · NITC Bus Tracking',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 11,
+                  fontSize: TrackletTypography.fontSize11,
                 ),
               ),
             ),
@@ -556,7 +744,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 Text(
                   isGuest ? 'Exit Guest Session' : 'Log Out',
                   style: TrackletFonts.outfit(
-                    fontSize: 18.0,
+                    fontSize: TrackletTypography.fontSize18,
                     fontWeight: FontWeight.bold,
                     color: TrackletColors.adaptiveTextPrimary(ctx),
                   ),
@@ -578,7 +766,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   'Cancel',
                   style: TrackletFonts.outfit(
                     color: TrackletColors.adaptiveTextSecondary(ctx),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -590,11 +778,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   shape: const RoundedRectangleBorder(
                     borderRadius: TrackletRadii.roundedSm,
                   ),
-                  elevation: 0,
+                  elevation: TrackletShadows.elevationLevel0,
                 ),
                 child: Text(
                   isGuest ? 'Exit Guest Mode' : 'Log Out',
-                  style: TrackletFonts.outfit(fontWeight: FontWeight.w600),
+                  style: TrackletFonts.outfit(
+                    fontWeight: TrackletTypography.weightSemiBold,
+                  ),
                 ),
               ),
             ],
@@ -617,7 +807,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     required String title,
     required VoidCallback onTap,
   }) => ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: TrackletSpacing.section,
+    ),
     minLeadingWidth: 24,
     leading: Icon(
       icon,
@@ -628,15 +820,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       title,
       style: TextStyle(
         color: TrackletColors.adaptiveTextPrimary(context),
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontSize: TrackletTypography.fontSize14,
+        fontWeight: TrackletTypography.weightSemiBold,
       ),
     ),
     onTap: onTap,
   );
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends ConsumerWidget {
   const _HomeHeader({
     required this.scaffoldKey,
     required this.profile,
@@ -648,8 +840,10 @@ class _HomeHeader extends StatelessWidget {
   final VoidCallback onProfilePressed;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+    final unreadCount = unreadCountAsync.value ?? 0;
     return Container(
       decoration: BoxDecoration(
         color:
@@ -690,9 +884,9 @@ class _HomeHeader extends StatelessWidget {
                             isDark
                                 ? TrackletColors.darkTextPrimary
                                 : TrackletColors.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
+                        fontSize: TrackletTypography.fontSize20,
+                        fontWeight: TrackletTypography.weightExtraBold,
+                        letterSpacing: TrackletTypography.letterSpacingDisplay,
                       ),
                     ),
                     const SizedBox(height: 1),
@@ -705,53 +899,92 @@ class _HomeHeader extends StatelessWidget {
                             isDark
                                 ? TrackletColors.darkTextSecondary
                                 : TrackletColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightSemiBold,
+                        letterSpacing: TrackletTypography.letterSpacingSubtle,
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+              if (MediaQuery.sizeOf(context).width > 360) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.compactMd,
+                    vertical: TrackletSpacing.compact,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark
+                            ? TrackletColors.darkSurfaceElevated.withValues(
+                              alpha: 0.85,
+                            )
+                            : TrackletColors.pure.withValues(alpha: 0.75),
+                    borderRadius: TrackletRadii.roundedPill,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        TrackletIcons.circle,
+                        color: TrackletColors.busLive,
+                        size: 7,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'CAMPUS',
+                        style: TextStyle(
+                          color:
+                              isDark
+                                  ? TrackletColors.darkTextSecondary
+                                  : TrackletColors.textSecondary,
+                          fontSize: TrackletTypography.fontSize9,
+                          fontWeight: TrackletTypography.weightExtraBold,
+                          letterSpacing:
+                              TrackletTypography.letterSpacingEmphasis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? TrackletColors.darkSurfaceElevated.withValues(
-                            alpha: 0.85,
-                          )
-                          : TrackletColors.pure.withValues(alpha: 0.75),
-                  borderRadius: TrackletRadii.roundedPill,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      TrackletIcons.circle,
-                      color: TrackletColors.busLive,
-                      size: 7,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'CAMPUS',
-                      style: TextStyle(
-                        color:
-                            isDark
-                                ? TrackletColors.darkTextSecondary
-                                : TrackletColors.textSecondary,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.7,
+                const SizedBox(width: 8),
+              ],
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _HeaderButton(
+                    icon: TrackletIcons.notifications,
+                    onTap: () => context.push('/notifications'),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(TrackletSpacing.xs),
+                        decoration: const BoxDecoration(
+                          color: TrackletColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: TrackletColors.textInverse,
+                            fontSize: TrackletTypography.fontSize9,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Material(
                 color: Colors.transparent,
                 shape: const CircleBorder(),
@@ -819,8 +1052,8 @@ class _BoardingStopCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: TrackletColors.adaptiveTextSecondary(context),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontSize: TrackletTypography.fontSize12,
+                fontWeight: TrackletTypography.weightMedium,
               ),
             ),
           ),
@@ -839,8 +1072,8 @@ class _BoardingStopCard extends StatelessWidget {
             'Selected manually',
             style: TextStyle(
               color: TrackletColors.adaptiveTextSecondary(context),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: TrackletTypography.fontSize12,
+              fontWeight: TrackletTypography.weightMedium,
             ),
           ),
           if (onResetToAuto != null) ...[
@@ -849,13 +1082,16 @@ class _BoardingStopCard extends StatelessWidget {
               onTap: onResetToAuto,
               borderRadius: TrackletRadii.roundedCompact,
               child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                padding: EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.xs,
+                  vertical: TrackletSpacing.xxs,
+                ),
                 child: Text(
                   '· Reset to GPS',
                   style: TextStyle(
                     color: TrackletColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize12,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                 ),
               ),
@@ -879,8 +1115,8 @@ class _BoardingStopCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: TrackletColors.adaptiveTextSecondary(context),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontSize: TrackletTypography.fontSize12,
+                fontWeight: TrackletTypography.weightMedium,
               ),
             ),
           ),
@@ -904,8 +1140,8 @@ class _BoardingStopCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: TrackletColors.adaptiveTextSecondary(context),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontSize: TrackletTypography.fontSize12,
+                fontWeight: TrackletTypography.weightMedium,
               ),
             ),
           ),
@@ -914,14 +1150,20 @@ class _BoardingStopCard extends StatelessWidget {
               onPressed: onLocate,
               style: TextButton.styleFrom(
                 foregroundColor: TrackletColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.sm,
+                  vertical: TrackletSpacing.xs,
+                ),
                 minimumSize: const Size(48, 48),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               icon: const Icon(TrackletIcons.locateFixed, size: 14),
               label: const Text(
                 'Locate',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: TrackletTypography.fontSize12,
+                  fontWeight: TrackletTypography.weightBold,
+                ),
               ),
             ),
           ],
@@ -932,7 +1174,10 @@ class _BoardingStopCard extends StatelessWidget {
     final isDark = TrackletColors.isDark(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.lg,
+        vertical: TrackletSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedCardLg,
@@ -963,9 +1208,9 @@ class _BoardingStopCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                          fontSize: TrackletTypography.fontSize11,
+                          fontWeight: TrackletTypography.weightExtraBold,
+                          letterSpacing: TrackletTypography.letterSpacingWide,
                         ),
                       ),
                     ),
@@ -977,8 +1222,8 @@ class _BoardingStopCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   foregroundColor: TrackletColors.primary,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                    horizontal: TrackletSpacing.compactMd,
+                    vertical: TrackletSpacing.compact,
                   ),
                   minimumSize: const Size(48, 48),
                   backgroundColor: TrackletColors.primary.withValues(
@@ -991,7 +1236,10 @@ class _BoardingStopCard extends StatelessWidget {
                 icon: const Icon(TrackletIcons.arrowRightLeft, size: 16),
                 label: const Text(
                   'Change',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: TrackletTypography.fontSize13,
+                    fontWeight: TrackletTypography.weightBold,
+                  ),
                 ),
               ),
             ],
@@ -1029,9 +1277,9 @@ class _BoardingStopCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                        fontSize: TrackletTypography.fontSize18,
+                        fontWeight: TrackletTypography.weightExtraBold,
+                        letterSpacing: TrackletTypography.letterSpacingTitle,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -1056,8 +1304,8 @@ class _BoardingStopCard extends StatelessWidget {
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightMedium,
                               ),
                             ),
                           ),
@@ -1070,8 +1318,8 @@ class _BoardingStopCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                       )
                     else if (isLoadingLocation)
@@ -1081,8 +1329,8 @@ class _BoardingStopCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                       )
                     else
@@ -1092,8 +1340,8 @@ class _BoardingStopCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                       ),
                   ],
@@ -1187,9 +1435,9 @@ class _LiveBusesSection extends ConsumerWidget {
                 'Buses approaching your stop',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextPrimary(context),
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.45,
+                  fontSize: TrackletTypography.fontSize19,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingHeading,
                 ),
               ),
             ),
@@ -1290,7 +1538,7 @@ class _NoBusesApproachingCard extends StatelessWidget {
     final isDark = TrackletColors.isDark(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(TrackletSpacing.section),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedXl,
@@ -1321,8 +1569,8 @@ class _NoBusesApproachingCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: TrackletColors.adaptiveTextPrimary(context),
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize16,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
           const SizedBox(height: 6),
@@ -1331,8 +1579,8 @@ class _NoBusesApproachingCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: TrackletColors.adaptiveTextSecondary(context),
-              fontSize: 13,
-              height: 1.35,
+              fontSize: TrackletTypography.fontSize13,
+              height: TrackletTypography.lineHeightBodyCompact,
             ),
           ),
           const SizedBox(height: 18),
@@ -1345,7 +1593,9 @@ class _NoBusesApproachingCard extends StatelessWidget {
                 onPressed: onChangeStop,
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.compactLg,
+                  ),
                   foregroundColor: TrackletColors.primary,
                   side: BorderSide(
                     color: TrackletColors.adaptiveBorder(context),
@@ -1361,10 +1611,12 @@ class _NoBusesApproachingCard extends StatelessWidget {
                 onPressed: onRefresh,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(0, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.compactLg,
+                  ),
                   backgroundColor: TrackletColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
+                  foregroundColor: TrackletColors.textInverse,
+                  elevation: TrackletShadows.elevationLevel0,
                   shape: const RoundedRectangleBorder(
                     borderRadius: TrackletRadii.roundedCard,
                   ),
@@ -1467,7 +1719,10 @@ class _LiveTrackingBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.sm,
+        vertical: TrackletSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: background,
         borderRadius: TrackletRadii.roundedInput,
@@ -1493,8 +1748,8 @@ class _LiveTrackingBadge extends StatelessWidget {
             label,
             style: TextStyle(
               color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize11,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
         ],

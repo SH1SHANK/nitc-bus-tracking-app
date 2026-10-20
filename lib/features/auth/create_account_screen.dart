@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
@@ -187,7 +188,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                   'A verification link has been sent to:\n$email\n\nVerify your email before logging in.',
                   style: TrackletTypography.bodyMedium.copyWith(
                     color: TrackletColors.secondaryText,
-                    height: 1.4,
+                    height: TrackletTypography.lineHeightBody,
                   ),
                 ),
               ],
@@ -283,10 +284,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                         child: Material(
                           color: (isDark
                                   ? TrackletColors.darkSurfaceElevated
-                                  : Colors.white)
+                                  : TrackletColors.textInverse)
                               .withValues(alpha: 0.88),
                           shape: const CircleBorder(),
-                          elevation: 2.0,
+                          elevation: TrackletShadows.elevationLevel2,
                           shadowColor: Colors.black.withValues(
                             alpha: isDark ? 0.35 : 0.08,
                           ),
@@ -353,7 +354,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           child: Text(
                             'Create account',
                             style: TrackletTypography.displaySmall.copyWith(
-                              fontSize: 26.0,
+                              fontSize: TrackletTypography.fontSize26,
                               fontWeight: FontWeight.bold,
                               color:
                                   isDark
@@ -377,12 +378,12 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                             child: Text(
                               'Enter your NITC email to register for campus bus tracking.',
                               style: TrackletTypography.labelMedium.copyWith(
-                                fontSize: 14.0,
+                                fontSize: TrackletTypography.fontSize14,
                                 color:
                                     isDark
                                         ? TrackletColors.darkTextSecondary
                                         : TrackletColors.secondaryText,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TrackletTypography.weightSemiBold,
                               ),
                             ),
                           ),
@@ -420,9 +421,9 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   icon: TrackletIcons.mail,
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
-                                  fontSize: 15.0,
+                                  fontSize: TrackletTypography.fontSize15,
                                   color: TrackletColors.altPrimaryText,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TrackletTypography.weightSemiBold,
                                 ),
                               ),
                             ),
@@ -488,9 +489,9 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   ),
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
-                                  fontSize: 15.0,
+                                  fontSize: TrackletTypography.fontSize15,
                                   color: TrackletColors.altPrimaryText,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TrackletTypography.weightSemiBold,
                                 ),
                               ),
                             ),
@@ -559,9 +560,9 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                   ),
                                 ),
                                 style: TrackletTypography.bodyMedium.copyWith(
-                                  fontSize: 15.0,
+                                  fontSize: TrackletTypography.fontSize15,
                                   color: TrackletColors.altPrimaryText,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: TrackletTypography.weightSemiBold,
                                 ),
                               ),
                             ),
@@ -588,7 +589,9 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                               _passwordsMatch
                                   ? const Padding(
                                     key: ValueKey('password-match'),
-                                    padding: EdgeInsets.only(bottom: 12),
+                                    padding: EdgeInsets.only(
+                                      bottom: TrackletSpacing.md,
+                                    ),
                                     child: Row(
                                       children: [
                                         Icon(
@@ -625,7 +628,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: TrackletColors.primary,
                                   foregroundColor: TrackletColors.pure,
-                                  elevation: 3.0,
+                                  elevation: TrackletShadows.elevationLevel3,
                                   shadowColor: TrackletColors.primary
                                       .withValues(alpha: 0.35),
                                   shape: const RoundedRectangleBorder(
@@ -646,8 +649,12 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                           'Create account',
                                           style: TrackletTypography.titleMedium
                                               .copyWith(
-                                                fontSize: 18.0,
-                                                fontWeight: FontWeight.w600,
+                                                fontSize:
+                                                    TrackletTypography
+                                                        .fontSize18,
+                                                fontWeight:
+                                                    TrackletTypography
+                                                        .weightSemiBold,
                                                 color: TrackletColors.pure,
                                               ),
                                         ),
@@ -662,8 +669,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                           child: Text(
                             'or',
                             style: TrackletTypography.caption.copyWith(
-                              fontSize: 13.0,
-                              fontWeight: FontWeight.w500,
+                              fontSize: TrackletTypography.fontSize13,
+                              fontWeight: TrackletTypography.weightMedium,
                               color: TrackletColors.secondaryText,
                             ),
                           ),
@@ -686,7 +693,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: TrackletColors.altPrimaryText,
                                 foregroundColor: TrackletColors.pure,
-                                elevation: 0.0,
+                                elevation: TrackletShadows.elevationLevel0,
                                 shape: const RoundedRectangleBorder(
                                   borderRadius: TrackletRadii.roundedInput,
                                 ),
@@ -712,8 +719,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     'Continue with Google',
                                     style: TrackletTypography.titleSmall
                                         .copyWith(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w600,
+                                          fontSize:
+                                              TrackletTypography.fontSize16,
+                                          fontWeight:
+                                              TrackletTypography.weightSemiBold,
                                           color: TrackletColors.pure,
                                         ),
                                   ),
@@ -740,8 +749,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     text: 'Already have an account? ',
                                     style: TrackletTypography.bodyMedium
                                         .copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 16.0,
+                                          fontWeight:
+                                              TrackletTypography.weightMedium,
+                                          fontSize:
+                                              TrackletTypography.fontSize16,
                                           color: TrackletColors.altPrimaryText,
                                         ),
                                   ),
@@ -750,7 +761,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                                     style: TrackletTypography.bodyMedium
                                         .copyWith(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 15.0,
+                                          fontSize:
+                                              TrackletTypography.fontSize15,
                                           color: TrackletColors.primary,
                                         ),
                                     recognizer:

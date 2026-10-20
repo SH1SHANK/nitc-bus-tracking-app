@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -183,13 +184,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       cursorColor: TrackletColors.primaryText,
                       style: TrackletTypography.bodyMedium.copyWith(
                         color: TrackletColors.primaryText,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                       decoration: InputDecoration(
                         isDense: false,
                         labelText: 'Email address',
                         labelStyle: TrackletTypography.labelMedium.copyWith(
-                          fontSize: 16.0,
+                          fontSize: TrackletTypography.fontSize16,
                           fontWeight: FontWeight.bold,
                           color: TrackletColors.secondaryText,
                         ),
@@ -254,7 +255,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: TrackletColors.primaryText,
                               foregroundColor: TrackletColors.primaryBackground,
-                              elevation: 3.0,
+                              elevation: TrackletShadows.elevationLevel3,
                               shape: const RoundedRectangleBorder(
                                 borderRadius: TrackletRadii.roundedButton,
                               ),
@@ -309,9 +310,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         Text(
                           'Back to login',
                           style: TrackletTypography.bodyMedium.copyWith(
-                            fontWeight: FontWeight.w900,
+                            fontWeight: TrackletTypography.weightBlack,
                             color: TrackletColors.secondaryText,
-                            fontSize: 16.0,
+                            fontSize: TrackletTypography.fontSize16,
                           ),
                         ),
                         const SizedBox(width: TrackletSpacing.sm),

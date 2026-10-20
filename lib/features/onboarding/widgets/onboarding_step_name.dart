@@ -59,8 +59,8 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
           Text(
             "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
+              fontSize: TrackletTypography.fontSize22,
+              fontWeight: TrackletTypography.weightExtraBold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
@@ -71,8 +71,8 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
             text: TextSpan(
               style: TrackletTypography.bodySmall.copyWith(
                 color: TrackletColors.adaptiveTextSecondary(context),
-                fontSize: 12,
-                height: 1.4,
+                fontSize: TrackletTypography.fontSize12,
+                height: TrackletTypography.lineHeightBody,
               ),
               children: [
                 const TextSpan(
@@ -83,7 +83,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                   text: 'Tap to Learn More.',
                   style: const TextStyle(
                     color: TrackletColors.tertiary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: TrackletTypography.weightExtraBold,
                   ),
                   recognizer:
                       TapGestureRecognizer()
@@ -108,7 +108,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
             'What is your full name?',
             style: TrackletTypography.titleSmall.copyWith(
               color: TrackletColors.adaptiveTextSecondary(context),
-              fontWeight: FontWeight.w600,
+              fontWeight: TrackletTypography.weightSemiBold,
             ),
           ),
           const SizedBox(height: 8),
@@ -139,7 +139,9 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.compactLg,
+            ),
             child: Row(
               children: [
                 TrackletIcon(
@@ -156,7 +158,7 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                       hintText: 'e.g. Shashank Mergu',
                       hintStyle: TextStyle(
                         color: TrackletColors.adaptiveTextMuted(context),
-                        fontSize: 16,
+                        fontSize: TrackletTypography.fontSize16,
                       ),
                       border: InputBorder.none,
                       isDense: true,
@@ -164,8 +166,8 @@ class _OnboardingStepNameState extends State<OnboardingStepName> {
                     ),
                     style: TrackletTypography.titleMedium.copyWith(
                       color: TrackletColors.adaptiveTextPrimary(context),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontWeight: TrackletTypography.weightSemiBold,
+                      fontSize: TrackletTypography.fontSize16,
                     ),
                     onChanged: (val) => setState(() => _currentName = val),
                   ),

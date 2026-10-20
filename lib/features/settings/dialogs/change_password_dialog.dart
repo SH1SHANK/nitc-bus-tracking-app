@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
     as animated;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,8 +72,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
             content: Text(
               'Password changed successfully!',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize12,
                 color: TrackletColors.info,
               ),
             ),
@@ -87,8 +89,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
               result.errorMessage ??
                   'Could not update password. Check your credentials and try again.',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize12,
                 color: TrackletColors.info,
               ),
             ),
@@ -105,8 +107,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
             content: Text(
               'Could not update password. Check your credentials and try again.',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize12,
                 color: TrackletColors.info,
               ),
             ),
@@ -129,7 +131,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
     return InputDecoration(
       hintText: hintText,
       hintStyle: TrackletFonts.outfit(
-        fontSize: 14.0,
+        fontSize: TrackletTypography.fontSize14,
         color: TrackletColors.adaptiveTextSecondary(context),
       ),
       filled: true,
@@ -192,7 +194,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
 
     if (isGoogleUser) {
       return Dialog(
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         insetPadding: const EdgeInsets.symmetric(
           horizontal: TrackletSpacing.section,
         ),
@@ -226,8 +228,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                       child: Text(
                         'Change Password',
                         style: TrackletFonts.outfit(
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.w700,
+                          fontSize: TrackletTypography.fontSize20,
+                          fontWeight: TrackletTypography.weightBold,
                           color: TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
@@ -244,7 +246,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 ),
                 const SizedBox(height: TrackletSpacing.md),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(TrackletSpacing.md),
                   decoration: BoxDecoration(
                     color:
                         isDark
@@ -279,8 +281,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                             Text(
                               'Managed by Google Workspace',
                               style: TrackletFonts.outfit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize14,
+                                fontWeight: TrackletTypography.weightBold,
                                 color: TrackletColors.adaptiveTextPrimary(
                                   context,
                                 ),
@@ -290,9 +292,9 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                             Text(
                               'You signed in with your NITC Google account. Your password is managed through Google Account settings, so a separate BusTracker password is not required.',
                               style: TrackletFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w400,
-                                height: 1.4,
+                                fontSize: TrackletTypography.fontSize12_5,
+                                fontWeight: TrackletTypography.weightRegular,
+                                height: TrackletTypography.lineHeightBody,
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
@@ -316,15 +318,15 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                         borderRadius: TrackletRadii.roundedMd,
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
+                        horizontal: TrackletSpacing.section,
+                        vertical: TrackletSpacing.compactMd,
                       ),
                     ),
                     child: Text(
                       'Done',
                       style: TrackletFonts.outfit(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontWeight: TrackletTypography.weightSemiBold,
+                        fontSize: TrackletTypography.fontSize14,
                       ),
                     ),
                   ),
@@ -337,7 +339,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
     }
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
       ),
@@ -374,8 +376,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                         child: Text(
                           'Change Password',
                           style: TrackletFonts.outfit(
-                            fontSize: 22.0,
-                            fontWeight: FontWeight.w700,
+                            fontSize: TrackletTypography.fontSize22,
+                            fontWeight: TrackletTypography.weightBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
@@ -399,8 +401,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                   Text(
                     'Old Password',
                     style: TrackletFonts.outfit(
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.w500,
+                      fontSize: TrackletTypography.fontSize13,
+                      fontWeight: TrackletTypography.weightMedium,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -436,8 +438,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                   Text(
                     'New Password',
                     style: TrackletFonts.outfit(
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.w500,
+                      fontSize: TrackletTypography.fontSize13,
+                      fontWeight: TrackletTypography.weightMedium,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -476,8 +478,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                   Text(
                     'Confirm Password',
                     style: TrackletFonts.outfit(
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.w500,
+                      fontSize: TrackletTypography.fontSize13,
+                      fontWeight: TrackletTypography.weightMedium,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -536,8 +538,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                         child: Text(
                           'Cancel',
                           style: TrackletFonts.outfit(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize14,
+                            fontWeight: TrackletTypography.weightSemiBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
@@ -548,7 +550,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TrackletColors.primary,
                           foregroundColor: TrackletColors.textInverse,
-                          elevation: 0,
+                          elevation: TrackletShadows.elevationLevel0,
                           padding: const EdgeInsets.symmetric(
                             horizontal: TrackletSpacing.md,
                             vertical: TrackletSpacing.compactMd,
@@ -570,8 +572,9 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                                 : Text(
                                   'Update Password',
                                   style: TrackletFonts.outfit(
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: TrackletTypography.fontSize14,
+                                    fontWeight:
+                                        TrackletTypography.weightSemiBold,
                                     color: TrackletColors.textInverse,
                                   ),
                                 ),

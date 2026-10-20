@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
     as animated;
@@ -181,7 +182,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         autofillHints: const [AutofillHints.newPassword],
                         style: TrackletTypography.bodyMedium.copyWith(
                           color: TrackletColors.primaryText,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TrackletTypography.weightSemiBold,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -243,7 +244,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         autofillHints: const [AutofillHints.newPassword],
                         style: TrackletTypography.bodyMedium.copyWith(
                           color: TrackletColors.primaryText,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TrackletTypography.weightSemiBold,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -309,7 +310,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                                 backgroundColor: TrackletColors.primaryText,
                                 foregroundColor:
                                     TrackletColors.primaryBackground,
-                                elevation: 3.0,
+                                elevation: TrackletShadows.elevationLevel3,
                                 shape: const RoundedRectangleBorder(
                                   borderRadius: TrackletRadii.roundedButton,
                                 ),
@@ -361,9 +362,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           Text(
                             'Back to login',
                             style: TrackletTypography.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w900,
+                              fontWeight: TrackletTypography.weightBlack,
                               color: TrackletColors.secondaryText,
-                              fontSize: 16.0,
+                              fontSize: TrackletTypography.fontSize16,
                             ),
                           ),
                           const SizedBox(width: TrackletSpacing.sm),

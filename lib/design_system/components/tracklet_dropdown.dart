@@ -67,20 +67,20 @@ class TrackletDropdown extends StatelessWidget {
       ),
       hintStyle: const TextStyle(
         fontFamily: TrackletTypography.primaryFontFamily,
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
+        fontSize: TrackletTypography.fontSize15,
+        fontWeight: TrackletTypography.weightSemiBold,
         color: TrackletColors.secondaryText,
       ),
       headerStyle: const TextStyle(
         fontFamily: TrackletTypography.primaryFontFamily,
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
+        fontSize: TrackletTypography.fontSize15,
+        fontWeight: TrackletTypography.weightSemiBold,
         color: TrackletColors.altPrimaryText,
       ),
       listItemStyle: const TextStyle(
         fontFamily: TrackletTypography.primaryFontFamily,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
+        fontSize: TrackletTypography.fontSize14,
+        fontWeight: TrackletTypography.weightMedium,
         color: TrackletColors.altPrimaryText,
       ),
 

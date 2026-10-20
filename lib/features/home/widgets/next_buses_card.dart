@@ -1,3 +1,5 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/formatting/transit_formatter.dart';
@@ -54,7 +56,7 @@ class NextBusesCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(TrackletSpacing.cardPaddingLg),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedXl,
@@ -80,9 +82,9 @@ class NextBusesCard extends StatelessWidget {
                       title ?? 'Scheduled departures',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.35,
+                        fontSize: TrackletTypography.fontSize20,
+                        fontWeight: TrackletTypography.weightExtraBold,
+                        letterSpacing: TrackletTypography.letterSpacingDense,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -92,8 +94,8 @@ class NextBusesCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        fontSize: TrackletTypography.fontSize13,
+                        fontWeight: TrackletTypography.weightMedium,
                       ),
                     ),
                   ],
@@ -117,7 +119,7 @@ class NextBusesCard extends StatelessWidget {
                         minWidth: 48,
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: TrackletSpacing.compactMd,
                         vertical: 7,
                       ),
                       alignment: Alignment.center,
@@ -134,8 +136,8 @@ class NextBusesCard extends StatelessWidget {
                                     isDark
                                         ? TrackletColors.primaryDark
                                         : TrackletColors.primary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                           ),
@@ -161,7 +163,10 @@ class NextBusesCard extends StatelessWidget {
           // Disclaimer Banner
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.compactLg,
+              vertical: TrackletSpacing.md,
+            ),
             decoration: BoxDecoration(
               color:
                   isDark
@@ -200,8 +205,8 @@ class NextBusesCard extends StatelessWidget {
                               isDark
                                   ? TrackletColors.onWarningContainerDark
                                   : TrackletColors.onWarningContainer,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontSize: TrackletTypography.fontSize13,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ),
@@ -215,8 +220,8 @@ class NextBusesCard extends StatelessWidget {
                         isDark
                             ? TrackletColors.onWarningContainerDark
                             : TrackletColors.onWarningContainer,
-                    fontSize: 12,
-                    height: 1.35,
+                    fontSize: TrackletTypography.fontSize12,
+                    height: TrackletTypography.lineHeightBodyCompact,
                   ),
                 ),
               ],
@@ -228,7 +233,10 @@ class NextBusesCard extends StatelessWidget {
           if (!hasDepartures)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.lg,
+                vertical: TrackletSpacing.section,
+              ),
               decoration: BoxDecoration(
                 color:
                     isDark
@@ -253,8 +261,8 @@ class NextBusesCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: TrackletColors.adaptiveTextPrimary(context),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize14,
+                      fontWeight: TrackletTypography.weightBold,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -263,8 +271,8 @@ class NextBusesCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: TrackletColors.adaptiveTextSecondary(context),
-                      fontSize: 12,
-                      height: 1.35,
+                      fontSize: TrackletTypography.fontSize12,
+                      height: TrackletTypography.lineHeightBodyCompact,
                     ),
                   ),
                   if (onViewSchedule != null) ...[
@@ -274,8 +282,8 @@ class NextBusesCard extends StatelessWidget {
                       borderRadius: TrackletRadii.roundedSm,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                          horizontal: TrackletSpacing.compactMd,
+                          vertical: TrackletSpacing.compact,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -300,8 +308,8 @@ class NextBusesCard extends StatelessWidget {
                                       isDark
                                           ? TrackletColors.primaryDark
                                           : TrackletColors.primary,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: TrackletTypography.fontSize13,
+                                  fontWeight: TrackletTypography.weightBold,
                                 ),
                               ),
                             ),
@@ -355,8 +363,8 @@ class NextBusesCard extends StatelessWidget {
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
+                      horizontal: TrackletSpacing.compactLg,
+                      vertical: TrackletSpacing.compactLg,
                     ),
                     child: Row(
                       children: [
@@ -387,8 +395,8 @@ class NextBusesCard extends StatelessWidget {
                                   color: TrackletColors.adaptiveTextPrimary(
                                     context,
                                   ),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: TrackletTypography.fontSize15,
+                                  fontWeight: TrackletTypography.weightBold,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -400,8 +408,8 @@ class NextBusesCard extends StatelessWidget {
                                   color: TrackletColors.adaptiveTextSecondary(
                                     context,
                                   ),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: TrackletTypography.fontSize12,
+                                  fontWeight: TrackletTypography.weightMedium,
                                 ),
                               ),
                             ],
@@ -422,9 +430,11 @@ class NextBusesCard extends StatelessWidget {
                                         : TrackletColors.adaptiveTextPrimary(
                                           context,
                                         ),
-                                fontSize: 14,
+                                fontSize: TrackletTypography.fontSize14,
                                 fontWeight:
-                                    isFirst ? FontWeight.w800 : FontWeight.w700,
+                                    isFirst
+                                        ? TrackletTypography.weightExtraBold
+                                        : TrackletTypography.weightBold,
                                 fontFeatures: const [
                                   FontFeature.tabularFigures(),
                                 ],
@@ -433,7 +443,7 @@ class NextBusesCard extends StatelessWidget {
                             const SizedBox(height: 2),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
+                                horizontal: TrackletSpacing.compact,
                                 vertical: 1.5,
                               ),
                               decoration: BoxDecoration(
@@ -460,8 +470,8 @@ class NextBusesCard extends StatelessWidget {
                                           : TrackletColors.adaptiveTextSecondary(
                                             context,
                                           ),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: TrackletTypography.fontSize10,
+                                  fontWeight: TrackletTypography.weightBold,
                                 ),
                               ),
                             ),
@@ -494,9 +504,9 @@ class NextBusesCard extends StatelessWidget {
                 title ?? 'Other live buses',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextPrimary(context),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.35,
+                  fontSize: TrackletTypography.fontSize20,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingDense,
                 ),
               ),
             ),
@@ -508,8 +518,8 @@ class NextBusesCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontSize: TrackletTypography.fontSize12,
+                  fontWeight: TrackletTypography.weightSemiBold,
                 ),
               ),
             ),
@@ -618,7 +628,10 @@ class _EstimateListItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: TrackletRadii.roundedLg,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TrackletSpacing.compactLg,
+            vertical: TrackletSpacing.compactLg,
+          ),
           child: Row(
             children: [
               Container(
@@ -652,8 +665,8 @@ class _EstimateListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize15,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -663,7 +676,7 @@ class _EstimateListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 12,
+                        fontSize: TrackletTypography.fontSize12,
                       ),
                     ),
                   ],
@@ -693,8 +706,8 @@ class _EstimateListItem extends StatelessWidget {
                             : bus.status.displayName,
                         style: TextStyle(
                           color: statusColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ],
@@ -711,8 +724,8 @@ class _EstimateListItem extends StatelessWidget {
                                   ? TrackletColors.primaryDark
                                   : TrackletColors.primary)
                               : TrackletColors.adaptiveTextSecondary(context),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize11,
+                      fontWeight: TrackletTypography.weightBold,
                     ),
                   ),
                 ],
@@ -760,7 +773,10 @@ class _BusListItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: TrackletRadii.roundedLg,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TrackletSpacing.compactLg,
+            vertical: TrackletSpacing.compactLg,
+          ),
           child: Row(
             children: [
               Container(
@@ -794,8 +810,8 @@ class _BusListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize15,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -805,7 +821,7 @@ class _BusListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 12,
+                        fontSize: TrackletTypography.fontSize12,
                       ),
                     ),
                   ],
@@ -831,8 +847,8 @@ class _BusListItem extends StatelessWidget {
                         bus.isStale ? 'Stale' : bus.status.displayName,
                         style: TextStyle(
                           color: statusColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontSize: TrackletTypography.fontSize12,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ],
@@ -842,8 +858,8 @@ class _BusListItem extends StatelessWidget {
                     'View map',
                     style: TextStyle(
                       color: TrackletColors.adaptiveTextSecondary(context),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize11,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                 ],

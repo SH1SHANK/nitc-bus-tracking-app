@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,7 +99,7 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
             title: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(TrackletSpacing.sm),
                   decoration: BoxDecoration(
                     color: TrackletColors.success.withValues(alpha: 0.15),
                     borderRadius: TrackletRadii.roundedSm,
@@ -113,7 +114,10 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                 const Expanded(
                   child: Text(
                     'Tracker Provisioned',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: TrackletTypography.fontSize18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -126,12 +130,12 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                   'Device $deviceId has been provisioned successfully.',
                   style: TextStyle(
                     color: TrackletColors.adaptiveTextPrimary(ctx),
-                    fontSize: 14,
+                    fontSize: TrackletTypography.fontSize14,
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.md),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(TrackletSpacing.md),
                   decoration: BoxDecoration(
                     color: TrackletColors.warning.withValues(alpha: 0.12),
                     borderRadius: TrackletRadii.roundedSm,
@@ -153,8 +157,8 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                           'IMPORTANT: Copy this secret now. It is hashed with Bcrypt and will never be shown again.',
                           style: TextStyle(
                             color: TrackletColors.warning,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize12,
+                            fontWeight: TrackletTypography.weightSemiBold,
                           ),
                         ),
                       ),
@@ -165,16 +169,16 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                 const Text(
                   'DEVICE SECRET:',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TrackletTypography.fontSize11,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
+                    letterSpacing: TrackletTypography.letterSpacingExpanded,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: TrackletSpacing.md,
+                    vertical: TrackletSpacing.compactMd,
                   ),
                   decoration: BoxDecoration(
                     color:
@@ -194,7 +198,7 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                            fontSize: TrackletTypography.fontSize13,
                           ),
                         ),
                       ),
@@ -239,7 +243,7 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(TrackletSpacing.sm),
             decoration: BoxDecoration(
               color: TrackletColors.primary.withValues(alpha: 0.15),
               borderRadius: TrackletRadii.roundedSm,
@@ -254,7 +258,10 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
           const Expanded(
             child: Text(
               'Register New Tracker',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: TrackletTypography.fontSize18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -268,7 +275,7 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
             children: [
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(TrackletSpacing.compactMd),
                   decoration: BoxDecoration(
                     color: TrackletColors.error.withValues(alpha: 0.12),
                     borderRadius: TrackletRadii.roundedSm,
@@ -286,7 +293,7 @@ class _RegisterDeviceDialogState extends ConsumerState<RegisterDeviceDialog> {
                           _errorMessage!,
                           style: const TextStyle(
                             color: TrackletColors.error,
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                           ),
                         ),
                       ),

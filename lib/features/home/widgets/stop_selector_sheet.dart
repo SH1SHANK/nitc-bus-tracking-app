@@ -1,3 +1,5 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
     as animated;
@@ -119,7 +121,9 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
 
             // Header Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.section,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -127,9 +131,9 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                       'Select Boarding Stop',
                       style: TextStyle(
                         color: textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                        fontSize: TrackletTypography.fontSize18,
+                        fontWeight: TrackletTypography.weightExtraBold,
+                        letterSpacing: TrackletTypography.letterSpacingTitle,
                       ),
                     ),
                   ),
@@ -149,7 +153,9 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
 
             // Search input field
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.lg,
+              ),
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
@@ -173,14 +179,14 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                         onChanged: (val) => setState(() => _query = val),
                         style: TextStyle(
                           color: textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                          fontSize: TrackletTypography.fontSize15,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Search campus stops…',
                           hintStyle: TextStyle(
                             color: textSecondary,
-                            fontSize: 15,
+                            fontSize: TrackletTypography.fontSize15,
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -217,19 +223,21 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
               child:
                   filteredStops.isEmpty
                       ? Padding(
-                        padding: const EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(TrackletSpacing.xxl),
                         child: Center(
                           child: Text(
                             'No stops match "$_query"',
                             style: TextStyle(
                               color: textSecondary,
-                              fontSize: 14,
+                              fontSize: TrackletTypography.fontSize14,
                             ),
                           ),
                         ),
                       )
                       : ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: TrackletSpacing.sm,
+                        ),
                         itemCount: filteredStops.length,
                         separatorBuilder:
                             (_, _) =>
@@ -267,8 +275,8 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 12,
+                                  horizontal: TrackletSpacing.cardPaddingLg,
+                                  vertical: TrackletSpacing.md,
                                 ),
                                 child: Row(
                                   children: [
@@ -306,11 +314,14 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                                   isSelected
                                                       ? TrackletColors.primary
                                                       : textPrimary,
-                                              fontSize: 15,
+                                              fontSize:
+                                                  TrackletTypography.fontSize15,
                                               fontWeight:
                                                   isSelected
-                                                      ? FontWeight.w700
-                                                      : FontWeight.w600,
+                                                      ? TrackletTypography
+                                                          .weightBold
+                                                      : TrackletTypography
+                                                          .weightSemiBold,
                                             ),
                                           ),
                                           if (distanceMeters != null &&
@@ -320,7 +331,9 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                               '~${TransitFormatter.formatDistance(distanceMeters)} · ~$walkMinutes min walk',
                                               style: TextStyle(
                                                 color: textSecondary,
-                                                fontSize: 12,
+                                                fontSize:
+                                                    TrackletTypography
+                                                        .fontSize12,
                                               ),
                                             ),
                                           ],
@@ -339,8 +352,10 @@ class _StopSelectorSheetState extends State<StopSelectorSheet> {
                                         stop.code,
                                         style: TextStyle(
                                           color: textMuted,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
+                                          fontSize:
+                                              TrackletTypography.fontSize11,
+                                          fontWeight:
+                                              TrackletTypography.weightBold,
                                         ),
                                       ),
                                   ],

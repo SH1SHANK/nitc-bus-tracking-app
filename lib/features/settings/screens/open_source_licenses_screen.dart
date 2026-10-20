@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/foundation.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
@@ -96,7 +98,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
       appBar: AppBar(
         backgroundColor: TrackletColors.adaptiveBackground(context),
         foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(TrackletIcons.chevronLeft, size: 20),
@@ -106,8 +108,8 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
         title: Text(
           'Open Source Licenses',
           style: TrackletFonts.outfit(
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
+            fontSize: TrackletTypography.fontSize19,
+            fontWeight: TrackletTypography.weightBold,
             color: TrackletColors.adaptiveTextPrimary(context),
           ),
         ),
@@ -124,13 +126,13 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
               controller: _searchController,
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
               style: TrackletFonts.outfit(
-                fontSize: 14,
+                fontSize: TrackletTypography.fontSize14,
                 color: TrackletColors.adaptiveTextPrimary(context),
               ),
               decoration: InputDecoration(
                 hintText: 'Search packages (e.g. flutter, riverpod)...',
                 hintStyle: TrackletFonts.outfit(
-                  fontSize: 13,
+                  fontSize: TrackletTypography.fontSize13,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
                 prefixIcon: Icon(
@@ -151,8 +153,8 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                 filled: true,
                 fillColor: TrackletColors.adaptiveSurface(context),
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
+                  horizontal: TrackletSpacing.compactLg,
+                  vertical: TrackletSpacing.md,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: TrackletRadii.roundedCard,
@@ -188,7 +190,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                             ? 'No licenses found.'
                             : 'No matching packages for "$_searchQuery"',
                         style: TrackletFonts.outfit(
-                          fontSize: 14,
+                          fontSize: TrackletTypography.fontSize14,
                           color: TrackletColors.adaptiveTextSecondary(context),
                         ),
                       ),
@@ -229,7 +231,7 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
           collapsedShape: const Border(),
           tilePadding: const EdgeInsets.symmetric(
             horizontal: TrackletSpacing.md,
-            vertical: 4,
+            vertical: TrackletSpacing.xs,
           ),
           leading: Container(
             width: 36,
@@ -250,16 +252,16 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
           title: Text(
             pkg.packageName,
             style: TrackletFonts.outfit(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize15,
+              fontWeight: TrackletTypography.weightBold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
           subtitle: Text(
             '${pkg.paragraphs.length} license ${pkg.paragraphs.length == 1 ? "clause" : "clauses"}',
             style: TrackletFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: TrackletTypography.fontSize12,
+              fontWeight: TrackletTypography.weightMedium,
               color: TrackletColors.adaptiveTextSecondary(context),
             ),
           ),
@@ -290,8 +292,8 @@ class _OpenSourceLicensesScreenState extends State<OpenSourceLicensesScreen> {
                 pkg.paragraphs.join('\n\n---\n\n'),
                 style: TextStyle(
                   fontFamily: 'monospace',
-                  fontSize: 11.5,
-                  height: 1.45,
+                  fontSize: TrackletTypography.fontSize11_5,
+                  height: TrackletTypography.lineHeightBodyRelaxed,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),

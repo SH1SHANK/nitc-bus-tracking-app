@@ -8,10 +8,66 @@ import 'colors.dart';
 /// and tabular numeric presentations aligned with Attendrix design standards.
 abstract final class TrackletTypography {
   /// Primary font family used for UI headers, display, navigation, and body.
+  static const double letterSpacingSubtle = 0.2;
+  static const double letterSpacingCompact = 0.4;
+  static const double letterSpacingLabel = 0.5;
+  static const double letterSpacingEmphasis = 0.7;
+  static const double letterSpacingWide = 0.8;
+  static const double letterSpacingExpanded = 1.0;
+  static const double letterSpacingTight = -0.2;
+  static const double letterSpacingTitle = -0.3;
+  static const double letterSpacingDense = -0.35;
+  static const double letterSpacingHeading = -0.45;
+  static const double letterSpacingDisplay = -0.6;
+  static const double letterSpacingDisplayLarge = -0.7;
+
+  static const FontWeight weightRegular = FontWeight.w400;
+  static const FontWeight weightMedium = FontWeight.w500;
+  static const FontWeight weightSemiBold = FontWeight.w600;
+  static const FontWeight weightBold = FontWeight.w700;
+  static const FontWeight weightExtraBold = FontWeight.w800;
+  static const FontWeight weightBlack = FontWeight.w900;
+
+  static const double lineHeightLoading = 1.12;
+  static const double lineHeightTight = 1.2;
+  static const double lineHeightDense = 1.25;
+  static const double lineHeightCompact = 1.3;
+  static const double lineHeightBodyCompact = 1.35;
+  static const double lineHeightBody = 1.4;
+  static const double lineHeightBodyRelaxed = 1.45;
+  static const double lineHeightRelaxed = 1.5;
+
   static const String primaryFontFamily = 'Outfit';
 
   /// Secondary font family used for subtitles, badges, and complementary copy.
   static const String secondaryFontFamily = 'Satoshi';
+
+  // Primitive font-size scale (logical text pixels).
+  static const double fontSize9 = 9;
+  static const double fontSize10 = 10;
+  static const double fontSize10_5 = 10.5;
+  static const double fontSize11 = 11;
+  static const double fontSize11_5 = 11.5;
+  static const double fontSize12 = 12;
+  static const double fontSize12_5 = 12.5;
+  static const double fontSize13 = 13;
+  static const double fontSize13_5 = 13.5;
+  static const double fontSize14 = 14;
+  static const double fontSize14_5 = 14.5;
+  static const double fontSize15 = 15;
+  static const double fontSize16 = 16;
+  static const double fontSize17 = 17;
+  static const double fontSize18 = 18;
+  static const double fontSize19 = 19;
+  static const double fontSize20 = 20;
+  static const double fontSize22 = 22;
+  static const double fontSize24 = 24;
+  static const double fontSize26 = 26;
+  static const double fontSize28 = 28;
+  static const double fontSize32 = 32;
+  static const double fontSize34 = 34;
+  static const double fontSize45 = 45;
+  static const double fontSize57 = 57;
 
   /// Default font family fallback chain.
   static const List<String> fontFallbacks = <String>[
@@ -30,8 +86,8 @@ abstract final class TrackletTypography {
   static const TextStyle displayLarge = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 57,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize57,
+    fontWeight: weightRegular,
     letterSpacing: -0.5,
     height: 1.15,
     color: TrackletColors.textPrimary,
@@ -40,8 +96,8 @@ abstract final class TrackletTypography {
   static const TextStyle displayMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 45,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize45,
+    fontWeight: weightRegular,
     letterSpacing: -0.4,
     height: 1.18,
     color: TrackletColors.textPrimary,
@@ -50,8 +106,8 @@ abstract final class TrackletTypography {
   static const TextStyle displaySmall = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 34,
-    fontWeight: FontWeight.w600,
+    fontSize: fontSize34,
+    fontWeight: weightSemiBold,
     letterSpacing: 0.0,
     height: 1.22,
     color: TrackletColors.textPrimary,
@@ -64,28 +120,28 @@ abstract final class TrackletTypography {
   static const TextStyle headlineLarge = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 32,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize32,
+    fontWeight: weightRegular,
     letterSpacing: -0.2,
-    height: 1.25,
+    height: lineHeightDense,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle headlineMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 24,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize24,
+    fontWeight: weightMedium,
     letterSpacing: -0.2,
-    height: 1.3,
+    height: lineHeightCompact,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle headlineSmall = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
+    fontSize: fontSize22,
+    fontWeight: weightBold,
     letterSpacing: -0.1,
     height: 1.32,
     color: TrackletColors.textPrimary,
@@ -98,30 +154,30 @@ abstract final class TrackletTypography {
   static const TextStyle titleLarge = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 22,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize22,
+    fontWeight: weightMedium,
     letterSpacing: -0.1,
-    height: 1.35,
+    height: lineHeightBodyCompact,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle titleMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize18,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.4,
+    height: lineHeightBody,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle titleSmall = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize16,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.4,
+    height: lineHeightBody,
     color: TrackletColors.textPrimary,
   );
 
@@ -132,30 +188,30 @@ abstract final class TrackletTypography {
   static const TextStyle labelLarge = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize16,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.35,
+    height: lineHeightBodyCompact,
     color: TrackletColors.textSecondary,
   );
 
   static const TextStyle labelMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize14,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.35,
+    height: lineHeightBodyCompact,
     color: TrackletColors.textSecondary,
   );
 
   static const TextStyle labelSmall = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize12,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.3,
+    height: lineHeightCompact,
     color: TrackletColors.textSecondary,
   );
 
@@ -166,30 +222,30 @@ abstract final class TrackletTypography {
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: secondaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontSize: fontSize16,
+    fontWeight: weightMedium,
     letterSpacing: 0.0,
-    height: 1.5,
+    height: lineHeightRelaxed,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize14,
+    fontWeight: weightRegular,
     letterSpacing: 0.0,
-    height: 1.45,
+    height: lineHeightBodyRelaxed,
     color: TrackletColors.textPrimary,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: secondaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize12,
+    fontWeight: weightRegular,
     letterSpacing: 0.0,
-    height: 1.4,
+    height: lineHeightBody,
     color: TrackletColors.textSecondary,
   );
 
@@ -200,20 +256,20 @@ abstract final class TrackletTypography {
   static const TextStyle caption = TextStyle(
     fontFamily: secondaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 11,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize11,
+    fontWeight: weightRegular,
     letterSpacing: 0.2,
-    height: 1.3,
+    height: lineHeightCompact,
     color: TrackletColors.textSecondary,
   );
 
   static const TextStyle captionSmall = TextStyle(
     fontFamily: secondaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 10,
-    fontWeight: FontWeight.w400,
+    fontSize: fontSize10,
+    fontWeight: weightRegular,
     letterSpacing: 0.2,
-    height: 1.25,
+    height: lineHeightDense,
     color: TrackletColors.textSecondary,
   );
 
@@ -225,10 +281,10 @@ abstract final class TrackletTypography {
   static const TextStyle numericLarge = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
+    fontSize: fontSize28,
+    fontWeight: weightBold,
     letterSpacing: -0.4,
-    height: 1.2,
+    height: lineHeightTight,
     fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
     color: TrackletColors.textPrimary,
   );
@@ -237,10 +293,10 @@ abstract final class TrackletTypography {
   static const TextStyle numericMedium = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 20,
-    fontWeight: FontWeight.w700,
+    fontSize: fontSize20,
+    fontWeight: weightBold,
     letterSpacing: -0.2,
-    height: 1.25,
+    height: lineHeightDense,
     fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
     color: TrackletColors.textPrimary,
   );
@@ -249,9 +305,9 @@ abstract final class TrackletTypography {
   static const TextStyle numericSmall = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFallbacks,
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    height: 1.35,
+    fontSize: fontSize14,
+    fontWeight: weightSemiBold,
+    height: lineHeightBodyCompact,
     fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
     color: TrackletColors.textPrimary,
   );

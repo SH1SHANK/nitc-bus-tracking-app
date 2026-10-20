@@ -15,6 +15,8 @@ import '../features/admin/admin_dashboard_screen.dart';
 import '../features/admin/providers/admin_provider.dart';
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
+import '../features/notifications/inbox_screen.dart';
+import '../features/notifications/reminders_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/profile/providers/profile_provider.dart';
@@ -474,6 +476,24 @@ GoRouter createRouter({
             (context, state) => _buildModalPage(
               key: state.pageKey,
               child: const FeatureSuggestionScreen(),
+            ),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/notifications',
+        name: 'notifications',
+        pageBuilder:
+            (context, state) =>
+                _buildModalPage(key: state.pageKey, child: const InboxScreen()),
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/reminders',
+        name: 'reminders',
+        pageBuilder:
+            (context, state) => _buildModalPage(
+              key: state.pageKey,
+              child: const RemindersScreen(),
             ),
       ),
 

@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,14 +54,14 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(7),
+                padding: const EdgeInsets.all(TrackletSpacing.iconBadgeInset),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  color: TrackletColors.hardwareSuccess.withValues(alpha: 0.15),
                   borderRadius: TrackletRadii.roundedSm,
                 ),
                 child: const Icon(
                   TrackletIcons.smartphone,
-                  color: Color(0xFF10B981),
+                  color: TrackletColors.hardwareSuccess,
                   size: 18,
                 ),
               ),
@@ -73,13 +74,13 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                       'Live Hardware & Telemetry Workbench',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14.5,
+                        fontSize: TrackletTypography.fontSize14_5,
                       ),
                     ),
                     Text(
                       'Fastify API Gateway · Device ${AppConfig.defaultSimulatorDeviceId}',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: TrackletTypography.fontSize11,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -99,7 +100,7 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
           ),
           const SizedBox(height: TrackletSpacing.sm),
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(TrackletSpacing.compactMd),
             decoration: BoxDecoration(
               color: TrackletColors.adaptiveSurfaceElevated(context),
               borderRadius: TrackletRadii.roundedSm,
@@ -120,16 +121,16 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                     'Target: ${AppConfig.backendUrl}',
                     style: const TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize11,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
+                    horizontal: TrackletSpacing.compact,
+                    vertical: TrackletSpacing.xxs,
                   ),
                   decoration: BoxDecoration(
                     color: TrackletColors.primary.withValues(alpha: 0.15),
@@ -139,7 +140,7 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                     'BUS-SIM-001',
                     style: TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 10,
+                      fontSize: TrackletTypography.fontSize10,
                       fontWeight: FontWeight.bold,
                       color: TrackletColors.primary,
                     ),
@@ -237,9 +238,9 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                 const Text(
                   'LATEST TELEMETRY WORKBENCH PACKET',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: TrackletTypography.fontSize10,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
+                    letterSpacing: TrackletTypography.letterSpacingWide,
                   ),
                 ),
                 const Spacer(),
@@ -248,7 +249,7 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                     '${state.lastSuccessTimestamp!.hour.toString().padLeft(2, '0')}:${state.lastSuccessTimestamp!.minute.toString().padLeft(2, '0')}:${state.lastSuccessTimestamp!.second.toString().padLeft(2, '0')}',
                     style: TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 10,
+                      fontSize: TrackletTypography.fontSize10,
                       color: TrackletColors.adaptiveTextMuted(context),
                     ),
                   ),
@@ -257,9 +258,9 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
             const SizedBox(height: 6),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(TrackletSpacing.compactMd),
               decoration: BoxDecoration(
-                color: const Color(0xFF070B14),
+                color: TrackletColors.hardwarePanelBackgroundDark,
                 borderRadius: TrackletRadii.roundedSm,
                 border: Border.all(color: Colors.white12),
               ),
@@ -270,8 +271,8 @@ class _HardwareWorkbenchCardState extends ConsumerState<HardwareWorkbenchCard> {
                         'Device: ${AppConfig.defaultSimulatorDeviceId} • Secret: ***MASKED***',
                 style: const TextStyle(
                   fontFamily: 'monospace',
-                  fontSize: 11,
-                  color: Color(0xFF38BDF8),
+                  fontSize: TrackletTypography.fontSize11,
+                  color: TrackletColors.hardwareAccentBlue,
                 ),
               ),
             ),

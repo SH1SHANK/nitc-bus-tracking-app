@@ -56,19 +56,19 @@ InputDecoration authInputDecoration({
     hintText: hint,
     labelStyle: TrackletTypography.labelMedium.copyWith(
       color: secondaryColor,
-      fontWeight: FontWeight.w600,
+      fontWeight: TrackletTypography.weightSemiBold,
     ),
     floatingLabelStyle: TrackletTypography.labelMedium.copyWith(
       color: TrackletColors.primary,
-      fontWeight: FontWeight.w700,
+      fontWeight: TrackletTypography.weightBold,
     ),
     errorStyle: TrackletTypography.labelSmall.copyWith(
       color: TrackletColors.errorBorder,
-      fontWeight: FontWeight.w600,
+      fontWeight: TrackletTypography.weightSemiBold,
     ),
     hintStyle: TrackletTypography.labelLarge.copyWith(
       color: secondaryColor,
-      fontWeight: FontWeight.w700,
+      fontWeight: TrackletTypography.weightBold,
     ),
     prefixIcon: Icon(icon, color: secondaryColor, size: TrackletSpacing.icon),
     prefixIconConstraints: const BoxConstraints(

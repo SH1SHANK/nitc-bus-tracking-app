@@ -88,11 +88,11 @@ abstract class _WebMapController {
   void animatedMoveTo(GeoPoint point, {double? zoom});
   void fitBounds(
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
   });
   void animatedFitBounds(
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
   });
   GeoPoint get center;
   double get zoom;
@@ -192,7 +192,7 @@ class TrackletMapController {
 
   void fitBounds(
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
   }) {
     if (kIsWeb && _webMapController != null) {
       _webMapController!.fitBounds(points, padding: padding);
@@ -226,7 +226,7 @@ class TrackletMapController {
   void animatedFitBounds(
     TickerProvider vsync,
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeOutCubic,
     bool disableAnimations = false,
@@ -901,7 +901,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
                 elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: TrackletSpacing.compactMd,
                     vertical: 5,
                   ),
                   child: Row(
@@ -916,7 +916,7 @@ class _TrackletMapViewState extends State<TrackletMapView> {
                       Text(
                         'Offline Campus Map',
                         style: TrackletTypography.caption.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TrackletTypography.weightSemiBold,
                           color: TrackletColors.adaptiveTextSecondary(context),
                         ),
                       ),
@@ -1094,7 +1094,7 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
   @override
   void fitBounds(
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
   }) {
     if (points.isEmpty) return;
     if (points.length == 1) {
@@ -1126,7 +1126,7 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
   @override
   void animatedFitBounds(
     List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(48),
+    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
   }) {
     fitBounds(points, padding: padding);
   }
@@ -1158,7 +1158,7 @@ class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
               Text(
                 'Mapbox Initialization Error',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TrackletTypography.weightBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
@@ -1264,7 +1264,7 @@ class _MapboxWebConfigPlaceholder extends StatelessWidget {
               Text(
                 'Mapbox Public Token Required',
                 style: TrackletTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: TrackletTypography.weightBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
                 textAlign: TextAlign.center,
@@ -1284,7 +1284,10 @@ class _MapboxWebConfigPlaceholder extends StatelessWidget {
                   vertical: TrackletSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.black45 : const Color(0xFFF1F3F5),
+                  color:
+                      isDark
+                          ? Colors.black45
+                          : TrackletColors.mapCanvasAlternate,
                   borderRadius: TrackletRadii.roundedSm,
                   border: Border.all(
                     color: TrackletColors.adaptiveBorder(context),
@@ -1294,8 +1297,8 @@ class _MapboxWebConfigPlaceholder extends StatelessWidget {
                   '--dart-define=MAPBOX_PUBLIC_TOKEN=pk.your_token',
                   style: TextStyle(
                     fontFamily: 'monospace',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize12_5,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -1307,7 +1310,9 @@ class _MapboxWebConfigPlaceholder extends StatelessWidget {
                   icon: const Icon(TrackletIcons.compass, size: 18),
                   label: const Text('Explore with OpenStreetMap Raster'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TrackletSpacing.compactLg,
+                    ),
                     shape: const RoundedRectangleBorder(
                       borderRadius: TrackletRadii.roundedMd,
                     ),

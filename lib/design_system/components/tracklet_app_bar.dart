@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/colors.dart';
+import '../tokens/shadows.dart';
 import '../tokens/spacing.dart';
 import '../tokens/typography.dart';
 
@@ -22,7 +23,11 @@ class TrackletAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
 
   @override
-  Size get preferredSize => Size.fromHeight(subtitle != null ? 68.0 : 56.0);
+  Size get preferredSize => Size.fromHeight(
+    subtitle != null
+        ? TrackletSpacing.appBarSubtitleHeight
+        : TrackletSpacing.appBarHeight,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +36,8 @@ class TrackletAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: effectiveBg,
-      elevation: 0,
-      scrolledUnderElevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
+      scrolledUnderElevation: TrackletShadows.elevationLevel0,
       leading: leading,
       centerTitle: false,
       title: Column(

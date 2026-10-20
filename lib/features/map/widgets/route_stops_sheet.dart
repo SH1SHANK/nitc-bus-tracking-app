@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/route_geometry.dart';
@@ -57,7 +58,7 @@ class RouteStopsSheet extends StatelessWidget {
 
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.16),
@@ -134,7 +135,8 @@ class RouteStopsSheet extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: TrackletTypography.titleSmall
                                           .copyWith(
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight:
+                                                TrackletTypography.weightBold,
                                             color:
                                                 TrackletColors.adaptiveTextPrimary(
                                                   context,
@@ -343,8 +345,12 @@ class RouteStopsSheet extends StatelessWidget {
                                                           : TrackletColors.adaptiveTextSecondary(
                                                             context,
                                                           ),
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 10,
+                                                  fontWeight:
+                                                      TrackletTypography
+                                                          .weightBold,
+                                                  fontSize:
+                                                      TrackletTypography
+                                                          .fontSize10,
                                                 ),
                                           ),
                                         ),
@@ -358,7 +364,7 @@ class RouteStopsSheet extends StatelessWidget {
                                         minHeight: 44,
                                       ),
                                       margin: const EdgeInsets.symmetric(
-                                        vertical: 2,
+                                        vertical: TrackletSpacing.xxs,
                                       ),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: TrackletSpacing.sm,

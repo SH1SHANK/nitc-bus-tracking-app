@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -159,8 +160,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             Text(
                               'Step 1 of $kTotalSteps',
                               style: TrackletFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightSemiBold,
                                 color: TrackletColors.textSecondary,
                               ),
                             ),
@@ -169,7 +170,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                         const SizedBox(height: 4),
                         const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: TrackletSpacing.md,
+                          ),
                           child: OnboardingProgressBar(
                             currentStep: 0,
                             totalSteps: kTotalSteps,
@@ -207,8 +210,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             _completionError == null
                                 ? null
                                 : () {
-                                    _startCompletion();
-                                  },
+                                  _startCompletion();
+                                },
                       ),
                     ],
                   ),

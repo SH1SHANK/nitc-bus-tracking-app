@@ -80,7 +80,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
       child: TrackletCard(
         padding: const EdgeInsets.symmetric(
           horizontal: TrackletSpacing.md,
-          vertical: TrackletSpacing.sm + 2,
+          vertical: TrackletSpacing.sm + TrackletSpacing.xxs,
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -128,7 +128,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         Text(
                           bus.name,
                           style: TrackletTypography.titleMedium.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TrackletTypography.weightBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                           maxLines: 1,
@@ -136,14 +136,16 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         ),
                         if (bus.numberPlate.trim().isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 1),
+                            padding: const EdgeInsets.only(
+                              top: TrackletSpacing.hairline,
+                            ),
                             child: Text(
                               bus.numberPlate,
                               style: TrackletTypography.caption.copyWith(
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
-                                fontWeight: FontWeight.w600,
+                                fontWeight: TrackletTypography.weightSemiBold,
                               ),
                             ),
                           ),
@@ -171,14 +173,14 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                 widget.route?.name ?? 'Route unavailable',
                 style: TrackletTypography.bodySmall.copyWith(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontWeight: FontWeight.w500,
+                  fontWeight: TrackletTypography.weightMedium,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               if (widget.route?.description?.trim().isNotEmpty == true)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: TrackletSpacing.xxs),
                   child: Text(
                     widget.route!.description!.trim(),
                     maxLines: 1,
@@ -191,8 +193,8 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
               const SizedBox(height: TrackletSpacing.sm),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: TrackletSpacing.compactMd,
+                  vertical: TrackletSpacing.compact,
                 ),
                 decoration: BoxDecoration(
                   color: TrackletColors.adaptiveSurfaceContainer(context),
@@ -212,8 +214,8 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                     Text(
                       'Next stop',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightMedium,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -227,15 +229,15 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         overflow: TextOverflow.ellipsis,
                         style: TrackletTypography.labelMedium.copyWith(
                           color: TrackletColors.adaptiveTextPrimary(context),
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ),
                     if (widget.eta.isValid)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                          horizontal: TrackletSpacing.sm,
+                          vertical: TrackletSpacing.xxs,
                         ),
                         decoration: BoxDecoration(
                           color:
@@ -249,8 +251,8 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                         child: Text(
                           widget.eta.displayValue,
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontSize: TrackletTypography.fontSize11,
+                            fontWeight: TrackletTypography.weightBold,
                             color:
                                 isDark
                                     ? TrackletColors.primaryDark
@@ -279,8 +281,8 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                   style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
+                      horizontal: TrackletSpacing.xs,
+                      vertical: TrackletSpacing.xxs,
                     ),
                   ),
                 ),
@@ -346,7 +348,7 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                 if (occurrence.stop != null)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 2,
+                                      vertical: TrackletSpacing.xxs,
                                     ),
                                     child: Row(
                                       children: [
@@ -384,8 +386,10 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                                               widget
                                                                   .nextStop
                                                                   ?.stopId
-                                                          ? FontWeight.w700
-                                                          : FontWeight.w400,
+                                                          ? TrackletTypography
+                                                              .weightBold
+                                                          : TrackletTypography
+                                                              .weightRegular,
                                                   color:
                                                       occurrence.stopId ==
                                                               widget
@@ -406,8 +410,10 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                             widget.nextStop?.stopId)
                                           Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 1,
+                                              horizontal:
+                                                  TrackletSpacing.compact,
+                                              vertical:
+                                                  TrackletSpacing.hairline,
                                             ),
                                             decoration: BoxDecoration(
                                               color:
@@ -424,8 +430,12 @@ class _BusDetailSheetState extends State<BusDetailSheet> {
                                             child: Text(
                                               'Next',
                                               style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w700,
+                                                fontSize:
+                                                    TrackletTypography
+                                                        .fontSize10,
+                                                fontWeight:
+                                                    TrackletTypography
+                                                        .weightBold,
                                                 color:
                                                     isDark
                                                         ? TrackletColors
@@ -509,7 +519,10 @@ class _DetailValue extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = TrackletColors.isDark(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.sm,
+        vertical: TrackletSpacing.compact,
+      ),
       decoration: BoxDecoration(
         color:
             isDark
@@ -536,7 +549,7 @@ class _DetailValue extends StatelessWidget {
                   label,
                   style: TrackletTypography.caption.copyWith(
                     color: TrackletColors.adaptiveTextSecondary(context),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -548,7 +561,7 @@ class _DetailValue extends StatelessWidget {
           Text(
             value,
             style: TrackletTypography.labelMedium.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TrackletTypography.weightBold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
             maxLines: 1,

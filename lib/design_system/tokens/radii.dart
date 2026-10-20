@@ -3,31 +3,37 @@ import 'package:flutter/widgets.dart';
 /// Tracklet corner radius tokens matching Attendrix design standards.
 abstract final class TrackletRadii {
   static const double none = 0.0;
+  static const double xxs = 2.0;
   static const double xs = 4.0;
   static const double compact = 6.0;
+  static const double compactMd = 10.0;
   static const double sm = 8.0;
-  static const double input = 8.0;
+  static const double input = sm;
   static const double md = 12.0;
-  static const double card = 12.0;
-  static const double button = 14.0;
+  static const double card = md;
+  static const double button = banner;
   static const double banner = 14.0;
   static const double lg = 16.0;
   static const double cardLg = 18.0;
   static const double cardXl = 22.0;
   static const double sheet = 20.0;
-  static const double pill = 20.0;
+  static const double pill = sheet;
   static const double xl = 24.0;
-  static const double dialog = 16.0;
-  static const double dialogLg = 20.0;
+  static const double dialog = lg;
+  static const double dialogLg = sheet;
   static const double avatar = 28.0;
   static const double curvedBar = 32.0;
   static const double full = 9999.0;
 
   // BorderRadius helpers
   static const BorderRadius roundedNone = BorderRadius.zero;
+  static const BorderRadius roundedXxs = BorderRadius.all(Radius.circular(xxs));
   static const BorderRadius roundedXs = BorderRadius.all(Radius.circular(xs));
   static const BorderRadius roundedCompact = BorderRadius.all(
     Radius.circular(compact),
+  );
+  static const BorderRadius roundedCompactMd = BorderRadius.all(
+    Radius.circular(compactMd),
   );
   static const BorderRadius roundedSm = BorderRadius.all(Radius.circular(sm));
   static const BorderRadius roundedInput = BorderRadius.all(

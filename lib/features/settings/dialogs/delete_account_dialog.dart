@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/preferences/user_preferences.dart';
@@ -81,8 +83,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             content: Text(
               'Your account has been permanently deleted.',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 13.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize13,
                 color: TrackletColors.info,
               ),
               textAlign: TextAlign.center,
@@ -101,8 +103,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             content: Text(
               'Could not delete account. Try again.',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w500,
-                fontSize: 12.5,
+                fontWeight: TrackletTypography.weightMedium,
+                fontSize: TrackletTypography.fontSize12_5,
                 color: TrackletColors.info,
               ),
             ),
@@ -118,7 +120,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
     final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
       ),
@@ -166,8 +168,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                   'Delete your account?',
                   textAlign: TextAlign.center,
                   style: TrackletFonts.outfit(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize18,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.absentRed,
                   ),
                 ),
@@ -203,10 +205,10 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                         child: Text(
                           'Warning: This action is permanent. All your saved stops, alert rules, profile details, and login credentials will be erased immediately.',
                           style: TrackletFonts.outfit(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w500,
+                            fontSize: TrackletTypography.fontSize12,
+                            fontWeight: TrackletTypography.weightMedium,
                             color: TrackletColors.absentRed,
-                            height: 1.35,
+                            height: TrackletTypography.lineHeightBodyCompact,
                           ),
                         ),
                       ),
@@ -224,8 +226,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                       Text(
                         'This action will permanently delete:',
                         style: TrackletFonts.outfit(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w600,
+                          fontSize: TrackletTypography.fontSize13,
+                          fontWeight: TrackletTypography.weightSemiBold,
                           color: TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
@@ -255,7 +257,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                   child: RichText(
                     text: TextSpan(
                       style: TrackletFonts.outfit(
-                        fontSize: 13.0,
+                        fontSize: TrackletTypography.fontSize13,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                       children: [
@@ -283,7 +285,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                   decoration: InputDecoration(
                     hintText: 'Type ${widget.username} or DELETE',
                     hintStyle: TrackletFonts.outfit(
-                      fontSize: 13.0,
+                      fontSize: TrackletTypography.fontSize13,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                     filled: true,
@@ -314,8 +316,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     ),
                   ),
                   style: TrackletFonts.outfit(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize14,
+                    fontWeight: TrackletTypography.weightSemiBold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -339,7 +341,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                       foregroundColor: TrackletColors.textInverse,
                       disabledForegroundColor:
                           TrackletColors.adaptiveTextSecondary(context),
-                      elevation: 0,
+                      elevation: TrackletShadows.elevationLevel0,
                       shape: const RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedSm,
                       ),
@@ -357,8 +359,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                             : Text(
                               'Delete Account',
                               style: TrackletFonts.outfit(
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize15,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                   ),
@@ -387,8 +389,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
                     child: Text(
                       'Cancel',
                       style: TrackletFonts.outfit(
-                        fontSize: 15.0,
-                        fontWeight: FontWeight.w600,
+                        fontSize: TrackletTypography.fontSize15,
+                        fontWeight: TrackletTypography.weightSemiBold,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -425,8 +427,8 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
           child: Text(
             text,
             style: TrackletFonts.outfit(
-              fontSize: 13.0,
-              fontWeight: FontWeight.w400,
+              fontSize: TrackletTypography.fontSize13,
+              fontWeight: TrackletTypography.weightRegular,
               color:
                   isDark
                       ? TrackletColors.darkTextPrimary

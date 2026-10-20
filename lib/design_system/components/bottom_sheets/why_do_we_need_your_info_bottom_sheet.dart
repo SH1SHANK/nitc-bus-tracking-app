@@ -69,7 +69,7 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                         style: TrackletTypography.adaptive(
                           context,
                           TrackletTypography.headlineSmall,
-                        ).copyWith(fontWeight: FontWeight.w700),
+                        ).copyWith(fontWeight: TrackletTypography.weightBold),
                       ),
                       const SizedBox(height: TrackletSpacing.sm),
                       Text(
@@ -85,7 +85,7 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                         style: TrackletTypography.adaptive(
                           context,
                           TrackletTypography.titleMedium,
-                        ).copyWith(fontWeight: FontWeight.w700),
+                        ).copyWith(fontWeight: TrackletTypography.weightBold),
                       ),
                       const SizedBox(height: TrackletSpacing.md),
                       const _BenefitRow(
@@ -136,7 +136,9 @@ class WhyDoWeNeedYourInfoBottomSheet extends StatelessWidget {
                                     style: TrackletTypography.adaptive(
                                       context,
                                       TrackletTypography.titleSmall,
-                                    ).copyWith(fontWeight: FontWeight.w700),
+                                    ).copyWith(
+                                      fontWeight: TrackletTypography.weightBold,
+                                    ),
                                   ),
                                   const SizedBox(height: TrackletSpacing.xs),
                                   Text(
@@ -223,7 +225,7 @@ class _BenefitRow extends StatelessWidget {
                 style: TrackletTypography.adaptive(
                   context,
                   TrackletTypography.titleSmall,
-                ).copyWith(fontWeight: FontWeight.w600),
+                ).copyWith(fontWeight: TrackletTypography.weightSemiBold),
               ),
               const SizedBox(height: TrackletSpacing.xs),
               Text(

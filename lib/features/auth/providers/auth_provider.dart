@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/auth/auth_repository.dart';
 import '../../../data/auth/auth_result.dart';
 import '../../../data/auth/auth_state.dart';
+import '../../../services/notifications/onesignal_service.dart';
 
 /// Riverpod Notifier managing authentication states and operations.
 class AuthNotifier extends Notifier<AuthState> {
   StreamSubscription<AuthState>? _authSub;
+  String? _oneSignalUserId;
+  bool _hasSyncedOneSignalIdentity = false;
 
   AuthRepository get _authRepository => ref.read(authRepositoryProvider);
 
@@ -24,8 +27,11 @@ class AuthNotifier extends Notifier<AuthState> {
   void _init(AuthRepository repo) {
     _authSub?.cancel();
     _authSub = repo.authStateChanges.listen((newState) {
+      _syncOneSignalIdentity(newState);
       state = newState;
     });
+
+    _syncOneSignalIdentity(repo.currentAuthState);
 
     // Check immediate status
     if (repo.isAuthenticated) {
@@ -40,6 +46,24 @@ class AuthNotifier extends Notifier<AuthState> {
     } else {
       state = const AuthState(status: AuthStatus.unauthenticated);
     }
+  }
+
+  void _syncOneSignalIdentity(AuthState authState) {
+    if (!OneSignalService.isAvailable) return;
+
+    final userId =
+        authState.isAuthenticated && !authState.isGuest
+            ? authState.user!.id
+            : null;
+    if (_hasSyncedOneSignalIdentity && userId == _oneSignalUserId) return;
+
+    _hasSyncedOneSignalIdentity = true;
+    _oneSignalUserId = userId;
+    unawaited(
+      userId == null
+          ? OneSignalService.logout()
+          : OneSignalService.login(userId),
+    );
   }
 
   /// Sign in with student email and password.

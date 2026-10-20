@@ -52,7 +52,7 @@ class SettingsThemeSelector extends StatelessWidget {
         borderRadius: TrackletRadii.roundedLg,
         border: Border.all(color: borderColor, width: 1.0),
       ),
-      padding: const EdgeInsets.all(4.0),
+      padding: const EdgeInsets.all(TrackletSpacing.xs),
       child: Row(
         children:
             _modes.map((mode) {
@@ -115,11 +115,11 @@ class SettingsThemeSelector extends StatelessWidget {
                           Text(
                             mode.label,
                             style: TrackletTypography.labelMedium.copyWith(
-                              fontSize: 13.0,
+                              fontSize: TrackletTypography.fontSize13,
                               fontWeight:
                                   isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
+                                      ? TrackletTypography.weightSemiBold
+                                      : TrackletTypography.weightMedium,
                               color:
                                   isSelected
                                       ? TrackletColors.textInverse

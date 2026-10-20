@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/logging/app_logger.dart';
 import '../data/supabase/supabase_client_provider.dart';
 import '../design_system/tokens/colors.dart';
+import '../services/notifications/onesignal_service.dart';
 import '../services/storage/storage_service.dart';
 import 'app.dart';
 
@@ -48,6 +49,9 @@ Future<void> bootstrap() async {
 
   // Initialize Supabase if credentials are provided
   await initializeSupabase();
+
+  // Initialize OneSignal Push Notifications (Client-side)
+  await OneSignalService.initialize();
 
   runApp(
     ProviderScope(

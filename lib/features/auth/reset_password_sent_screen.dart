@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/gestures.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,7 +72,7 @@ class _ResetPasswordSentScreenState
           'Password reset link sent to your email.',
           style: TextStyle(
             color: TrackletColors.info,
-            fontWeight: FontWeight.w500,
+            fontWeight: TrackletTypography.weightMedium,
           ),
         ),
         duration: Duration(milliseconds: 4000),
@@ -157,15 +158,15 @@ class _ResetPasswordSentScreenState
                     text: TextSpan(
                       style: TrackletTypography.bodyMedium.copyWith(
                         color: textPrimary,
-                        fontWeight: FontWeight.w500,
-                        height: 1.5,
+                        fontWeight: TrackletTypography.weightMedium,
+                        height: TrackletTypography.lineHeightRelaxed,
                       ),
                       children: [
                         TextSpan(
                           text: 'Password reset link sent\n',
                           style: TrackletTypography.titleMedium.copyWith(
                             color: textPrimary,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TrackletTypography.weightBold,
                           ),
                         ),
                         TextSpan(
@@ -186,14 +187,14 @@ class _ResetPasswordSentScreenState
                 textAlign: TextAlign.center,
                 text: TextSpan(
                   style: TrackletTypography.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: TrackletTypography.weightMedium,
                   ),
                   children: [
                     TextSpan(
                       text: 'Didn’t receive the email? ',
                       style: TrackletTypography.bodyMedium.copyWith(
                         color: textSecondary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: TrackletTypography.weightMedium,
                       ),
                     ),
                     TextSpan(
@@ -206,7 +207,7 @@ class _ResetPasswordSentScreenState
                             _cooldownSeconds > 0
                                 ? textSecondary
                                 : TrackletColors.primary,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: TrackletTypography.weightExtraBold,
                       ),
                       mouseCursor:
                           _cooldownSeconds > 0
@@ -235,9 +236,9 @@ class _ResetPasswordSentScreenState
                                 : TrackletColors.primaryText,
                         foregroundColor:
                             isDark
-                                ? Colors.white
+                                ? TrackletColors.textInverse
                                 : TrackletColors.primaryBackground,
-                        elevation: 3.0,
+                        elevation: TrackletShadows.elevationLevel3,
                         shape: const RoundedRectangleBorder(
                           borderRadius: TrackletRadii.roundedButton,
                         ),
@@ -248,7 +249,7 @@ class _ResetPasswordSentScreenState
                         style: TrackletTypography.titleSmall.copyWith(
                           color:
                               isDark
-                                  ? Colors.white
+                                  ? TrackletColors.textInverse
                                   : TrackletColors.primaryBackground,
                         ),
                       ),

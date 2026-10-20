@@ -1,4 +1,7 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,6 +21,7 @@ import 'widgets/rotate_secret_dialog.dart';
 import 'widgets/telemetry_throughput_chart.dart';
 import 'widgets/test_ping_dialog.dart';
 import 'widgets/tracker_detail_sheet.dart';
+import '../notifications/send_announcement_dialog.dart';
 
 /// Comprehensive Administrative Control Panel for Tracklet.
 class AdminDashboardScreen extends ConsumerStatefulWidget {
@@ -79,7 +83,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   const SizedBox(height: 16),
                   const Text(
                     'Administrator Privileges Required',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: TrackletTypography.fontSize18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -115,12 +122,15 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   const SizedBox(height: 16),
                   const Text(
                     'Access Denied',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: TrackletTypography.fontSize18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Your account is not on the administrator allowlist.',
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: TrackletTypography.fontSize14),
                   ),
                   const SizedBox(height: 24),
                   TrackletButton(
@@ -137,7 +147,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
           backgroundColor: TrackletColors.adaptiveSurface(context),
           appBar: AppBar(
             backgroundColor: TrackletColors.adaptiveSurfaceElevated(context),
-            elevation: 0,
+            elevation: TrackletShadows.elevationLevel0,
             leading: IconButton(
               icon: const Icon(TrackletIcons.chevronLeft),
               onPressed: () {
@@ -151,7 +161,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             title: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(TrackletSpacing.compact),
                   decoration: BoxDecoration(
                     color: TrackletColors.primary.withValues(alpha: 0.15),
                     borderRadius: TrackletRadii.roundedSm,
@@ -165,11 +175,19 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 const SizedBox(width: 10),
                 const Text(
                   'Admin Controls',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: TrackletTypography.fontSize18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             actions: [
+              IconButton(
+                icon: const Icon(TrackletIcons.notifications, size: 20),
+                tooltip: 'Broadcast Announcement',
+                onPressed: () => SendAnnouncementDialog.show(context),
+              ),
               IconButton(
                 icon: const Icon(TrackletIcons.refresh, size: 20),
                 tooltip: 'Refresh metrics',
@@ -242,7 +260,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
       error:
           (e, _) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(TrackletSpacing.xl),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -273,11 +291,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             await ref.read(adminOverviewProvider.future);
           },
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TrackletSpacing.lg),
             children: [
               // System banner
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(TrackletSpacing.compactLg),
                 decoration: BoxDecoration(
                   color:
                       overview.databaseConnected
@@ -323,7 +341,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           Text(
                             'API Uptime: ${(overview.uptimeSeconds / 60).toStringAsFixed(1)} min · NITC Transit Fleet',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TrackletTypography.fontSize12,
                               color: TrackletColors.adaptiveTextSecondary(
                                 context,
                               ),
@@ -340,9 +358,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               const Text(
                 'TRACKER INVENTORY & TELEMETRY',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
+                  fontSize: TrackletTypography.fontSize11,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingExpanded,
                 ),
               ),
               const SizedBox(height: 10),
@@ -430,7 +448,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                         ),
                     loading:
                         () => const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
+                          padding: EdgeInsets.symmetric(
+                            vertical: TrackletSpacing.xl,
+                          ),
                           child: Center(child: CircularProgressIndicator()),
                         ),
                     error: (e, _) => const SizedBox.shrink(),
@@ -446,9 +466,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               const Text(
                 'QUICK ACTIONS',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
+                  fontSize: TrackletTypography.fontSize11,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingExpanded,
                 ),
               ),
               const SizedBox(height: 12),
@@ -493,7 +513,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
       error:
           (e, _) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(TrackletSpacing.xl),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -571,8 +591,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                                 )
                                 : null,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                          horizontal: TrackletSpacing.md,
+                          vertical: TrackletSpacing.compactMd,
                         ),
                         border: const OutlineInputBorder(
                           borderRadius: TrackletRadii.roundedSm,
@@ -593,7 +613,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             // Device filter chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.lg,
+                vertical: TrackletSpacing.xs,
+              ),
               child: Row(
                 children: [
                   _buildDeviceFilterChip('All', 'all', devices.length),
@@ -608,15 +631,18 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             ),
             // Device count indicator
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.lg,
+                vertical: TrackletSpacing.xs,
+              ),
               child: Row(
                 children: [
                   Text(
                     '${filtered.length} of ${devices.length} Trackers',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TrackletTypography.fontSize12,
                       color: TrackletColors.adaptiveTextMuted(context),
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                 ],
@@ -665,7 +691,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                                     .read(adminDevicesProvider.notifier)
                                     .refresh(),
                         child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(TrackletSpacing.lg),
                           itemCount: filtered.length,
                           separatorBuilder:
                               (_, _) => const SizedBox(height: 12),
@@ -689,7 +715,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
       selected: isSelected,
       selectedColor: TrackletColors.primary.withValues(alpha: 0.15),
       labelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: TrackletTypography.fontSize12,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         color:
             isSelected
@@ -747,7 +773,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(TrackletSpacing.sm),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
@@ -770,14 +796,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: TrackletTypography.fontSize15,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: TrackletSpacing.compact,
+                            vertical: TrackletSpacing.xxs,
                           ),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.15),
@@ -786,10 +812,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           child: Text(
                             statusText,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: TrackletTypography.fontSize10,
                               fontWeight: FontWeight.bold,
                               color: statusColor,
-                              letterSpacing: 0.5,
+                              letterSpacing:
+                                  TrackletTypography.letterSpacingLabel,
                             ),
                           ),
                         ),
@@ -799,7 +826,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     Text(
                       busDisplayName,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TrackletTypography.fontSize12,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -846,10 +873,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   icon: const Icon(TrackletIcons.activity, size: 14),
                   label: const Text(
                     'Test Ping',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: TrackletTypography.fontSize12),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TrackletSpacing.sm,
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
                   onPressed:
@@ -862,10 +891,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   icon: const Icon(TrackletIcons.key, size: 14),
                   label: const Text(
                     'Rotate Secret',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: TrackletTypography.fontSize12),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TrackletSpacing.sm,
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
                   onPressed:
@@ -890,7 +921,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
       children: [
         // Control Bar
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(TrackletSpacing.md),
           decoration: BoxDecoration(
             color: TrackletColors.adaptiveSurfaceElevated(context),
             border: Border(
@@ -909,8 +940,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     borderRadius: TrackletRadii.roundedSm,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: TrackletSpacing.md,
+                        vertical: TrackletSpacing.sm,
                       ),
                       decoration: BoxDecoration(
                         color:
@@ -945,7 +976,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                                 ? 'RESUME STREAM'
                                 : 'PAUSE STREAM',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TrackletTypography.fontSize12,
                               fontWeight: FontWeight.bold,
                               color:
                                   consoleState.isPaused
@@ -961,7 +992,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   Text(
                     'Updated: ${_formatTime(consoleState.lastUpdated)}',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: TrackletTypography.fontSize11,
                       color: TrackletColors.adaptiveTextMuted(context),
                     ),
                   ),
@@ -979,21 +1010,23 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   Text(
                     'Polling Rate: ',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize11,
+                      fontWeight: TrackletTypography.weightSemiBold,
                       color: TrackletColors.adaptiveTextMuted(context),
                     ),
                   ),
                   const SizedBox(width: 4),
                   for (final sec in [1, 3, 5, 10]) ...[
                     Padding(
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.only(
+                        right: TrackletSpacing.compact,
+                      ),
                       child: InkWell(
                         onTap: () => notifier.setPollingInterval(sec),
                         borderRadius: TrackletRadii.roundedSm,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -1014,7 +1047,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           child: Text(
                             '${sec}s',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: TrackletTypography.fontSize11,
                               fontWeight:
                                   consoleState.pollingIntervalSeconds == sec
                                       ? FontWeight.bold
@@ -1044,8 +1077,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                         prefixIcon: Icon(TrackletIcons.search, size: 16),
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 8,
+                          horizontal: TrackletSpacing.sm,
+                          vertical: TrackletSpacing.sm,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: TrackletRadii.roundedSm,
@@ -1110,7 +1143,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     ),
                   )
                   : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(TrackletSpacing.lg),
                     itemCount: consoleState.filteredTrackers.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
@@ -1143,12 +1176,15 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 tracker.busNumber,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontSize: TrackletTypography.fontSize15,
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.compact,
+                  vertical: TrackletSpacing.xxs,
+                ),
                 decoration: BoxDecoration(
                   color: TrackletColors.adaptiveSurfaceElevated(context),
                   borderRadius: TrackletRadii.roundedSm,
@@ -1157,8 +1193,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   tracker.deviceId,
                   style: const TextStyle(
                     fontFamily: 'monospace',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize11,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -1172,7 +1208,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               Text(
                 'Epoch: ${tracker.epoch} · Seq: #${tracker.seq}',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextSecondary(context),
                   fontFamily: 'monospace',
                 ),
@@ -1181,7 +1217,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               Text(
                 speed != null ? '${speed.toStringAsFixed(1)} km/h' : '0 km/h',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: TrackletTypography.fontSize12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1202,7 +1238,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                       ? '${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}'
                       : 'No GPS Fix Recorded',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TrackletTypography.fontSize11,
                     color: TrackletColors.adaptiveTextSecondary(context),
                     fontFamily: 'monospace',
                   ),
@@ -1211,9 +1247,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               Text(
                 '${tracker.recentBreadcrumbs.length} breadcrumbs',
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: TrackletTypography.fontSize10,
                   color: TrackletColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TrackletTypography.weightSemiBold,
                 ),
               ),
             ],
@@ -1239,7 +1275,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             await ref.read(adminHealthProvider.future);
           },
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TrackletSpacing.lg),
             children: [
               // Fastify API Health
               TrackletCard(
@@ -1257,7 +1293,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           'Fastify Telemetry API',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TrackletTypography.fontSize16,
                           ),
                         ),
                         const Spacer(),
@@ -1303,7 +1339,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           'Supabase PostgreSQL Database',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TrackletTypography.fontSize16,
                           ),
                         ),
                         const Spacer(),
@@ -1337,7 +1373,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                           'Telemetry Ingestion Pipeline',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TrackletTypography.fontSize16,
                           ),
                         ),
                         const Spacer(),
@@ -1369,7 +1405,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                       'Active Fleet Summary',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TrackletTypography.fontSize16,
                       ),
                     ),
                     const Divider(height: 16),
@@ -1435,7 +1471,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             await ref.read(adminAuditLogsProvider.future);
           },
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(TrackletSpacing.lg),
             itemCount: logs.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
@@ -1448,7 +1484,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -1462,7 +1498,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                             style: const TextStyle(
                               color: TrackletColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                              fontSize: TrackletTypography.fontSize11,
                             ),
                           ),
                         ),
@@ -1470,7 +1506,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                         Text(
                           _formatRelativeTime(log.createdAt),
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: TrackletTypography.fontSize11,
                             color: TrackletColors.adaptiveTextMuted(context),
                           ),
                         ),
@@ -1480,15 +1516,15 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     Text(
                       'Admin: ${log.adminEmail}',
                       style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontSize: TrackletTypography.fontSize13,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                     ),
                     if (log.targetType.isNotEmpty)
                       Text(
                         'Target: ${log.targetType}${log.targetId != null ? ' (${log.targetId})' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TrackletTypography.fontSize12,
                           color: TrackletColors.adaptiveTextSecondary(context),
                         ),
                       ),
@@ -1515,16 +1551,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(TrackletSpacing.lg),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       '${admins.length} Configured Administrators',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TrackletTypography.fontSize13,
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                     ),
                   ),
@@ -1539,7 +1575,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
             const Divider(height: 1),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(TrackletSpacing.lg),
                 itemCount: admins.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
@@ -1548,7 +1584,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(TrackletSpacing.sm),
                           decoration: BoxDecoration(
                             color: TrackletColors.primary.withValues(
                               alpha: 0.12,
@@ -1570,14 +1606,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                                 admin.email,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: TrackletTypography.fontSize14,
                                 ),
                               ),
                               if (admin.notes != null)
                                 Text(
                                   admin.notes!,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TrackletTypography.fontSize12,
                                     color: TrackletColors.adaptiveTextSecondary(
                                       context,
                                     ),
@@ -1633,7 +1669,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: const Text(
                   'Remove',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: TrackletColors.textInverse),
                 ),
               ),
             ],
@@ -1682,9 +1718,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TrackletTypography.fontSize12,
                     color: TrackletColors.adaptiveTextMuted(context),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1694,13 +1730,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: TrackletTypography.fontSize22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: TrackletTypography.fontSize11,
               color: TrackletColors.adaptiveTextSecondary(context),
             ),
           ),
@@ -1713,10 +1752,19 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: TrackletTypography.fontSize10,
+            color: Colors.grey,
+          ),
+        ),
         Text(
           value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: TrackletTypography.fontSize12,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -1725,17 +1773,20 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
   Widget _statusPill(BuildContext context, bool ok) {
     final color = ok ? TrackletColors.success : TrackletColors.error;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.sm,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: TrackletRadii.roundedMd,
       ),
       child: Text(
         ok ? 'ONLINE' : 'DEGRADED',
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: 10,
+          fontSize: TrackletTypography.fontSize10,
         ),
       ),
     );
@@ -1747,12 +1798,18 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         Text(
           count,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: TrackletTypography.fontSize20,
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: TrackletTypography.fontSize11,
+            color: Colors.grey,
+          ),
+        ),
       ],
     );
   }
@@ -1765,17 +1822,20 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.compact,
+        vertical: TrackletSpacing.xxs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: TrackletRadii.roundedSm,
       ),
       child: Text(
         label,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: 9,
+          fontSize: TrackletTypography.fontSize9,
         ),
       ),
     );
@@ -1783,14 +1843,23 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
 
   Widget _healthMetricRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: TrackletSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: TrackletTypography.fontSize13,
+              color: Colors.grey,
+            ),
+          ),
           Text(
             value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: TrackletTypography.fontSize13,
+              fontWeight: TrackletTypography.weightSemiBold,
+            ),
           ),
         ],
       ),

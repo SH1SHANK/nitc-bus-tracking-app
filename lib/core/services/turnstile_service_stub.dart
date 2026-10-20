@@ -245,7 +245,7 @@ class _TurnstileModalSheetState extends State<_TurnstileModalSheet> {
                   Text(
                     'Security Verification',
                     style: TrackletTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TrackletTypography.weightSemiBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),

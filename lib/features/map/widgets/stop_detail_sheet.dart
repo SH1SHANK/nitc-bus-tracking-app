@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 import '../../../core/formatting/transit_formatter.dart';
 import '../../../core/geo/geo_point.dart';
@@ -72,7 +73,7 @@ class StopDetailSheet extends StatelessWidget {
 
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
-      elevation: 4,
+      elevation: TrackletShadows.elevationLevel4,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.16),
@@ -130,13 +131,15 @@ class StopDetailSheet extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.titleSmall.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TrackletTypography.weightBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
                         if (stop.code.isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.only(top: 2),
+                            padding: const EdgeInsets.only(
+                              top: TrackletSpacing.xxs,
+                            ),
                             child: Text(
                               stop.code,
                               maxLines: 1,
@@ -178,8 +181,8 @@ class StopDetailSheet extends StatelessWidget {
               const SizedBox(height: TrackletSpacing.sm),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: TrackletSpacing.compactMd,
+                  vertical: TrackletSpacing.compact,
                 ),
                 decoration: BoxDecoration(
                   color: TrackletColors.adaptiveSurfaceContainer(context),
@@ -200,7 +203,7 @@ class StopDetailSheet extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TrackletTypography.bodySmall.copyWith(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                       ),
                     ),
@@ -209,7 +212,7 @@ class StopDetailSheet extends StatelessWidget {
                       '${servingRoutes.length} ${servingRoutes.length == 1 ? 'route' : 'routes'}',
                       style: TrackletTypography.labelSmall.copyWith(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                     ),
                   ],
@@ -241,7 +244,7 @@ class StopDetailSheet extends StatelessWidget {
                         ),
                         labelStyle: TrackletTypography.labelSmall.copyWith(
                           color: TrackletColors.adaptiveTextPrimary(context),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: TrackletTypography.weightSemiBold,
                         ),
                         backgroundColor:
                             isDark
@@ -273,7 +276,7 @@ class StopDetailSheet extends StatelessWidget {
                         'Live Buses',
                         style: TrackletTypography.labelSmall.copyWith(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -285,10 +288,12 @@ class StopDetailSheet extends StatelessWidget {
                                   : () => onSelectBus!(bus),
                           borderRadius: TrackletRadii.roundedMd,
                           child: Container(
-                            margin: const EdgeInsets.only(bottom: 6),
+                            margin: const EdgeInsets.only(
+                              bottom: TrackletSpacing.compact,
+                            ),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
+                              horizontal: TrackletSpacing.compactMd,
+                              vertical: TrackletSpacing.sm,
                             ),
                             decoration: BoxDecoration(
                               color:
@@ -326,7 +331,8 @@ class StopDetailSheet extends StatelessWidget {
                                             : 'Bus ${bus.numberPlate}',
                                         style: TrackletTypography.bodySmall
                                             .copyWith(
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight:
+                                                  TrackletTypography.weightBold,
                                               color:
                                                   TrackletColors.adaptiveTextPrimary(
                                                     context,
@@ -351,7 +357,7 @@ class StopDetailSheet extends StatelessWidget {
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                    horizontal: TrackletSpacing.sm,
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
@@ -369,8 +375,9 @@ class StopDetailSheet extends StatelessWidget {
                                   child: Text(
                                     bus.isStale ? 'Stale' : 'LIVE',
                                     style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
+                                      fontSize: TrackletTypography.fontSize10,
+                                      fontWeight:
+                                          TrackletTypography.weightExtraBold,
                                       color:
                                           bus.isStale
                                               ? TrackletColors.adaptiveTextSecondary(
@@ -397,7 +404,7 @@ class StopDetailSheet extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
                     vertical: 9,
-                    horizontal: 12,
+                    horizontal: TrackletSpacing.md,
                   ),
                   decoration: BoxDecoration(
                     color:
@@ -433,7 +440,7 @@ class StopDetailSheet extends StatelessWidget {
                               isDark
                                   ? TrackletColors.primaryDark
                                   : TrackletColors.primary,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ],
@@ -458,7 +465,9 @@ class StopDetailSheet extends StatelessWidget {
                                 ? TrackletColors.primaryDark
                                 : TrackletColors.primary,
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: TrackletSpacing.sm,
+                      ),
                       shape: const RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedMd,
                       ),

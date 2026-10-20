@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -54,7 +56,7 @@ class _AboutScreenState extends State<AboutScreen> {
       appBar: AppBar(
         backgroundColor: TrackletColors.adaptiveBackground(context),
         foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(TrackletIcons.chevronLeft, size: 20),
@@ -64,8 +66,8 @@ class _AboutScreenState extends State<AboutScreen> {
         title: Text(
           'About BusTracker',
           style: TrackletFonts.outfit(
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
+            fontSize: TrackletTypography.fontSize19,
+            fontWeight: TrackletTypography.weightBold,
             color: TrackletColors.adaptiveTextPrimary(context),
           ),
         ),
@@ -117,15 +119,15 @@ class _AboutScreenState extends State<AboutScreen> {
                     'BusTracker · NITC campus transit tracking',
                     textAlign: TextAlign.center,
                     style: TrackletFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize13,
+                      fontWeight: TrackletTypography.weightSemiBold,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: TrackletSpacing.md,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
@@ -144,8 +146,8 @@ class _AboutScreenState extends State<AboutScreen> {
                           ? 'Checking version...'
                           : 'Version $_version (Build $_buildNumber)',
                       style: TrackletFonts.outfit(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                        fontSize: TrackletTypography.fontSize12_5,
+                        fontWeight: TrackletTypography.weightSemiBold,
                         color: TrackletColors.primary,
                       ),
                     ),
@@ -172,8 +174,8 @@ class _AboutScreenState extends State<AboutScreen> {
                   Text(
                     'Campus transit',
                     style: TrackletFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize16,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -181,9 +183,9 @@ class _AboutScreenState extends State<AboutScreen> {
                   Text(
                     'BusTracker provides campus transit tracking for students, staff, and residents of the National Institute of Technology Calicut. It shows live vehicle locations, estimated arrival times, and campus route maps.',
                     style: TrackletFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w400,
-                      height: 1.5,
+                      fontSize: TrackletTypography.fontSize13_5,
+                      fontWeight: TrackletTypography.weightRegular,
+                      height: TrackletTypography.lineHeightRelaxed,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -240,8 +242,8 @@ class _AboutScreenState extends State<AboutScreen> {
             Text(
               '© 2026 National Institute of Technology Calicut',
               style: TrackletFonts.outfit(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
+                fontSize: TrackletTypography.fontSize12_5,
+                fontWeight: TrackletTypography.weightMedium,
                 color: TrackletColors.adaptiveTextSecondary(context),
               ),
             ),
@@ -249,8 +251,8 @@ class _AboutScreenState extends State<AboutScreen> {
             Text(
               'Built for the NITC campus',
               style: TrackletFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
+                fontSize: TrackletTypography.fontSize12,
+                fontWeight: TrackletTypography.weightRegular,
                 color: TrackletColors.adaptiveTextSecondary(context),
               ),
             ),
@@ -276,8 +278,8 @@ class _AboutScreenState extends State<AboutScreen> {
       title: Text(
         title,
         style: TrackletFonts.outfit(
-          fontSize: 14.5,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize14_5,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.adaptiveTextPrimary(context),
         ),
       ),

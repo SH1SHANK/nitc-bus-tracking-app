@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/tracklet_fonts.dart';
 
 import '../../../design_system/tokens/colors.dart';
@@ -101,7 +102,7 @@ class TransitFaqDialog extends StatelessWidget {
                       Text(
                         'Transit FAQ',
                         style: TrackletFonts.outfit(
-                          fontSize: 20.0,
+                          fontSize: TrackletTypography.fontSize20,
                           fontWeight: FontWeight.bold,
                           color: TrackletColors.adaptiveTextPrimary(context),
                         ),
@@ -162,8 +163,8 @@ class TransitFaqDialog extends StatelessWidget {
                           child: Text(
                             '${index + 1}',
                             style: TrackletFonts.outfit(
-                              fontSize: 13.0,
-                              fontWeight: FontWeight.w600,
+                              fontSize: TrackletTypography.fontSize13,
+                              fontWeight: TrackletTypography.weightSemiBold,
                               color:
                                   isDark
                                       ? TrackletColors.primaryDark
@@ -174,8 +175,8 @@ class TransitFaqDialog extends StatelessWidget {
                         title: Text(
                           item['question']!,
                           style: TrackletFonts.outfit(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize14,
+                            fontWeight: TrackletTypography.weightSemiBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
@@ -190,8 +191,9 @@ class TransitFaqDialog extends StatelessWidget {
                             child: Text(
                               item['answer']!,
                               style: TrackletTypography.bodySmall.copyWith(
-                                fontSize: 13.0,
-                                height: 1.45,
+                                fontSize: TrackletTypography.fontSize13,
+                                height:
+                                    TrackletTypography.lineHeightBodyRelaxed,
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
@@ -218,13 +220,13 @@ class TransitFaqDialog extends StatelessWidget {
                     shape: const RoundedRectangleBorder(
                       borderRadius: TrackletRadii.roundedMd,
                     ),
-                    elevation: 0,
+                    elevation: TrackletShadows.elevationLevel0,
                   ),
                   child: Text(
                     'Close',
                     style: TrackletFonts.outfit(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize15,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                 ),

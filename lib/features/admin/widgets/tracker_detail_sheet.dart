@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/admin/admin_models.dart';
@@ -52,7 +53,7 @@ class TrackerDetailSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: TrackletColors.adaptiveDivider(context),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: TrackletRadii.roundedXxs,
               ),
             ),
           ),
@@ -60,7 +61,7 @@ class TrackerDetailSheet extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(TrackletSpacing.sm),
                 decoration: BoxDecoration(
                   color: TrackletColors.primary.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
@@ -79,14 +80,14 @@ class TrackerDetailSheet extends StatelessWidget {
                     Text(
                       tracker.busNumber,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: TrackletTypography.fontSize18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       'Tracker ID: ${tracker.deviceId}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TrackletTypography.fontSize12,
                         color: TrackletColors.adaptiveTextSecondary(context),
                         fontFamily: 'monospace',
                       ),
@@ -101,9 +102,9 @@ class TrackerDetailSheet extends StatelessWidget {
           const Text(
             'LATEST TELEMETRY STATE',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              fontSize: TrackletTypography.fontSize11,
+              fontWeight: TrackletTypography.weightExtraBold,
+              letterSpacing: TrackletTypography.letterSpacingExpanded,
             ),
           ),
           const SizedBox(height: TrackletSpacing.sm),
@@ -158,15 +159,15 @@ class TrackerDetailSheet extends StatelessWidget {
               const Text(
                 'RECENT BREADCRUMBS',
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
+                  fontSize: TrackletTypography.fontSize11,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingExpanded,
                 ),
               ),
               Text(
                 '${tracker.recentBreadcrumbs.length} records',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: TrackletTypography.fontSize11,
                   color: TrackletColors.adaptiveTextMuted(context),
                 ),
               ),
@@ -175,12 +176,12 @@ class TrackerDetailSheet extends StatelessWidget {
           const SizedBox(height: TrackletSpacing.sm),
           if (tracker.recentBreadcrumbs.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: TrackletSpacing.md),
               child: Text(
                 'No recorded position history for this tracker yet.',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 13,
+                  fontSize: TrackletTypography.fontSize13,
                 ),
               ),
             )
@@ -194,7 +195,9 @@ class TrackerDetailSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final crumb = tracker.recentBreadcrumbs[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: TrackletSpacing.sm,
+                    ),
                     child: Row(
                       children: [
                         Text(
@@ -202,7 +205,7 @@ class TrackerDetailSheet extends StatelessWidget {
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -211,7 +214,7 @@ class TrackerDetailSheet extends StatelessWidget {
                             '${crumb.latitude.toStringAsFixed(5)}, ${crumb.longitude.toStringAsFixed(5)}',
                             style: const TextStyle(
                               fontFamily: 'monospace',
-                              fontSize: 12,
+                              fontSize: TrackletTypography.fontSize12,
                             ),
                           ),
                         ),
@@ -220,7 +223,7 @@ class TrackerDetailSheet extends StatelessWidget {
                               ? '${crumb.speed!.toStringAsFixed(1)} km/h'
                               : '0 km/h',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: TrackletTypography.fontSize11,
                             color: TrackletColors.adaptiveTextSecondary(
                               context,
                             ),
@@ -252,10 +255,13 @@ class TrackerDetailSheet extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.compactMd,
+        vertical: TrackletSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: TrackletRadii.roundedMd,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -271,9 +277,9 @@ class TrackerDetailSheet extends StatelessWidget {
             label,
             style: TextStyle(
               color: color,
-              fontWeight: FontWeight.w800,
-              fontSize: 10,
-              letterSpacing: 0.5,
+              fontWeight: TrackletTypography.weightExtraBold,
+              fontSize: TrackletTypography.fontSize10,
+              letterSpacing: TrackletTypography.letterSpacingLabel,
             ),
           ),
         ],
@@ -289,7 +295,7 @@ class TrackerDetailSheet extends StatelessWidget {
   ) {
     return Container(
       width: (MediaQuery.sizeOf(context).width - 56) / 2,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(TrackletSpacing.compactMd),
       decoration: BoxDecoration(
         color:
             Theme.of(context).brightness == Brightness.dark
@@ -313,15 +319,15 @@ class TrackerDetailSheet extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: TrackletTypography.fontSize10,
                     color: TrackletColors.adaptiveTextMuted(context),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: TrackletTypography.fontSize12,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,

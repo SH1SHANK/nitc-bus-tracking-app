@@ -12,8 +12,8 @@ abstract final class TrackletSpacing {
   static const double md = 12.0;
   static const double compactLg = 14.0;
   static const double lg = 16.0;
-  static const double cardPadding = 16.0;
-  static const double cardPaddingLg = 18.0;
+  static const double cardPadding = lg;
+  static const double cardPaddingLg = smallIcon;
   static const double section = 20.0;
   static const double xl = 24.0;
   static const double spacious = 28.0;
@@ -24,36 +24,44 @@ abstract final class TrackletSpacing {
   // Component Dimensions & Heights
   static const double controlHeightSm = 36.0;
   static const double controlHeightMd = 44.0;
-  static const double controlHeightLg = 48.0;
-  static const double controlHeightXl = 56.0;
-  static const double bottomBarHeight = 72.0;
-  static const double control = 32.0;
+  static const double controlHeightLg = minTouchTarget;
+  static const double controlHeightXl = avatar;
+  static const double bottomBarHeight = avatarXl;
+  static const double appBarHeight = 56.0;
+  static const double appBarSubtitleHeight = 68.0;
+  static const double control = xxl;
 
   // Icon Dimensions
-  static const double iconXs = 14.0;
-  static const double iconSm = 16.0;
-  static const double icon = 20.0;
-  static const double iconMd = 24.0;
-  static const double iconLg = 28.0;
-  static const double iconXl = 32.0;
-  static const double iconHuge = 48.0;
+  static const double iconXs = compactLg;
+  static const double iconSm = lg;
+  static const double icon = section;
+  static const double iconMd = xl;
+  static const double iconLg = spacious;
+  static const double iconXl = xxl;
+  static const double iconHuge = minTouchTarget;
+  static const double badgePaddingVertical = 5.0;
+  static const double avatarRingInset = 3.0;
+  static const double dialogActionPaddingVertical = 13.0;
+  static const double iconBadgeInset = 7.0;
+  static const double badgePaddingHorizontal = 9.0;
 
   static const double smallIcon = 18.0;
-  static const double mediumIcon = 36.0;
+  static const double mediumIcon = controlHeightSm;
   static const double largeIcon = 38.0;
 
   // Avatar Dimensions
-  static const double avatarSm = 32.0;
-  static const double avatarMd = 40.0;
+  static const double avatarSm = control;
+  static const double avatarMd = large;
   static const double avatar = 56.0;
-  static const double avatarLg = 56.0;
+  static const double avatarLg = avatar;
   static const double avatarXl = 72.0;
 
   /// Standard screen edge horizontal margin.
-  static const double screenMargin = 16.0;
+  static const double screenMargin = lg;
+  static const double mapViewportInset = xxxl;
 
   /// Accessible minimum touch target dimension (WCAG 2.1 AA / Material standard).
-  static const double minTouchTarget = 48.0;
+  static const double minTouchTarget = xxxl;
 
   // Standard EdgeInsets Helpers
   static const EdgeInsets edgeInsetsZero = EdgeInsets.zero;

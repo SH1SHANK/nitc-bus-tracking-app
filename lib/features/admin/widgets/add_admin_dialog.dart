@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -89,7 +90,7 @@ class _AddAdminDialogState extends ConsumerState<AddAdminDialog> {
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(TrackletSpacing.sm),
             decoration: BoxDecoration(
               color: TrackletColors.primary.withValues(alpha: 0.15),
               borderRadius: TrackletRadii.roundedSm,
@@ -104,7 +105,10 @@ class _AddAdminDialogState extends ConsumerState<AddAdminDialog> {
           const Expanded(
             child: Text(
               'Add Administrator',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: TrackletTypography.fontSize18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -120,13 +124,13 @@ class _AddAdminDialogState extends ConsumerState<AddAdminDialog> {
                 'Admins have full access to device management, telemetry inspection, and audit logs.',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 13,
+                  fontSize: TrackletTypography.fontSize13,
                 ),
               ),
               const SizedBox(height: TrackletSpacing.md),
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(TrackletSpacing.compactMd),
                   decoration: BoxDecoration(
                     color: TrackletColors.error.withValues(alpha: 0.12),
                     borderRadius: TrackletRadii.roundedSm,
@@ -144,7 +148,7 @@ class _AddAdminDialogState extends ConsumerState<AddAdminDialog> {
                           _errorMessage!,
                           style: const TextStyle(
                             color: TrackletColors.error,
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                           ),
                         ),
                       ),

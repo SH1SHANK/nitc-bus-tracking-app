@@ -81,8 +81,8 @@ class SettingsRowItem extends StatelessWidget {
       rightWidget = Text(
         trailingText!,
         style: TrackletFonts.outfit(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize14,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.primary,
         ),
       );
@@ -119,8 +119,8 @@ class SettingsRowItem extends StatelessWidget {
                       Text(
                         title,
                         style: TrackletTypography.bodyMedium.copyWith(
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w600,
+                          fontSize: TrackletTypography.fontSize15,
+                          fontWeight: TrackletTypography.weightSemiBold,
                           color:
                               titleColor ??
                               TrackletColors.adaptiveTextPrimary(context),
@@ -131,12 +131,12 @@ class SettingsRowItem extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: TrackletTypography.bodySmall.copyWith(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w400,
+                            fontSize: TrackletTypography.fontSize12_5,
+                            fontWeight: TrackletTypography.weightRegular,
                             color: TrackletColors.adaptiveTextSecondary(
                               context,
                             ),
-                            height: 1.25,
+                            height: TrackletTypography.lineHeightDense,
                           ),
                         ),
                       ],

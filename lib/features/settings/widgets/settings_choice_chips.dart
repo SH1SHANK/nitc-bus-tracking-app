@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/tokens/motion.dart';
@@ -77,8 +78,11 @@ class SettingsChoiceChips<T> extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13.0,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: TrackletTypography.fontSize13,
+                    fontWeight:
+                        isSelected
+                            ? TrackletTypography.weightSemiBold
+                            : TrackletTypography.weightMedium,
                     color:
                         isSelected
                             ? TrackletColors.textInverse

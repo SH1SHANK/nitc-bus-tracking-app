@@ -226,7 +226,7 @@ class _BusMarkerWidgetState extends State<BusMarkerWidget>
                         child: const Icon(
                           TrackletIcons.cloudOff,
                           size: 7,
-                          color: Colors.white,
+                          color: TrackletColors.textInverse,
                         ),
                       ),
                     ),

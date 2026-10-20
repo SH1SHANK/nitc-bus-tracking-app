@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
@@ -19,7 +21,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: TrackletColors.adaptiveBackground(context),
         foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(TrackletIcons.chevronLeft, size: 20),
@@ -29,8 +31,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
         title: Text(
           'Privacy Policy',
           style: TrackletFonts.outfit(
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
+            fontSize: TrackletTypography.fontSize19,
+            fontWeight: TrackletTypography.weightBold,
             color: TrackletColors.adaptiveTextPrimary(context),
           ),
         ),
@@ -60,7 +62,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(TrackletSpacing.sm),
                         decoration: BoxDecoration(
                           color: TrackletColors.secondary.withValues(
                             alpha: isDark ? 0.2 : 0.12,
@@ -81,8 +83,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
                             Text(
                               'BusTracker Privacy Policy',
                               style: TrackletFonts.outfit(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize17,
+                                fontWeight: TrackletTypography.weightBold,
                                 color: TrackletColors.adaptiveTextPrimary(
                                   context,
                                 ),
@@ -92,8 +94,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
                             Text(
                               'Your Privacy Matters • On-Device First',
                               style: TrackletFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightMedium,
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
@@ -108,9 +110,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   Text(
                     'BusTracker is designed with privacy-by-design principles for NIT Calicut campus transit. We do not sell personal information, and rider locations are processed exclusively on your device.',
                     style: TrackletFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      height: 1.45,
+                      fontSize: TrackletTypography.fontSize14,
+                      fontWeight: TrackletTypography.weightRegular,
+                      height: TrackletTypography.lineHeightBodyRelaxed,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -157,8 +159,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         Text(
                           'Important: Rider Location vs. Bus Telemetry',
                           style: TrackletFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: TrackletTypography.fontSize14,
+                            fontWeight: TrackletTypography.weightBold,
                             color:
                                 isDark
                                     ? TrackletColors.darkTextPrimary
@@ -169,9 +171,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         Text(
                           'Live tracking on the map represents official NITC transit buses equipped with hardware trackers. Your personal phone coordinates are NEVER uploaded, logged, or visible to drivers, admins, or other students.',
                           style: TrackletFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w400,
-                            height: 1.4,
+                            fontSize: TrackletTypography.fontSize12_5,
+                            fontWeight: TrackletTypography.weightRegular,
+                            height: TrackletTypography.lineHeightBody,
                             color:
                                 isDark
                                     ? TrackletColors.darkTextSecondary
@@ -250,8 +252,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Text(
               title,
               style: TrackletFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontSize: TrackletTypography.fontSize16,
+                fontWeight: TrackletTypography.weightBold,
                 color: TrackletColors.adaptiveTextPrimary(context),
               ),
             ),
@@ -259,9 +261,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Text(
               content,
               style: TrackletFonts.outfit(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 1.5,
+                fontSize: TrackletTypography.fontSize14,
+                fontWeight: TrackletTypography.weightRegular,
+                height: TrackletTypography.lineHeightRelaxed,
                 color: TrackletColors.adaptiveTextSecondary(context),
               ),
             ),

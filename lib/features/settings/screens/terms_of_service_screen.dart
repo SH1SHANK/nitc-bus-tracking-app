@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
@@ -19,7 +21,7 @@ class TermsOfServiceScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: TrackletColors.adaptiveBackground(context),
         foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(TrackletIcons.chevronLeft, size: 20),
@@ -29,8 +31,8 @@ class TermsOfServiceScreen extends StatelessWidget {
         title: Text(
           'Terms of Service',
           style: TrackletFonts.outfit(
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
+            fontSize: TrackletTypography.fontSize19,
+            fontWeight: TrackletTypography.weightBold,
             color: TrackletColors.adaptiveTextPrimary(context),
           ),
         ),
@@ -60,7 +62,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(TrackletSpacing.sm),
                         decoration: BoxDecoration(
                           color: TrackletColors.primary.withValues(
                             alpha: isDark ? 0.2 : 0.1,
@@ -81,8 +83,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                             Text(
                               'BusTracker Terms of Service',
                               style: TrackletFonts.outfit(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize17,
+                                fontWeight: TrackletTypography.weightBold,
                                 color: TrackletColors.adaptiveTextPrimary(
                                   context,
                                 ),
@@ -92,8 +94,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                             Text(
                               'Effective: October 2026 • NIT Calicut Transit',
                               style: TrackletFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightMedium,
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
@@ -108,9 +110,9 @@ class TermsOfServiceScreen extends StatelessWidget {
                   Text(
                     'Please review these terms governing the use of BusTracker, the dedicated campus bus tracking system for the National Institute of Technology Calicut community.',
                     style: TrackletFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      height: 1.45,
+                      fontSize: TrackletTypography.fontSize14,
+                      fontWeight: TrackletTypography.weightRegular,
+                      height: TrackletTypography.lineHeightBodyRelaxed,
                       color: TrackletColors.adaptiveTextSecondary(context),
                     ),
                   ),
@@ -207,8 +209,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                   child: Text(
                     number,
                     style: TrackletFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize13,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.primary,
                     ),
                   ),
@@ -218,8 +220,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                   child: Text(
                     title,
                     style: TrackletFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontSize: TrackletTypography.fontSize16,
+                      fontWeight: TrackletTypography.weightBold,
                       color: TrackletColors.adaptiveTextPrimary(context),
                     ),
                   ),
@@ -230,9 +232,9 @@ class TermsOfServiceScreen extends StatelessWidget {
             Text(
               content,
               style: TrackletFonts.outfit(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 1.5,
+                fontSize: TrackletTypography.fontSize14,
+                fontWeight: TrackletTypography.weightRegular,
+                height: TrackletTypography.lineHeightRelaxed,
                 color: TrackletColors.adaptiveTextSecondary(context),
               ),
             ),

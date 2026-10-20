@@ -1,6 +1,8 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/validation/username_validator.dart';
@@ -155,8 +157,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
           content: Text(
             'Username updated to @$clean',
             style: TrackletFonts.outfit(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.0,
+              fontWeight: TrackletTypography.weightSemiBold,
+              fontSize: TrackletTypography.fontSize13,
               color: TrackletColors.info,
             ),
           ),
@@ -172,8 +174,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
           content: Text(
             'Could not update username: ${e.toString().replaceAll("Exception: ", "")}',
             style: TrackletFonts.outfit(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.0,
+              fontWeight: TrackletTypography.weightSemiBold,
+              fontSize: TrackletTypography.fontSize13,
               color: TrackletColors.info,
             ),
           ),
@@ -197,7 +199,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
         _errorMessage == null;
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
       ),
@@ -232,8 +234,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                     child: Text(
                       'Change Username',
                       style: TrackletFonts.outfit(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize20,
+                        fontWeight: TrackletTypography.weightBold,
                         color: TrackletColors.adaptiveTextPrimary(context),
                       ),
                     ),
@@ -255,8 +257,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
               Text(
                 'Choose a unique campus handle between 3 and 20 characters.',
                 style: TrackletFonts.outfit(
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.w400,
+                  fontSize: TrackletTypography.fontSize13,
+                  fontWeight: TrackletTypography.weightRegular,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
@@ -269,20 +271,20 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                 autocorrect: false,
                 textCapitalization: TextCapitalization.none,
                 style: TrackletFonts.outfit(
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.w600,
+                  fontSize: TrackletTypography.fontSize15,
+                  fontWeight: TrackletTypography.weightSemiBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
                 decoration: InputDecoration(
                   prefixText: '@',
                   prefixStyle: TrackletFonts.outfit(
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize15,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.primary,
                   ),
                   hintText: 'new_username',
                   hintStyle: TrackletFonts.outfit(
-                    fontSize: 14.0,
+                    fontSize: TrackletTypography.fontSize14,
                     color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                   filled: true,
@@ -291,8 +293,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                           ? TrackletColors.darkSurfaceElevated
                           : TrackletColors.primaryBackground,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
+                    horizontal: TrackletSpacing.compactLg,
+                    vertical: TrackletSpacing.compactLg,
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: TrackletRadii.roundedInput,
@@ -352,8 +354,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                 Text(
                   _errorMessage!,
                   style: TrackletFonts.outfit(
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w500,
+                    fontSize: TrackletTypography.fontSize12,
+                    fontWeight: TrackletTypography.weightMedium,
                     color: TrackletColors.errorBorder,
                   ),
                 ),
@@ -362,8 +364,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                 Text(
                   'Username is available!',
                   style: TrackletFonts.outfit(
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize12,
+                    fontWeight: TrackletTypography.weightSemiBold,
                     color: TrackletColors.success,
                   ),
                 ),
@@ -381,7 +383,7 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                     child: Text(
                       'Cancel',
                       style: TrackletFonts.outfit(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: TrackletTypography.weightSemiBold,
                         color: TrackletColors.adaptiveTextSecondary(context),
                       ),
                     ),
@@ -392,12 +394,12 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: TrackletColors.primary,
                       foregroundColor: TrackletColors.pure,
-                      elevation: 0,
+                      elevation: TrackletShadows.elevationLevel0,
                       shape: const RoundedRectangleBorder(
                         borderRadius: TrackletRadii.roundedMd,
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: TrackletSpacing.section,
                         vertical: 11,
                       ),
                     ),
@@ -414,8 +416,8 @@ class _ChangeUsernameDialogState extends ConsumerState<ChangeUsernameDialog> {
                             : Text(
                               'Save Username',
                               style: TrackletFonts.outfit(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                                fontWeight: TrackletTypography.weightBold,
+                                fontSize: TrackletTypography.fontSize14,
                               ),
                             ),
                   ),

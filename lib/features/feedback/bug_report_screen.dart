@@ -144,7 +144,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                 Text(
                   'Bug Report Submitted',
                   style: TrackletTypography.headlineMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -154,7 +154,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   textAlign: TextAlign.center,
                   style: TrackletTypography.bodyMedium.copyWith(
                     color: TrackletColors.adaptiveTextSecondary(context),
-                    height: 1.45,
+                    height: TrackletTypography.lineHeightBodyRelaxed,
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.section),
@@ -231,7 +231,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                         'Provide clear details so our engineering team can isolate and fix the problem quickly.',
                         style: TrackletTypography.bodySmall.copyWith(
                           color: TrackletColors.adaptiveTextPrimary(context),
-                          height: 1.35,
+                          height: TrackletTypography.lineHeightBodyCompact,
                         ),
                       ),
                     ),
@@ -278,7 +278,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
                                         child: Text(
                                           c,
                                           style: const TextStyle(
-                                            fontSize: 13.5,
+                                            fontSize:
+                                                TrackletTypography.fontSize13_5,
                                           ),
                                         ),
                                       );
@@ -308,7 +309,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
                                         child: Text(
                                           s,
                                           style: const TextStyle(
-                                            fontSize: 13.5,
+                                            fontSize:
+                                                TrackletTypography.fontSize13_5,
                                           ),
                                         ),
                                       );
@@ -418,14 +420,14 @@ class _BugReportScreenState extends State<BugReportScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: TrackletColors.textInverse,
                           ),
                         )
                         : const Text(
                           'Submit Bug Report',
                           style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize15,
+                            fontWeight: TrackletTypography.weightSemiBold,
                           ),
                         ),
               ),
@@ -471,8 +473,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
       child: Text(
         text,
         style: TrackletFonts.outfit(
-          fontSize: 13.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize13,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.adaptiveTextPrimary(context),
         ),
       ),

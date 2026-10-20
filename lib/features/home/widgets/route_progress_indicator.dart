@@ -37,14 +37,14 @@ class RouteProgressIndicator extends StatelessWidget {
             Text(
               originName,
               style: TrackletTypography.bodySmall.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: TrackletTypography.weightMedium,
                 color: textSecondary,
               ),
             ),
             Text(
               destinationName,
               style: TrackletTypography.bodySmall.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: TrackletTypography.weightSemiBold,
                 color: textPrimary,
               ),
             ),

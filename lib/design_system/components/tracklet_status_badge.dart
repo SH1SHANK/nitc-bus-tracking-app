@@ -76,7 +76,7 @@ class TrackletStatusBadge extends StatelessWidget {
             label,
             style: TrackletTypography.labelSmall.copyWith(
               color: textColor,
-              fontWeight: FontWeight.w600,
+              fontWeight: TrackletTypography.weightSemiBold,
             ),
           ),
         ],

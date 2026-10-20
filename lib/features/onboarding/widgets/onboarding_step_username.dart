@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -168,8 +169,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 style: TrackletTypography.bodyMedium.copyWith(
                   fontFamily: TrackletTypography.secondaryFontFamily,
                   color: color,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontSize: TrackletTypography.fontSize13,
+                  fontWeight: TrackletTypography.weightBold,
                   height: 1,
                 ),
               ),
@@ -221,10 +222,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
             'Choose Your Username',
             style: TrackletTypography.headlineLarge.copyWith(
               fontFamily: TrackletTypography.secondaryFontFamily,
-              fontSize: 22,
-              height: 1.2,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.45,
+              fontSize: TrackletTypography.fontSize22,
+              height: TrackletTypography.lineHeightTight,
+              fontWeight: TrackletTypography.weightExtraBold,
+              letterSpacing: TrackletTypography.letterSpacingHeading,
               color:
                   isDark
                       ? TrackletColors.darkTextPrimary
@@ -236,13 +237,13 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
             TextSpan(
               style: TrackletTypography.bodyMedium.copyWith(
                 fontFamily: TrackletTypography.secondaryFontFamily,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: TrackletTypography.fontSize14,
+                fontWeight: TrackletTypography.weightSemiBold,
                 color:
                     isDark
                         ? TrackletColors.darkTextSecondary
                         : TrackletColors.textSecondary,
-                height: 1.4,
+                height: TrackletTypography.lineHeightBody,
               ),
               children: [
                 const TextSpan(
@@ -254,8 +255,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   style: TrackletTypography.bodyMedium.copyWith(
                     fontFamily: TrackletTypography.secondaryFontFamily,
                     color: TrackletColors.tertiary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
+                    fontWeight: TrackletTypography.weightExtraBold,
+                    fontSize: TrackletTypography.fontSize14,
                   ),
                 ),
                 const TextSpan(text: ' to generate one.'),
@@ -296,8 +297,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                           isDark
                               ? TrackletColors.darkTextSecondary
                               : TrackletColors.textSecondary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize16,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
@@ -320,9 +321,11 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                     fillColor:
                         isDark
                             ? TrackletColors.darkSurfaceElevated
-                            : Colors.white.withValues(alpha: 0.82),
+                            : TrackletColors.textInverse.withValues(
+                              alpha: 0.82,
+                            ),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: TrackletSpacing.lg,
                       vertical: 15,
                     ),
                   ),
@@ -332,8 +335,8 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                         isDark
                             ? TrackletColors.darkTextPrimary
                             : TrackletColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize16,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                   onChanged: (value) {
                     widget.onUsernameChanged(value);
@@ -358,7 +361,7 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                       height: 50,
                       child: Icon(
                         TrackletIcons.sparkles,
-                        color: Colors.white,
+                        color: TrackletColors.textInverse,
                         size: 24,
                       ),
                     ),
@@ -385,15 +388,15 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                 icon: const Icon(
                   TrackletIcons.arrowRight,
                   size: 19,
-                  color: Colors.white,
+                  color: TrackletColors.textInverse,
                 ),
                 label: Text(
                   'Continue',
                   style: TrackletTypography.titleSmall.copyWith(
                     fontFamily: TrackletTypography.secondaryFontFamily,
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    color: TrackletColors.textInverse,
+                    fontSize: TrackletTypography.fontSize15,
+                    fontWeight: TrackletTypography.weightExtraBold,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -401,8 +404,10 @@ class _OnboardingStepUsernameState extends State<OnboardingStepUsername> {
                   disabledBackgroundColor: TrackletColors.primary.withValues(
                     alpha: 0.42,
                   ),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  elevation: TrackletShadows.elevationLevel0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TrackletSpacing.md,
+                  ),
                   shape: const RoundedRectangleBorder(
                     borderRadius: TrackletRadii.roundedCard,
                   ),

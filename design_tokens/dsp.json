@@ -1,0 +1,24 @@
+{
+  "dsp_spec_version": "1.0",
+  "last_updated": "2026-10-20T00:00:00.000Z",
+  "last_updated_by": "Tracklet maintainers",
+  "import": [
+    {
+      "src": "data/tokens.json"
+    }
+  ],
+  "settings": {
+    "name": "Tracklet Design System",
+    "package_version": "1.0.0",
+    "build_status_label": "dev",
+    "snippet_trigger_prefix": "tracklet-",
+    "languages": [
+      {
+        "label": "Flutter",
+        "export_tokens": false,
+        "snippet_id": "flutter",
+        "syntax": "dart"
+      }
+    ]
+  }
+}

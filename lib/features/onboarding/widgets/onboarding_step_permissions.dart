@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../design_system/tokens/colors.dart';
@@ -116,7 +117,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(
+                      TrackletSpacing.cardPaddingLg,
+                    ),
                     decoration: BoxDecoration(
                       color: TrackletColors.pure.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
@@ -137,8 +140,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
           Text(
             'Permissions & Access',
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize24,
+              fontWeight: TrackletTypography.weightBold,
               color:
                   isDark
                       ? TrackletColors.darkTextPrimary
@@ -153,16 +156,16 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                   isDark
                       ? TrackletColors.darkTextSecondary
                       : TrackletColors.secondaryText,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              height: 1.4,
+              fontSize: TrackletTypography.fontSize14,
+              fontWeight: TrackletTypography.weightMedium,
+              height: TrackletTypography.lineHeightBody,
             ),
           ).enterOnboarding(context, delay: 90.ms),
           const SizedBox(height: TrackletSpacing.md),
 
           // Privacy Guarantee Callout Box
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(TrackletSpacing.md),
             decoration: BoxDecoration(
               color:
                   isDark
@@ -201,7 +204,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                               isDark
                                   ? TrackletColors.darkTextPrimary
                                   : TrackletColors.altPrimaryText,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -212,8 +215,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                               isDark
                                   ? TrackletColors.darkTextSecondary
                                   : TrackletColors.secondaryText,
-                          fontSize: 12,
-                          height: 1.35,
+                          fontSize: TrackletTypography.fontSize12,
+                          height: TrackletTypography.lineHeightBodyCompact,
                         ),
                       ),
                     ],
@@ -261,7 +264,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                 style: TextButton.styleFrom(
                   foregroundColor: TrackletColors.primary,
                   textStyle: TrackletTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -279,7 +282,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: TrackletColors.primary,
                 foregroundColor: TrackletColors.pure,
-                elevation: 3,
+                elevation: TrackletShadows.elevationLevel3,
                 shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
                 shape: const RoundedRectangleBorder(
                   borderRadius: TrackletRadii.roundedCard,
@@ -303,8 +306,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             : 'Continue without permissions',
                         style: TrackletTypography.titleMedium.copyWith(
                           color: TrackletColors.pure,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                          fontWeight: TrackletTypography.weightBold,
+                          fontSize: TrackletTypography.fontSize15,
                         ),
                       ),
             ),
@@ -321,8 +324,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                         ? TrackletColors.darkTextSecondary
                         : TrackletColors.secondaryText,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
+                  horizontal: TrackletSpacing.section,
+                  vertical: TrackletSpacing.sm,
                 ),
               ),
               child: Text(
@@ -332,8 +335,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                       isDark
                           ? TrackletColors.darkTextSecondary
                           : TrackletColors.secondaryText,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontWeight: TrackletTypography.weightSemiBold,
+                  fontSize: TrackletTypography.fontSize14,
                 ),
               ),
             ),
@@ -363,7 +366,7 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
       onTap: isGranted ? null : () => onChanged?.call(!isSelected),
       borderRadius: TrackletRadii.roundedLg,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(TrackletSpacing.compactLg),
         decoration: BoxDecoration(
           color:
               isDark
@@ -407,15 +410,15 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                                 isDark
                                     ? TrackletColors.darkTextPrimary
                                     : TrackletColors.altPrimaryText,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontWeight: TrackletTypography.weightBold,
+                            fontSize: TrackletTypography.fontSize15,
                           ),
                         ),
                       ),
                       if (isGranted)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: const BoxDecoration(
@@ -426,15 +429,15 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             'Granted',
                             style: TextStyle(
                               color: TrackletColors.permissionGreenText,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         )
                       else if (isDeniedForever)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: const BoxDecoration(
@@ -445,15 +448,15 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             'Blocked',
                             style: TextStyle(
                               color: TrackletColors.notificationAmber,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         )
                       else if (isServiceDisabled)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: const BoxDecoration(
@@ -464,8 +467,8 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                             'GPS Off',
                             style: TextStyle(
                               color: TrackletColors.notificationAmber,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         )
@@ -502,9 +505,9 @@ class _OnboardingStepPermissionsState extends State<OnboardingStepPermissions> {
                           isDark
                               ? TrackletColors.darkTextSecondary
                               : TrackletColors.secondaryText,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      height: 1.35,
+                      fontSize: TrackletTypography.fontSize12_5,
+                      fontWeight: TrackletTypography.weightMedium,
+                      height: TrackletTypography.lineHeightBodyCompact,
                     ),
                   ),
                 ],

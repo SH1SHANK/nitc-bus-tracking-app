@@ -186,7 +186,7 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
+                          vertical: TrackletSpacing.md,
                         ),
                       ),
                       style: TextStyle(
@@ -221,7 +221,7 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: TrackletSpacing.md,
-                      vertical: 14,
+                      vertical: TrackletSpacing.compactLg,
                     ),
                     decoration: BoxDecoration(
                       color:
@@ -256,8 +256,8 @@ class _OnboardingSelectionSheetState extends State<OnboardingSelectionSheet> {
                                       ),
                               fontWeight:
                                   isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
+                                      ? TrackletTypography.weightBold
+                                      : TrackletTypography.weightMedium,
                             ),
                           ),
                         ),

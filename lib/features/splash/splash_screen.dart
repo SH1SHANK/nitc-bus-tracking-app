@@ -184,7 +184,9 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
     }
 
     final backgroundColor =
-        isDark ? const Color(0xFF0F1117) : const Color(0xFFFAFBFF);
+        isDark
+            ? TrackletColors.darkBackground
+            : TrackletColors.onboardingBackdropLight;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -218,7 +220,7 @@ class _BusTrackerSplashScreenState extends ConsumerState<BusTrackerSplashScreen>
                       'assets/branding/bustracker_wordmark.png',
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.medium,
-                      color: isDark ? Colors.white : null,
+                      color: isDark ? TrackletColors.textInverse : null,
                     ),
                   ),
                 ],

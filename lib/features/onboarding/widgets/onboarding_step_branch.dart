@@ -42,8 +42,8 @@ class OnboardingStepBranch extends StatelessWidget {
           Text(
             "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
+              fontSize: TrackletTypography.fontSize22,
+              fontWeight: TrackletTypography.weightExtraBold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
@@ -54,8 +54,8 @@ class OnboardingStepBranch extends StatelessWidget {
             text: TextSpan(
               style: TrackletTypography.bodySmall.copyWith(
                 color: TrackletColors.adaptiveTextSecondary(context),
-                fontSize: 12,
-                height: 1.4,
+                fontSize: TrackletTypography.fontSize12,
+                height: TrackletTypography.lineHeightBody,
               ),
               children: [
                 const TextSpan(
@@ -66,7 +66,7 @@ class OnboardingStepBranch extends StatelessWidget {
                   text: 'Tap to Learn More.',
                   style: const TextStyle(
                     color: TrackletColors.tertiary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: TrackletTypography.weightExtraBold,
                   ),
                   recognizer:
                       TapGestureRecognizer()
@@ -91,7 +91,7 @@ class OnboardingStepBranch extends StatelessWidget {
             'Which branch do you belong to?',
             style: TrackletTypography.titleSmall.copyWith(
               color: TrackletColors.adaptiveTextSecondary(context),
-              fontWeight: FontWeight.w600,
+              fontWeight: TrackletTypography.weightSemiBold,
             ),
           ),
           const SizedBox(height: 8),
@@ -116,7 +116,7 @@ class OnboardingStepBranch extends StatelessWidget {
             'Quick Select',
             style: TrackletTypography.labelSmall.copyWith(
               color: TrackletColors.adaptiveTextSecondary(context),
-              fontWeight: FontWeight.w700,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
           const SizedBox(height: TrackletSpacing.sm),
@@ -148,10 +148,10 @@ class OnboardingStepBranch extends StatelessWidget {
                     labelStyle: TextStyle(
                       color:
                           isSelected
-                              ? Colors.white
+                              ? TrackletColors.textInverse
                               : TrackletColors.adaptiveTextPrimary(context),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                      fontWeight: TrackletTypography.weightBold,
+                      fontSize: TrackletTypography.fontSize13,
                     ),
                     backgroundColor:
                         isDark

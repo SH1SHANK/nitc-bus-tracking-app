@@ -47,7 +47,9 @@ class ProfileHeader extends StatelessWidget {
                       bottom: -2,
                       right: -2,
                       child: Container(
-                        padding: const EdgeInsets.all(3),
+                        padding: const EdgeInsets.all(
+                          TrackletSpacing.avatarRingInset,
+                        ),
                         decoration: BoxDecoration(
                           color: TrackletColors.primary,
                           shape: BoxShape.circle,
@@ -59,7 +61,7 @@ class ProfileHeader extends StatelessWidget {
                         child: const animated.LucideAnimatedIcon(
                           icon: animated.sparkles,
                           size: 11,
-                          color: Colors.white,
+                          color: TrackletColors.textInverse,
                           trigger: animated.AnimationTrigger.manual,
                         ),
                       ),
@@ -85,7 +87,7 @@ class ProfileHeader extends StatelessWidget {
                         '@${profile.username}',
                         style: TrackletTypography.labelSmall.copyWith(
                           color: TrackletColors.primary,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: TrackletTypography.weightBold,
                         ),
                       ),
                     ],
@@ -134,7 +136,7 @@ class _ProfileBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.sm,
-        vertical: 4,
+        vertical: TrackletSpacing.xs,
       ),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurfaceElevated(context),
@@ -145,8 +147,8 @@ class _ProfileBadge extends StatelessWidget {
         label,
         style: TrackletTypography.labelSmall.copyWith(
           color: TrackletColors.adaptiveTextSecondary(context),
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize11,
+          fontWeight: TrackletTypography.weightSemiBold,
         ),
       ),
     );

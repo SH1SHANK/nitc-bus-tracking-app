@@ -1,4 +1,7 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/transit/bus_route.dart';
@@ -37,7 +40,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       backgroundColor: TrackletColors.adaptiveBackground(context),
       appBar: AppBar(
         backgroundColor: TrackletColors.adaptiveSurfaceElevated(context),
-        elevation: 0,
+        elevation: TrackletShadows.elevationLevel0,
         centerTitle: false,
         scrolledUnderElevation: 1,
         leading: IconButton(
@@ -51,9 +54,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           'Campus Timetable',
           style: TextStyle(
             color: TrackletColors.adaptiveTextPrimary(context),
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.3,
+            fontSize: TrackletTypography.fontSize18,
+            fontWeight: TrackletTypography.weightExtraBold,
+            letterSpacing: TrackletTypography.letterSpacingTitle,
           ),
         ),
       ),
@@ -65,7 +68,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         error:
             (error, _) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(TrackletSpacing.xl),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -79,8 +82,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       'Could not load timetable',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextPrimary(context),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize16,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -89,7 +92,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 13,
+                        fontSize: TrackletTypography.fontSize13,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -155,7 +158,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                   child: Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(TrackletSpacing.compactLg),
                     decoration: BoxDecoration(
                       color:
                           isDark
@@ -192,8 +195,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                     isDark
                                         ? TrackletColors.onWarningContainerDark
                                         : TrackletColors.onWarningContainer,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                                fontSize: TrackletTypography.fontSize13,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                           ],
@@ -206,8 +209,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                 isDark
                                     ? TrackletColors.onWarningContainerDark
                                     : TrackletColors.onWarningContainer,
-                            fontSize: 12,
-                            height: 1.4,
+                            fontSize: TrackletTypography.fontSize12,
+                            height: TrackletTypography.lineHeightBody,
                           ),
                         ),
                       ],
@@ -230,8 +233,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
+                      horizontal: TrackletSpacing.compactLg,
+                      vertical: TrackletSpacing.compactMd,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,9 +256,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                                fontSize: TrackletTypography.fontSize11,
+                                fontWeight: TrackletTypography.weightExtraBold,
+                                letterSpacing:
+                                    TrackletTypography.letterSpacingLabel,
                               ),
                             ),
                           ],
@@ -278,8 +282,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                               color: TrackletColors.adaptiveTextPrimary(
                                 context,
                               ),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize14,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                             dropdownColor:
                                 TrackletColors.adaptiveSurfaceElevated(context),
@@ -310,8 +314,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                     color: TrackletColors.adaptiveTextPrimary(
                                       context,
                                     ),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: TrackletTypography.fontSize14,
+                                    fontWeight: TrackletTypography.weightBold,
                                   ),
                                 ),
                               ),
@@ -324,8 +328,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                       color: TrackletColors.adaptiveTextPrimary(
                                         context,
                                       ),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: TrackletTypography.fontSize14,
+                                      fontWeight:
+                                          TrackletTypography.weightSemiBold,
                                     ),
                                   ),
                                 );
@@ -344,7 +349,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 child: SizedBox(
                   height: 44,
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.lg,
+                    ),
                     scrollDirection: Axis.horizontal,
                     itemCount: routes.length + 1,
                     separatorBuilder: (_, _) => const SizedBox(width: 8),
@@ -378,8 +385,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                       context,
                                     ),
                             fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w600,
-                            fontSize: 12,
+                                isSelected
+                                    ? TrackletTypography.weightBold
+                                    : TrackletTypography.weightSemiBold,
+                            fontSize: TrackletTypography.fontSize12,
                           ),
                           side: BorderSide(
                             color:
@@ -439,8 +448,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                     context,
                                   ),
                           fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w600,
-                          fontSize: 12,
+                              isSelected
+                                  ? TrackletTypography.weightBold
+                                  : TrackletTypography.weightSemiBold,
+                          fontSize: TrackletTypography.fontSize12,
                         ),
                         side: BorderSide(
                           color:
@@ -464,8 +475,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 48,
+                      horizontal: TrackletSpacing.xl,
+                      vertical: TrackletSpacing.xxxl,
                     ),
                     child: Center(
                       child: Column(
@@ -482,8 +493,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                               color: TrackletColors.adaptiveTextSecondary(
                                 context,
                               ),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontSize: TrackletTypography.fontSize14,
+                              fontWeight: TrackletTypography.weightSemiBold,
                             ),
                           ),
                         ],
@@ -530,8 +541,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 14,
+                              horizontal: TrackletSpacing.compactLg,
+                              vertical: TrackletSpacing.compactLg,
                             ),
                             child: Row(
                               children: [
@@ -566,8 +577,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                               TrackletColors.adaptiveTextPrimary(
                                                 context,
                                               ),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                          fontSize:
+                                              TrackletTypography.fontSize14,
+                                          fontWeight:
+                                              TrackletTypography.weightBold,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -580,7 +593,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                               TrackletColors.adaptiveTextSecondary(
                                                 context,
                                               ),
-                                          fontSize: 12,
+                                          fontSize:
+                                              TrackletTypography.fontSize12,
                                         ),
                                       ),
                                     ],
@@ -597,8 +611,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                             TrackletColors.adaptiveTextPrimary(
                                               context,
                                             ),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
+                                        fontSize: TrackletTypography.fontSize14,
+                                        fontWeight:
+                                            TrackletTypography.weightExtraBold,
                                         fontFeatures: const [
                                           FontFeature.tabularFigures(),
                                         ],
@@ -606,10 +621,12 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                     ),
                                     if (dep.isSpecial)
                                       Container(
-                                        margin: const EdgeInsets.only(top: 2),
+                                        margin: const EdgeInsets.only(
+                                          top: TrackletSpacing.xxs,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 1,
+                                          horizontal: TrackletSpacing.compact,
+                                          vertical: TrackletSpacing.hairline,
                                         ),
                                         decoration: BoxDecoration(
                                           color:
@@ -628,8 +645,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                                                     ? TrackletColors
                                                         .busDelayedTextDark
                                                     : TrackletColors.busDelayed,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
+                                            fontSize:
+                                                TrackletTypography.fontSize10,
+                                            fontWeight:
+                                                TrackletTypography.weightBold,
                                           ),
                                         ),
                                       ),

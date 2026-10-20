@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/transit/bus.dart';
@@ -8,6 +9,7 @@ import '../../../data/transit/bus_telemetry.dart';
 import '../../../data/transit/route_stop_occurrence.dart';
 import '../../../data/transit/stop.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../home_transit_logic.dart';
 
@@ -175,7 +177,11 @@ class LiveBusRoutePreview extends StatelessWidget {
                         Container(
                           width: segmentWidth,
                           height: 3,
-                          margin: const EdgeInsets.only(bottom: 88),
+                          margin: const EdgeInsets.only(
+                            bottom:
+                                TrackletSpacing.bottomBarHeight +
+                                TrackletSpacing.lg,
+                          ),
                           color:
                               visitedStopIds.contains(nodes[index]?.id)
                                   ? TrackletColors.primary
@@ -210,9 +216,9 @@ class LiveBusRoutePreview extends StatelessWidget {
                   'ROUTE TRACKER',
                   style: TextStyle(
                     color: textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
+                    fontSize: TrackletTypography.fontSize11,
+                    fontWeight: TrackletTypography.weightExtraBold,
+                    letterSpacing: TrackletTypography.letterSpacingWide,
                   ),
                 ),
               ),
@@ -221,8 +227,8 @@ class LiveBusRoutePreview extends StatelessWidget {
                   route!.code,
                   style: const TextStyle(
                     color: TrackletColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize12,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                 ),
             ],
@@ -237,8 +243,8 @@ class LiveBusRoutePreview extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: textSecondary,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+                fontSize: TrackletTypography.fontSize11,
+                fontWeight: TrackletTypography.weightSemiBold,
               ),
             ),
           ],
@@ -384,9 +390,12 @@ class _RouteStopNode extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isHighlighted ? textPrimary : textSecondary,
-            fontSize: 11,
-            height: 1.2,
-            fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+            fontSize: TrackletTypography.fontSize11,
+            height: TrackletTypography.lineHeightTight,
+            fontWeight:
+                isHighlighted
+                    ? TrackletTypography.weightBold
+                    : TrackletTypography.weightMedium,
           ),
         ),
         const SizedBox(height: 2),
@@ -397,9 +406,11 @@ class _RouteStopNode extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isBoardingStop || isBusStop ? accent : textMuted,
-            fontSize: 10,
+            fontSize: TrackletTypography.fontSize10,
             fontWeight:
-                isBoardingStop || isBusStop ? FontWeight.w700 : FontWeight.w500,
+                isBoardingStop || isBusStop
+                    ? TrackletTypography.weightBold
+                    : TrackletTypography.weightMedium,
           ),
         ),
       ],

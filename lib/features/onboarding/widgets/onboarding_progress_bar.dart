@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/tokens/colors.dart';
@@ -34,7 +35,9 @@ class OnboardingProgressBar extends StatelessWidget {
             return Expanded(
               flex: isActive ? 3 : 2,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.xxs,
+                ),
                 child: AnimatedContainer(
                   duration: duration,
                   curve: TrackletMotion.standardCurve,

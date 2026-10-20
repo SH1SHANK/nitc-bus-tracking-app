@@ -55,7 +55,7 @@ class AppInfoCard extends StatelessWidget {
               Text(
                 '${AppConfig.appVersion} (${AppConfig.environment})',
                 style: TrackletTypography.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TrackletTypography.weightSemiBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
@@ -77,7 +77,7 @@ class AppInfoCard extends StatelessWidget {
                     ? 'Supabase Realtime'
                     : 'Local Seed Network',
                 style: TrackletTypography.bodySmall.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: TrackletTypography.weightSemiBold,
                   color: TrackletColors.primary,
                 ),
               ),

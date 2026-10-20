@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -37,7 +38,7 @@ class FleetStatusDonutChart extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(7),
+                padding: const EdgeInsets.all(TrackletSpacing.iconBadgeInset),
                 decoration: BoxDecoration(
                   color: TrackletColors.success.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
@@ -52,11 +53,17 @@ class FleetStatusDonutChart extends StatelessWidget {
               const Expanded(
                 child: Text(
                   'Fleet Tracker Distribution',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: TrackletTypography.fontSize15,
+                  ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.sm,
+                  vertical: TrackletSpacing.xs,
+                ),
                 decoration: BoxDecoration(
                   color: (activePct > 50
                           ? TrackletColors.success
@@ -73,7 +80,7 @@ class FleetStatusDonutChart extends StatelessWidget {
                 child: Text(
                   '$activePct% Active',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TrackletTypography.fontSize11,
                     fontWeight: FontWeight.bold,
                     color:
                         activePct > 50
@@ -106,15 +113,15 @@ class FleetStatusDonutChart extends StatelessWidget {
                         Text(
                           '$total',
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontSize: TrackletTypography.fontSize18,
+                            fontWeight: TrackletTypography.weightExtraBold,
                             fontFamily: 'monospace',
                           ),
                         ),
                         Text(
                           'Units',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: TrackletTypography.fontSize10,
                             color: TrackletColors.adaptiveTextMuted(context),
                           ),
                         ),
@@ -181,7 +188,7 @@ class FleetStatusDonutChart extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: TrackletTypography.fontSize12,
               color: TrackletColors.adaptiveTextSecondary(context),
             ),
           ),
@@ -189,7 +196,7 @@ class FleetStatusDonutChart extends StatelessWidget {
         Text(
           '$count ($pct%)',
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: TrackletTypography.fontSize12,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
           ),

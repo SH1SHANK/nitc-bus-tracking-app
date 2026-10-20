@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
 import '../../tokens/radii.dart';
 import 'package:flutter/material.dart';
 import 'package:tracklet/design_system/components/icons/tracklet_icons.dart';
@@ -44,7 +45,7 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
                 child: Container(
                   width: 36.0,
                   height: 5.0,
-                  margin: const EdgeInsets.only(bottom: 16.0),
+                  margin: const EdgeInsets.only(bottom: TrackletSpacing.lg),
                   decoration: BoxDecoration(
                     color: TrackletColors.adaptiveBorder(context),
                     borderRadius: TrackletRadii.roundedFull,
@@ -56,8 +57,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
               Text(
                 'How BusTracker Shows Bus Timings',
                 style: TrackletTypography.displaySmall.copyWith(
-                  fontSize: 22.0,
-                  fontWeight: FontWeight.w700,
+                  fontSize: TrackletTypography.fontSize22,
+                  fontWeight: TrackletTypography.weightBold,
                   color: TrackletColors.adaptiveTextPrimary(context),
                 ),
               ),
@@ -66,8 +67,8 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
                 'BusTracker uses official NIT Calicut transit timetables along with your walking distance to help you decide whether to walk to the stop.',
                 style: TrackletTypography.bodySmall.copyWith(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 13.0,
-                  height: 1.4,
+                  fontSize: TrackletTypography.fontSize13,
+                  height: TrackletTypography.lineHeightBody,
                 ),
               ),
               const SizedBox(height: 20.0),
@@ -143,7 +144,7 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
     required Color borderColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(TrackletSpacing.md),
       decoration: BoxDecoration(
         color: color,
         borderRadius: TrackletRadii.roundedBanner,
@@ -161,7 +162,7 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: TrackletTypography.fontSize14,
                     fontWeight: FontWeight.bold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
@@ -170,9 +171,9 @@ class HowTrackletShowsBusTimingsBottomSheet extends StatelessWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 12.0,
+                    fontSize: TrackletTypography.fontSize12,
                     color: TrackletColors.adaptiveTextSecondary(context),
-                    height: 1.3,
+                    height: TrackletTypography.lineHeightCompact,
                   ),
                 ),
               ],

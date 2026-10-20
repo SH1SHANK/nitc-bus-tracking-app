@@ -120,7 +120,7 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                 Text(
                   'Feedback Received!',
                   style: TrackletTypography.headlineMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -130,7 +130,7 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                   textAlign: TextAlign.center,
                   style: TrackletTypography.bodyMedium.copyWith(
                     color: TrackletColors.adaptiveTextSecondary(context),
-                    height: 1.45,
+                    height: TrackletTypography.lineHeightBodyRelaxed,
                   ),
                 ),
                 const SizedBox(height: TrackletSpacing.section),
@@ -192,7 +192,9 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                               value: type,
                               child: Text(
                                 type,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(
+                                  fontSize: TrackletTypography.fontSize14,
+                                ),
                               ),
                             );
                           }).toList(),
@@ -222,7 +224,9 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                         return IconButton(
                           iconSize: 36,
                           splashRadius: 24,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: TrackletSpacing.xs,
+                          ),
                           onPressed: () => setState(() => _rating = star),
                           icon: Icon(
                             filled
@@ -230,7 +234,7 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                                 : Icons.star_outline_rounded,
                             color:
                                 filled
-                                    ? const Color(0xFFF59E0B)
+                                    ? TrackletColors.warning
                                     : TrackletColors.adaptiveBorder(context),
                           ),
                         );
@@ -240,9 +244,9 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                     Text(
                       _ratingLabels[_rating - 1],
                       style: TrackletFonts.outfit(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFF59E0B),
+                        fontSize: TrackletTypography.fontSize14,
+                        fontWeight: TrackletTypography.weightSemiBold,
+                        color: TrackletColors.warning,
                       ),
                     ),
                   ],
@@ -290,14 +294,14 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: TrackletColors.textInverse,
                           ),
                         )
                         : const Text(
                           'Submit Feedback',
                           style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize15,
+                            fontWeight: TrackletTypography.weightSemiBold,
                           ),
                         ),
               ),
@@ -342,8 +346,8 @@ class _GeneralFeedbackScreenState extends State<GeneralFeedbackScreen> {
       child: Text(
         text,
         style: TrackletFonts.outfit(
-          fontSize: 13.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize13,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.adaptiveTextPrimary(context),
         ),
       ),

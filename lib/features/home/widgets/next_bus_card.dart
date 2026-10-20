@@ -1,4 +1,7 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/formatting/transit_formatter.dart';
@@ -54,7 +57,7 @@ class NextBusCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(TrackletSpacing.cardPaddingLg),
       decoration: BoxDecoration(
         color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedCardXl,
@@ -240,9 +243,9 @@ class _HeaderRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextPrimary(context),
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
+                  fontSize: TrackletTypography.fontSize17,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingTitle,
                 ),
               ),
               const SizedBox(height: 2),
@@ -253,8 +256,8 @@ class _HeaderRow extends StatelessWidget {
                       '$routeCode · ',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                     ),
                   Flexible(
@@ -264,9 +267,9 @@ class _HeaderRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightBold,
+                        letterSpacing: TrackletTypography.letterSpacingCompact,
                       ),
                     ),
                   ),
@@ -400,9 +403,9 @@ class _CurrentLocationSection extends StatelessWidget {
           'CURRENT LOCATION',
           style: TextStyle(
             color: TrackletColors.adaptiveTextSecondary(context),
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
+            fontSize: TrackletTypography.fontSize11,
+            fontWeight: TrackletTypography.weightExtraBold,
+            letterSpacing: TrackletTypography.letterSpacingWide,
           ),
         ),
         const SizedBox(height: 8),
@@ -433,9 +436,9 @@ class _CurrentLocationSection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: TrackletColors.adaptiveTextPrimary(context),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
+                      fontSize: TrackletTypography.fontSize15,
+                      fontWeight: TrackletTypography.weightExtraBold,
+                      letterSpacing: TrackletTypography.letterSpacingTight,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -445,8 +448,8 @@ class _CurrentLocationSection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: TrackletColors.adaptiveTextSecondary(context),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontSize: TrackletTypography.fontSize12,
+                      fontWeight: TrackletTypography.weightMedium,
                     ),
                   ),
                 ],
@@ -455,7 +458,10 @@ class _CurrentLocationSection extends StatelessWidget {
             if (isAtBoarding) ...[
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TrackletSpacing.badgePaddingHorizontal,
+                  vertical: TrackletSpacing.badgePaddingVertical,
+                ),
                 decoration: BoxDecoration(
                   color: liveBg,
                   borderRadius: TrackletRadii.roundedInput,
@@ -474,8 +480,8 @@ class _CurrentLocationSection extends StatelessWidget {
                       'Board here',
                       style: TextStyle(
                         color: liveColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize11,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                   ],
@@ -596,9 +602,9 @@ class _TripProgressSection extends StatelessWidget {
                 'TRIP PROGRESS',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
+                  fontSize: TrackletTypography.fontSize11,
+                  fontWeight: TrackletTypography.weightExtraBold,
+                  letterSpacing: TrackletTypography.letterSpacingWide,
                 ),
               ),
               if (onViewFullRoute != null)
@@ -606,13 +612,16 @@ class _TripProgressSection extends StatelessWidget {
                   onTap: onViewFullRoute,
                   borderRadius: TrackletRadii.roundedCompact,
                   child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.xs,
+                      vertical: TrackletSpacing.xxs,
+                    ),
                     child: Text(
                       'View full route',
                       style: TextStyle(
                         color: TrackletColors.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                   ),
@@ -898,7 +907,7 @@ class _TimelineRow extends StatelessWidget {
     final isHighlighted = isCurrent || (isBoarding && isAtStop);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: TrackletSpacing.xxs),
       child: Column(
         children: [
           Text(
@@ -911,8 +920,11 @@ class _TimelineRow extends StatelessWidget {
                   isHighlighted
                       ? TrackletColors.adaptiveTextPrimary(context)
                       : TrackletColors.adaptiveTextSecondary(context),
-              fontSize: 11,
-              fontWeight: isHighlighted ? FontWeight.w800 : FontWeight.w600,
+              fontSize: TrackletTypography.fontSize11,
+              fontWeight:
+                  isHighlighted
+                      ? TrackletTypography.weightExtraBold
+                      : TrackletTypography.weightSemiBold,
             ),
           ),
           const SizedBox(height: 2),
@@ -923,11 +935,11 @@ class _TimelineRow extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: statusColor,
-              fontSize: 10,
+              fontSize: TrackletTypography.fontSize10,
               fontWeight:
                   (isHighlighted || isBoarding)
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                      ? TrackletTypography.weightBold
+                      : TrackletTypography.weightMedium,
             ),
           ),
         ],
@@ -990,8 +1002,8 @@ class _FooterRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: TrackletTypography.fontSize12,
+                        fontWeight: TrackletTypography.weightSemiBold,
                       ),
                     ),
                   ),
@@ -1006,8 +1018,8 @@ class _FooterRow extends StatelessWidget {
                       '${arrival!.eta.minutes}',
                       style: const TextStyle(
                         color: TrackletColors.primary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
+                        fontSize: TrackletTypography.fontSize13,
+                        fontWeight: TrackletTypography.weightExtraBold,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -1016,9 +1028,9 @@ class _FooterRow extends StatelessWidget {
                       'MIN',
                       style: TextStyle(
                         color: TrackletColors.primary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
+                        fontSize: TrackletTypography.fontSize11,
+                        fontWeight: TrackletTypography.weightBold,
+                        letterSpacing: TrackletTypography.letterSpacingLabel,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1026,8 +1038,8 @@ class _FooterRow extends StatelessWidget {
                       '(~${arrival!.eta.minutes} min away)',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                        fontSize: TrackletTypography.fontSize11,
+                        fontWeight: TrackletTypography.weightMedium,
                       ),
                     ),
                   ],
@@ -1037,8 +1049,8 @@ class _FooterRow extends StatelessWidget {
                   'Departing at ${scheduledDeparture!.formattedTime}',
                   style: const TextStyle(
                     color: TrackletColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize12,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                 ),
               ] else ...[
@@ -1049,8 +1061,8 @@ class _FooterRow extends StatelessWidget {
                       'ETA',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize11,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1058,8 +1070,8 @@ class _FooterRow extends StatelessWidget {
                       'Unavailable',
                       style: TextStyle(
                         color: TrackletColors.adaptiveTextSecondary(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                        fontSize: TrackletTypography.fontSize11,
+                        fontWeight: TrackletTypography.weightMedium,
                       ),
                     ),
                   ],
@@ -1083,9 +1095,12 @@ class _FooterRow extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: TrackletColors.primary,
             foregroundColor: TrackletColors.pure,
-            elevation: 0,
+            elevation: TrackletShadows.elevationLevel0,
             minimumSize: const Size(48, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.lg,
+              vertical: TrackletSpacing.md,
+            ),
             shape: const RoundedRectangleBorder(
               borderRadius: TrackletRadii.roundedButton,
             ),
@@ -1102,8 +1117,8 @@ class _FooterRow extends StatelessWidget {
               Text(
                 bus == null ? 'Open map' : 'Track bus',
                 style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontSize: TrackletTypography.fontSize13,
+                  fontWeight: TrackletTypography.weightBold,
                   color: TrackletColors.pure,
                 ),
               ),
@@ -1225,7 +1240,10 @@ class _StatusPill extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TrackletSpacing.compactMd,
+        vertical: TrackletSpacing.badgePaddingVertical,
+      ),
       decoration: BoxDecoration(
         color: background,
         borderRadius: TrackletRadii.roundedCard,
@@ -1240,8 +1258,8 @@ class _StatusPill extends StatelessWidget {
             label,
             style: TextStyle(
               color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize11,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
         ],
@@ -1319,8 +1337,8 @@ class _FullRouteSheet extends StatelessWidget {
                         route.name,
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextPrimary(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                          fontSize: TrackletTypography.fontSize18,
+                          fontWeight: TrackletTypography.weightExtraBold,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1328,8 +1346,8 @@ class _FullRouteSheet extends StatelessWidget {
                         '${route.code} · ${orderedStops.length} campus stops',
                         style: TextStyle(
                           color: TrackletColors.adaptiveTextSecondary(context),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontSize: TrackletTypography.fontSize13,
+                          fontWeight: TrackletTypography.weightMedium,
                         ),
                       ),
                     ],
@@ -1348,7 +1366,10 @@ class _FullRouteSheet extends StatelessWidget {
           Divider(height: 1, color: TrackletColors.adaptiveDivider(context)),
           Flexible(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: TrackletSpacing.section,
+                vertical: TrackletSpacing.lg,
+              ),
               itemCount: orderedStops.length,
               separatorBuilder:
                   (context, index) => Divider(
@@ -1389,7 +1410,9 @@ class _FullRouteSheet extends StatelessWidget {
                         : progress?.visitedStopIds.contains(s.id) == true;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: TrackletSpacing.md,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -1420,8 +1443,8 @@ class _FullRouteSheet extends StatelessWidget {
                             '${index + 1}',
                             style: const TextStyle(
                               color: TrackletColors.pure,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         ),
@@ -1439,18 +1462,18 @@ class _FullRouteSheet extends StatelessWidget {
                                     : TrackletColors.adaptiveTextSecondary(
                                       context,
                                     ),
-                            fontSize: 15,
+                            fontSize: TrackletTypography.fontSize15,
                             fontWeight:
                                 isCurrent || isBoarding
-                                    ? FontWeight.w800
-                                    : FontWeight.w500,
+                                    ? TrackletTypography.weightExtraBold
+                                    : TrackletTypography.weightMedium,
                           ),
                         ),
                       ),
                       if (isCurrent) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -1467,15 +1490,15 @@ class _FullRouteSheet extends StatelessWidget {
                                   isDark
                                       ? TrackletColors.primaryDark
                                       : TrackletColors.primary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         ),
                       ] else if (isBoarding) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: TrackletSpacing.sm,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -1492,8 +1515,8 @@ class _FullRouteSheet extends StatelessWidget {
                                   isDark
                                       ? TrackletColors.busLiveTextDark
                                       : TrackletColors.busLive,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize11,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         ),
@@ -1538,9 +1561,9 @@ class _ScheduledDepartureSummary extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextPrimary(context),
-                  fontSize: 16,
-                  height: 1.2,
-                  fontWeight: FontWeight.w700,
+                  fontSize: TrackletTypography.fontSize16,
+                  height: TrackletTypography.lineHeightTight,
+                  fontWeight: TrackletTypography.weightBold,
                 ),
               ),
               const SizedBox(height: 5),
@@ -1550,8 +1573,8 @@ class _ScheduledDepartureSummary extends StatelessWidget {
                     : 'Scheduled route departure',
                 style: TextStyle(
                   color: TrackletColors.adaptiveTextSecondary(context),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontSize: TrackletTypography.fontSize12,
+                  fontWeight: TrackletTypography.weightMedium,
                 ),
               ),
             ],
@@ -1559,7 +1582,10 @@ class _ScheduledDepartureSummary extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TrackletSpacing.md,
+            vertical: TrackletSpacing.compactMd,
+          ),
           decoration: BoxDecoration(
             color:
                 isDark
@@ -1572,8 +1598,8 @@ class _ScheduledDepartureSummary extends StatelessWidget {
             style: TextStyle(
               color:
                   isDark ? TrackletColors.primaryDark : TrackletColors.primary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontSize: TrackletTypography.fontSize18,
+              fontWeight: TrackletTypography.weightExtraBold,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -1605,9 +1631,9 @@ class _NoArrival extends StatelessWidget {
           'No active buses are serving ${stop.name} right now.',
           style: TextStyle(
             color: TrackletColors.adaptiveTextSecondary(context),
-            fontSize: 14,
-            height: 1.35,
-            fontWeight: FontWeight.w600,
+            fontSize: TrackletTypography.fontSize14,
+            height: TrackletTypography.lineHeightBodyCompact,
+            fontWeight: TrackletTypography.weightSemiBold,
           ),
         ),
       ),

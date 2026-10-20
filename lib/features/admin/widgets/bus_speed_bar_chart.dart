@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -31,7 +32,7 @@ class BusSpeedBarChart extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(7),
+                padding: const EdgeInsets.all(TrackletSpacing.iconBadgeInset),
                 decoration: BoxDecoration(
                   color: Colors.blueAccent.withValues(alpha: 0.12),
                   borderRadius: TrackletRadii.roundedSm,
@@ -46,13 +47,16 @@ class BusSpeedBarChart extends StatelessWidget {
               const Expanded(
                 child: Text(
                   'Fleet Velocity Spectrum',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: TrackletTypography.fontSize15,
+                  ),
                 ),
               ),
               Text(
                 'Max: ${maxSpeed.toStringAsFixed(0)} km/h',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: TrackletTypography.fontSize11,
                   fontFamily: 'monospace',
                   color: TrackletColors.adaptiveTextMuted(context),
                 ),
@@ -67,7 +71,7 @@ class BusSpeedBarChart extends StatelessWidget {
               child: Text(
                 'No bus telemetry records available.',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextMuted(context),
                 ),
               ),
@@ -94,15 +98,15 @@ class BusSpeedBarChart extends StatelessWidget {
                         Text(
                           metric.busNumber,
                           style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontSize: TrackletTypography.fontSize13,
+                            fontWeight: TrackletTypography.weightSemiBold,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           metric.deviceId,
                           style: TextStyle(
-                            fontSize: 10.5,
+                            fontSize: TrackletTypography.fontSize10_5,
                             fontFamily: 'monospace',
                             color: TrackletColors.adaptiveTextMuted(context),
                           ),
@@ -111,7 +115,7 @@ class BusSpeedBarChart extends StatelessWidget {
                         Text(
                           '${metric.speed.toStringAsFixed(1)} km/h',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: TrackletTypography.fontSize12,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'monospace',
                             color: color,

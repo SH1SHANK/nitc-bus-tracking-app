@@ -58,9 +58,9 @@ class OnboardingStepLoading extends StatelessWidget {
                     TrackletTypography.displaySmall,
                   ).copyWith(
                     fontSize: isCompact ? 28 : 32,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.7,
-                    height: 1.12,
+                    fontWeight: TrackletTypography.weightExtraBold,
+                    letterSpacing: TrackletTypography.letterSpacingDisplayLarge,
+                    height: TrackletTypography.lineHeightLoading,
                   ),
                 ).enterOnboarding(context, delay: 40.ms),
                 const SizedBox(height: 10),
@@ -72,8 +72,8 @@ class OnboardingStepLoading extends StatelessWidget {
                       TrackletTypography.headlineLarge,
                     ).copyWith(
                       fontSize: isCompact ? 21 : 24,
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
+                      fontWeight: TrackletTypography.weightExtraBold,
+                      height: TrackletTypography.lineHeightTight,
                     ),
                     children: const [
                       TextSpan(
@@ -94,12 +94,17 @@ class OnboardingStepLoading extends StatelessWidget {
                   style: TrackletTypography.adaptiveSecondary(
                     context,
                     TrackletTypography.bodyMedium,
-                  ).copyWith(fontSize: 14, height: 1.45),
+                  ).copyWith(
+                    fontSize: TrackletTypography.fontSize14,
+                    height: TrackletTypography.lineHeightBodyRelaxed,
+                  ),
                 ).enterOnboarding(context, delay: 150.ms),
                 Expanded(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: TrackletSpacing.sm,
+                      ),
                       child: Image.asset(
                         'assets/images/flow.gif',
                         fit: BoxFit.contain,
@@ -138,9 +143,9 @@ class OnboardingStepLoading extends StatelessWidget {
                           statusText,
                           textAlign: TextAlign.center,
                           style: TrackletTypography.titleSmall.copyWith(
-                            fontWeight: FontWeight.w600,
+                            fontWeight: TrackletTypography.weightSemiBold,
                             color: textPrimary,
-                            fontSize: 14,
+                            fontSize: TrackletTypography.fontSize14,
                           ),
                         ),
                       ),
@@ -154,7 +159,7 @@ class OnboardingStepLoading extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TrackletTypography.bodySmall.copyWith(
                       color: TrackletColors.errorBorder,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                   const SizedBox(height: 10),

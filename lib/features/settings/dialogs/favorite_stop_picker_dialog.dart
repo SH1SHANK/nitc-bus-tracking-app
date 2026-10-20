@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/transit/stop.dart';
 import '../../../data/transit/transit_repository.dart';
@@ -32,7 +34,7 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
     final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
         vertical: TrackletSpacing.xl,
@@ -72,8 +74,8 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                     child: Text(
                       'Select Favorite Stop',
                       style: TrackletFonts.outfit(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize20,
+                        fontWeight: TrackletTypography.weightBold,
                         color: TrackletColors.adaptiveTextPrimary(context),
                       ),
                     ),
@@ -92,7 +94,7 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
               Text(
                 'Choose your primary campus stop for quick ETA shortcuts',
                 style: TrackletFonts.outfit(
-                  fontSize: 12.0,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
@@ -124,8 +126,8 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                             Text(
                               'Could not load campus stops',
                               style: TrackletFonts.outfit(
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
+                                fontSize: TrackletTypography.fontSize14,
+                                fontWeight: TrackletTypography.weightSemiBold,
                                 color: TrackletColors.adaptiveTextPrimary(
                                   context,
                                 ),
@@ -146,7 +148,7 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                         child: Text(
                           'No campus stops available',
                           style: TrackletFonts.outfit(
-                            fontSize: 14.0,
+                            fontSize: TrackletTypography.fontSize14,
                             color: TrackletColors.adaptiveTextSecondary(
                               context,
                             ),
@@ -208,11 +210,14 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                                       Text(
                                         stop.name,
                                         style: TrackletFonts.outfit(
-                                          fontSize: 15.0,
+                                          fontSize:
+                                              TrackletTypography.fontSize15,
                                           fontWeight:
                                               isSelected
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w500,
+                                                  ? TrackletTypography
+                                                      .weightBold
+                                                  : TrackletTypography
+                                                      .weightMedium,
                                           color:
                                               isSelected
                                                   ? (isDark
@@ -231,7 +236,8 @@ class FavoriteStopPickerDialog extends ConsumerWidget {
                                         Text(
                                           stop.description!,
                                           style: TrackletFonts.outfit(
-                                            fontSize: 11.0,
+                                            fontSize:
+                                                TrackletTypography.fontSize11,
                                             color:
                                                 TrackletColors.adaptiveTextSecondary(
                                                   context,

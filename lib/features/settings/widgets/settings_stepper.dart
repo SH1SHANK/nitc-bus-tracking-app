@@ -1,3 +1,4 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import '../../../design_system/tokens/colors.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
@@ -72,8 +73,8 @@ class SettingsStepper extends StatelessWidget {
             child: Text(
               '$value $displayUnit',
               style: TextStyle(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w700,
+                fontSize: TrackletTypography.fontSize13,
+                fontWeight: TrackletTypography.weightBold,
                 color: TrackletColors.adaptiveTextPrimary(context),
               ),
             ),

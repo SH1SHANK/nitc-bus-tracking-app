@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/components/voxel_avatar.dart';
 import '../../../design_system/tokens/colors.dart';
+import '../../../design_system/tokens/shadows.dart';
 import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
@@ -149,13 +150,13 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
+          const SnackBar(
+            content: Row(
               children: [
                 animated.LucideAnimatedIcon(
                   icon: animated.check,
                   size: 18,
-                  color: Colors.white,
+                  color: TrackletColors.textInverse,
                   trigger: animated.AnimationTrigger.onTap,
                 ),
                 SizedBox(width: 8),
@@ -165,7 +166,7 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
             backgroundColor: TrackletColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: TrackletRadii.roundedCompactMd,
             ),
           ),
         );
@@ -219,7 +220,7 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                   margin: const EdgeInsets.only(bottom: TrackletSpacing.md),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: TrackletRadii.roundedXxs,
                   ),
                 ),
               ),
@@ -317,7 +318,7 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                     style: TrackletTypography.adaptive(
                       context,
                       TrackletTypography.titleMedium,
-                    ).copyWith(fontWeight: FontWeight.w700),
+                    ).copyWith(fontWeight: TrackletTypography.weightBold),
                   ),
                   TextButton.icon(
                     onPressed: () {
@@ -332,7 +333,7 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                     label: const Text(
                       'Roll New',
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TrackletTypography.weightBold,
                         color: TrackletColors.primary,
                       ),
                     ),
@@ -357,7 +358,9 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOut,
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(
+                              TrackletSpacing.compact,
+                            ),
                             decoration: BoxDecoration(
                               color:
                                   isSelected
@@ -388,7 +391,7 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                                       : null,
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: TrackletRadii.roundedSm,
                               child: VoxelAvatar(
                                 email: widget.userEmail,
                                 name: widget.userName,
@@ -408,12 +411,12 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                 onPressed: _isSaving ? null : _saveAvatar,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TrackletColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: TrackletColors.textInverse,
                   minimumSize: const Size.fromHeight(50),
                   shape: const RoundedRectangleBorder(
                     borderRadius: TrackletRadii.roundedMd,
                   ),
-                  elevation: 2,
+                  elevation: TrackletShadows.elevationLevel2,
                 ),
                 icon:
                     _isSaving
@@ -422,19 +425,19 @@ class _AvatarPickerSheetState extends ConsumerState<AvatarPickerSheet> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: TrackletColors.textInverse,
                           ),
                         )
                         : const animated.LucideAnimatedIcon(
                           icon: animated.check,
                           size: 20,
-                          color: Colors.white,
+                          color: TrackletColors.textInverse,
                           trigger: animated.AnimationTrigger.manual,
                         ),
                 label: Text(
                   _isSaving ? 'Applying...' : 'Apply Avatar',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: TrackletTypography.fontSize16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

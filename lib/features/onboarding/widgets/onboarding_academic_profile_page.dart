@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -135,8 +136,8 @@ class _OnboardingAcademicProfilePageState
           Text(
             "Let's Set Up Your Academic Profile",
             style: TrackletTypography.displaySmall.copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: TrackletTypography.fontSize22,
+              fontWeight: TrackletTypography.weightBold,
               color: TrackletColors.altPrimaryText,
             ),
           ).enterOnboarding(context),
@@ -147,8 +148,8 @@ class _OnboardingAcademicProfilePageState
             text: TextSpan(
               style: TrackletTypography.labelSmall.copyWith(
                 color: TrackletColors.secondaryText,
-                fontSize: 11.5,
-                height: 1.45,
+                fontSize: TrackletTypography.fontSize11_5,
+                height: TrackletTypography.lineHeightBodyRelaxed,
               ),
               children: [
                 const TextSpan(
@@ -159,7 +160,7 @@ class _OnboardingAcademicProfilePageState
                   text: 'Learn more.',
                   style: const TextStyle(
                     color: TrackletColors.tertiaryText,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                   recognizer: _learnMoreRecognizer,
                 ),
@@ -168,7 +169,7 @@ class _OnboardingAcademicProfilePageState
                   text: 'Request here',
                   style: const TextStyle(
                     color: TrackletColors.tertiaryText,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: TrackletTypography.weightBold,
                   ),
                   recognizer: _requestRecognizer,
                 ),
@@ -179,8 +180,8 @@ class _OnboardingAcademicProfilePageState
 
           if (hasError)
             Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: TrackletSpacing.lg),
+              padding: const EdgeInsets.all(TrackletSpacing.md),
               decoration: BoxDecoration(
                 color: TrackletColors.error.withValues(alpha: 0.08),
                 borderRadius: TrackletRadii.roundedCard,
@@ -203,7 +204,7 @@ class _OnboardingAcademicProfilePageState
                           'Could not load campus options.',
                       style: const TextStyle(
                         fontFamily: TrackletTypography.primaryFontFamily,
-                        fontSize: 12,
+                        fontSize: TrackletTypography.fontSize12,
                         color: TrackletColors.error,
                       ),
                     ),
@@ -216,7 +217,7 @@ class _OnboardingAcademicProfilePageState
                     child: const Text(
                       'Retry',
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TrackletTypography.weightBold,
                         color: TrackletColors.primary,
                       ),
                     ),
@@ -243,7 +244,7 @@ class _OnboardingAcademicProfilePageState
               hintText: 'Full Name',
               hintStyle: TrackletTypography.labelLarge.copyWith(
                 color: TrackletColors.secondaryText,
-                fontWeight: FontWeight.w700,
+                fontWeight: TrackletTypography.weightBold,
               ),
               enabledBorder: const OutlineInputBorder(
                 borderSide: BorderSide(
@@ -304,9 +305,9 @@ class _OnboardingAcademicProfilePageState
                       : null,
             ),
             style: TrackletTypography.bodyMedium.copyWith(
-              fontSize: 15.0,
+              fontSize: TrackletTypography.fontSize15,
               color: TrackletColors.altPrimaryText,
-              fontWeight: FontWeight.w600,
+              fontWeight: TrackletTypography.weightSemiBold,
             ),
           ).enterOnboarding(context, delay: 90.ms),
           const SizedBox(height: 14),
@@ -412,9 +413,9 @@ class _OnboardingAcademicProfilePageState
                   'I agree to the Terms of Service and Privacy Policy.',
                   style: TextStyle(
                     fontFamily: TrackletTypography.primaryFontFamily,
-                    fontSize: 12,
+                    fontSize: TrackletTypography.fontSize12,
                     color: TrackletColors.secondaryText,
-                    height: 1.3,
+                    height: TrackletTypography.lineHeightCompact,
                   ),
                 ),
               ),
@@ -422,7 +423,7 @@ class _OnboardingAcademicProfilePageState
           ).enterOnboarding(context, delay: 250.ms),
           if (!isFormValid)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: TrackletSpacing.md),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -437,8 +438,8 @@ class _OnboardingAcademicProfilePageState
                       'Complete all fields and accept the terms to continue.',
                       style: TrackletTypography.labelSmall.copyWith(
                         color: TrackletColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.35,
+                        fontSize: TrackletTypography.fontSize12,
+                        height: TrackletTypography.lineHeightBodyCompact,
                       ),
                     ),
                   ),
@@ -463,8 +464,8 @@ class _OnboardingAcademicProfilePageState
                 'Continue',
                 style: TextStyle(
                   fontFamily: TrackletTypography.primaryFontFamily,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontSize: TrackletTypography.fontSize15,
+                  fontWeight: TrackletTypography.weightBold,
                   color: TrackletColors.pure,
                 ),
               ),
@@ -473,7 +474,7 @@ class _OnboardingAcademicProfilePageState
                 disabledBackgroundColor: TrackletColors.primary.withValues(
                   alpha: 0.4,
                 ),
-                elevation: 3,
+                elevation: TrackletShadows.elevationLevel3,
                 shadowColor: TrackletColors.primary.withValues(alpha: 0.3),
                 shape: const RoundedRectangleBorder(
                   borderRadius: TrackletRadii.roundedCard,
@@ -492,8 +493,8 @@ class _OnboardingAcademicProfilePageState
       label,
       style: const TextStyle(
         fontFamily: TrackletTypography.primaryFontFamily,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontSize: TrackletTypography.fontSize13,
+        fontWeight: TrackletTypography.weightSemiBold,
         color: TrackletColors.secondaryText,
       ),
     );

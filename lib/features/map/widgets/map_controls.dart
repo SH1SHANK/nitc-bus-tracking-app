@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_lucide_animated/flutter_lucide_animated.dart'
     as animated;
 
@@ -33,7 +34,7 @@ class MapControls extends StatelessWidget {
 
     return Material(
       color: TrackletColors.adaptiveSurfaceElevated(context),
-      elevation: 3,
+      elevation: TrackletShadows.elevationLevel3,
       shadowColor: TrackletColors.adaptiveTextPrimary(
         context,
       ).withValues(alpha: isDark ? 0.28 : 0.12),

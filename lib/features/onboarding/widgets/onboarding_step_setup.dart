@@ -52,8 +52,8 @@ class OnboardingStepSetup extends StatelessWidget {
           Text(
             'Campus transit preferences',
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
+              fontSize: TrackletTypography.fontSize26,
+              fontWeight: TrackletTypography.weightExtraBold,
             ),
           ),
           const SizedBox(height: TrackletSpacing.xs),
@@ -67,7 +67,7 @@ class OnboardingStepSetup extends StatelessWidget {
           Text(
             'Select your hostel',
             style: TrackletTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
           const SizedBox(height: TrackletSpacing.xs),
@@ -89,7 +89,7 @@ class OnboardingStepSetup extends StatelessWidget {
           Text(
             'Select your primary bus stop',
             style: TrackletTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: TrackletTypography.weightBold,
             ),
           ),
           const SizedBox(height: TrackletSpacing.xs),
@@ -112,7 +112,7 @@ class OnboardingStepSetup extends StatelessWidget {
             onTap: () => onToggleTerms(!agreedToTerms),
             borderRadius: TrackletRadii.roundedSm,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: TrackletSpacing.xs),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -126,7 +126,9 @@ class OnboardingStepSetup extends StatelessWidget {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(
+                        top: TrackletSpacing.compactMd,
+                      ),
                       child: RichText(
                         text: TextSpan(
                           style: TrackletTypography.bodySmall.copyWith(
@@ -141,7 +143,7 @@ class OnboardingStepSetup extends StatelessWidget {
                               text: 'Terms of Service',
                               style: TextStyle(
                                 color: TrackletColors.tertiary,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                             TextSpan(text: ' and '),
@@ -149,7 +151,7 @@ class OnboardingStepSetup extends StatelessWidget {
                               text: 'Privacy Policy',
                               style: TextStyle(
                                 color: TrackletColors.tertiary,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: TrackletTypography.weightBold,
                               ),
                             ),
                             TextSpan(text: ' of BusTracker.'),

@@ -61,8 +61,8 @@ class OnboardingStepLocation extends StatelessWidget {
           Text(
             'Enable Campus Location',
             style: TrackletTypography.displayLarge.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
+              fontSize: TrackletTypography.fontSize26,
+              fontWeight: TrackletTypography.weightExtraBold,
             ),
             textAlign: TextAlign.center,
           ),
@@ -71,7 +71,7 @@ class OnboardingStepLocation extends StatelessWidget {
             'BusTracker calculates live walking times to your nearest bus stop (MBH, Main Gate, ELHC) and shows live shuttles around you.',
             style: TrackletTypography.bodyLarge.copyWith(
               color: TrackletColors.textSecondary,
-              height: 1.45,
+              height: TrackletTypography.lineHeightBodyRelaxed,
             ),
             textAlign: TextAlign.center,
           ),
@@ -98,7 +98,7 @@ class OnboardingStepLocation extends StatelessWidget {
                     'Campus only: Location is used exclusively to find nearest stops.',
                     style: TrackletTypography.bodySmall.copyWith(
                       color: TrackletColors.locationGreenDark,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                 ),

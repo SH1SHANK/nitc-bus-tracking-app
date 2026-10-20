@@ -1,3 +1,5 @@
+import 'package:tracklet/design_system/tokens/spacing.dart';
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/transit/bus.dart';
@@ -61,7 +63,7 @@ class AtAGlanceTransitCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: TrackletRadii.roundedXl,
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(TrackletSpacing.cardPaddingLg),
           decoration: BoxDecoration(
             borderRadius: TrackletRadii.roundedXl,
             border: isDark ? Border.all(color: border) : null,
@@ -83,8 +85,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       selectedStop.name,
                       style: TextStyle(
                         color: textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize14,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -94,8 +96,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                     'Boarding stop',
                     style: TextStyle(
                       color: textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: TrackletTypography.fontSize12,
+                      fontWeight: TrackletTypography.weightSemiBold,
                     ),
                   ),
                 ],
@@ -116,7 +118,7 @@ class AtAGlanceTransitCard extends StatelessWidget {
                       ),
                       child: const Icon(
                         TrackletIcons.bus,
-                        color: Colors.white,
+                        color: TrackletColors.textInverse,
                         size: 27,
                       ),
                     ),
@@ -129,10 +131,11 @@ class AtAGlanceTransitCard extends StatelessWidget {
                             route?.name ?? bus.name,
                             style: TextStyle(
                               color: textPrimary,
-                              fontSize: 18,
-                              height: 1.2,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.3,
+                              fontSize: TrackletTypography.fontSize18,
+                              height: TrackletTypography.lineHeightTight,
+                              fontWeight: TrackletTypography.weightExtraBold,
+                              letterSpacing:
+                                  TrackletTypography.letterSpacingTitle,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -142,8 +145,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                             bus.numberPlate,
                             style: TextStyle(
                               color: textSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              fontSize: TrackletTypography.fontSize13,
+                              fontWeight: TrackletTypography.weightMedium,
                             ),
                           ),
                         ],
@@ -152,7 +155,7 @@ class AtAGlanceTransitCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: TrackletSpacing.compactMd,
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
@@ -175,8 +178,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                             bus.status.displayName,
                             style: TextStyle(
                               color: statusColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontSize: TrackletTypography.fontSize12,
+                              fontWeight: TrackletTypography.weightBold,
                             ),
                           ),
                         ],
@@ -202,8 +205,8 @@ class AtAGlanceTransitCard extends StatelessWidget {
                             : 'Live location is not available',
                         style: TextStyle(
                           color: textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontSize: TrackletTypography.fontSize13,
+                          fontWeight: TrackletTypography.weightSemiBold,
                         ),
                       ),
                     ),
@@ -240,14 +243,18 @@ class _EmptyBusState extends StatelessWidget {
           'No buses to show right now',
           style: TextStyle(
             color: textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
+            fontSize: TrackletTypography.fontSize18,
+            fontWeight: TrackletTypography.weightExtraBold,
           ),
         ),
         const SizedBox(height: 5),
         Text(
           'Check the campus map for the latest bus activity.',
-          style: TextStyle(color: textSecondary, fontSize: 14, height: 1.4),
+          style: TextStyle(
+            color: textSecondary,
+            fontSize: TrackletTypography.fontSize14,
+            height: TrackletTypography.lineHeightBody,
+          ),
         ),
         const SizedBox(height: 14),
         TextButton.icon(

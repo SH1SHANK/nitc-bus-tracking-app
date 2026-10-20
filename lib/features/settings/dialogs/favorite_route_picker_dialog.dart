@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/transit/bus_route.dart';
 import '../../../data/transit/transit_repository.dart';
@@ -33,7 +35,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
     final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
         vertical: TrackletSpacing.xl,
@@ -73,8 +75,8 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                     child: Text(
                       'Select Favorite Route',
                       style: TrackletFonts.outfit(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w700,
+                        fontSize: TrackletTypography.fontSize20,
+                        fontWeight: TrackletTypography.weightBold,
                         color: TrackletColors.adaptiveTextPrimary(context),
                       ),
                     ),
@@ -93,7 +95,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
               Text(
                 'Default route highlighted on initial map load',
                 style: TrackletFonts.outfit(
-                  fontSize: 12.0,
+                  fontSize: TrackletTypography.fontSize12,
                   color: TrackletColors.adaptiveTextSecondary(context),
                 ),
               ),
@@ -125,8 +127,8 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                             Text(
                               'Could not load campus routes',
                               style: TrackletFonts.outfit(
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w600,
+                                fontSize: TrackletTypography.fontSize14,
+                                fontWeight: TrackletTypography.weightSemiBold,
                                 color: TrackletColors.adaptiveTextPrimary(
                                   context,
                                 ),
@@ -147,7 +149,7 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                         child: Text(
                           'No campus routes available',
                           style: TrackletFonts.outfit(
-                            fontSize: 14.0,
+                            fontSize: TrackletTypography.fontSize14,
                             color: TrackletColors.adaptiveTextSecondary(
                               context,
                             ),
@@ -194,8 +196,8 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                   child: Text(
                                     route.code,
                                     style: TrackletFonts.outfit(
-                                      fontSize: 13.0,
-                                      fontWeight: FontWeight.w700,
+                                      fontSize: TrackletTypography.fontSize13,
+                                      fontWeight: TrackletTypography.weightBold,
                                       color:
                                           isSelected
                                               ? TrackletColors.textInverse
@@ -214,11 +216,14 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                       Text(
                                         route.name,
                                         style: TrackletFonts.outfit(
-                                          fontSize: 15.0,
+                                          fontSize:
+                                              TrackletTypography.fontSize15,
                                           fontWeight:
                                               isSelected
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w500,
+                                                  ? TrackletTypography
+                                                      .weightBold
+                                                  : TrackletTypography
+                                                      .weightMedium,
                                           color:
                                               isSelected
                                                   ? (isDark
@@ -237,7 +242,8 @@ class FavoriteRoutePickerDialog extends ConsumerWidget {
                                         Text(
                                           route.description!,
                                           style: TrackletFonts.outfit(
-                                            fontSize: 11.0,
+                                            fontSize:
+                                                TrackletTypography.fontSize11,
                                             color:
                                                 TrackletColors.adaptiveTextSecondary(
                                                   context,

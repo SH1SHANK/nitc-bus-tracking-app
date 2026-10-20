@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 
 import '../../../data/transit/bus_route.dart';
 import '../../../design_system/tokens/colors.dart';
@@ -51,7 +52,7 @@ class RouteSelectorCard extends StatelessWidget {
       child: Material(
         color: TrackletColors.adaptiveSurfaceElevated(context),
         borderRadius: TrackletRadii.roundedLg,
-        elevation: 3,
+        elevation: TrackletShadows.elevationLevel3,
         shadowColor: TrackletColors.adaptiveTextPrimary(
           context,
         ).withValues(alpha: isDark ? 0.28 : 0.12),
@@ -68,7 +69,7 @@ class RouteSelectorCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: TrackletSpacing.md,
-                vertical: TrackletSpacing.sm + 2,
+                vertical: TrackletSpacing.sm + TrackletSpacing.xxs,
               ),
               child: Row(
                 children: [
@@ -76,7 +77,9 @@ class RouteSelectorCard extends StatelessWidget {
                     constraints: const BoxConstraints(minWidth: 46),
                     height: 42,
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: TrackletSpacing.compactMd,
+                    ),
                     decoration: BoxDecoration(
                       color:
                           route != null
@@ -103,7 +106,7 @@ class RouteSelectorCard extends StatelessWidget {
                                 : (isDark
                                     ? TrackletColors.primaryDark
                                     : TrackletColors.primary),
-                        fontWeight: FontWeight.w700,
+                        fontWeight: TrackletTypography.weightBold,
                       ),
                     ),
                   ),
@@ -118,7 +121,7 @@ class RouteSelectorCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TrackletTypography.titleSmall.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: TrackletTypography.weightBold,
                             color: TrackletColors.adaptiveTextPrimary(context),
                           ),
                         ),
@@ -145,7 +148,9 @@ class RouteSelectorCard extends StatelessWidget {
                     child:
                         (route != null && onClearRoute != null)
                             ? Padding(
-                              padding: const EdgeInsets.only(right: 4),
+                              padding: const EdgeInsets.only(
+                                right: TrackletSpacing.xs,
+                              ),
                               child: IconButton(
                                 icon: const Icon(TrackletIcons.x, size: 18),
                                 color: TrackletColors.adaptiveTextSecondary(

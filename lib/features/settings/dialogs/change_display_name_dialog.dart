@@ -1,4 +1,6 @@
+import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
+import '../../../design_system/tokens/shadows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/profile/profile.dart';
 import '../../../data/profile/profile_repository.dart';
@@ -77,8 +79,8 @@ class _ChangeDisplayNameDialogState
             content: Text(
               'Display name updated successfully!',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize12,
                 color: TrackletColors.info,
               ),
             ),
@@ -95,8 +97,8 @@ class _ChangeDisplayNameDialogState
             content: Text(
               'Could not update display name. Try again.',
               style: TrackletFonts.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.0,
+                fontWeight: TrackletTypography.weightSemiBold,
+                fontSize: TrackletTypography.fontSize12,
                 color: TrackletColors.info,
               ),
             ),
@@ -113,7 +115,7 @@ class _ChangeDisplayNameDialogState
     final isDark = TrackletColors.isDark(context);
 
     return Dialog(
-      elevation: 0,
+      elevation: TrackletShadows.elevationLevel0,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: TrackletSpacing.section,
       ),
@@ -150,8 +152,8 @@ class _ChangeDisplayNameDialogState
                 Text(
                   'Change Display Name',
                   style: TrackletFonts.outfit(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w700,
+                    fontSize: TrackletTypography.fontSize20,
+                    fontWeight: TrackletTypography.weightBold,
                     color: TrackletColors.adaptiveTextPrimary(context),
                   ),
                 ),
@@ -159,8 +161,8 @@ class _ChangeDisplayNameDialogState
                 Text(
                   'Change how your name appears to others in BusTracker',
                   style: TrackletFonts.outfit(
-                    fontSize: 13.0,
-                    fontWeight: FontWeight.w500,
+                    fontSize: TrackletTypography.fontSize13,
+                    fontWeight: TrackletTypography.weightMedium,
                     color: TrackletColors.adaptiveTextSecondary(context),
                   ),
                 ),
@@ -176,8 +178,8 @@ class _ChangeDisplayNameDialogState
                   decoration: InputDecoration(
                     hintText: 'Type your name',
                     hintStyle: TrackletFonts.outfit(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w500,
+                      fontSize: TrackletTypography.fontSize15,
+                      fontWeight: TrackletTypography.weightMedium,
                       color: TrackletColors.adaptiveTextMuted(context),
                     ),
                     enabledBorder: OutlineInputBorder(
@@ -260,8 +262,8 @@ class _ChangeDisplayNameDialogState
                       child: Text(
                         'Cancel',
                         style: TrackletFonts.outfit(
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w600,
+                          fontSize: TrackletTypography.fontSize15,
+                          fontWeight: TrackletTypography.weightSemiBold,
                           color: TrackletColors.adaptiveTextPrimary(context),
                         ),
                       ),
@@ -272,7 +274,7 @@ class _ChangeDisplayNameDialogState
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TrackletColors.primary,
                         foregroundColor: TrackletColors.textInverse,
-                        elevation: 0,
+                        elevation: TrackletShadows.elevationLevel0,
                         padding: const EdgeInsets.symmetric(
                           horizontal: TrackletSpacing.xl,
                           vertical: TrackletSpacing.md,
@@ -294,8 +296,8 @@ class _ChangeDisplayNameDialogState
                               : Text(
                                 'Save',
                                 style: TrackletFonts.outfit(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: TrackletTypography.fontSize16,
+                                  fontWeight: TrackletTypography.weightSemiBold,
                                 ),
                               ),
                     ),

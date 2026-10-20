@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import '../../design_system/tokens/shadows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,8 @@ import 'dialogs/change_password_dialog.dart';
 import 'dialogs/change_username_dialog.dart';
 import 'dialogs/delete_account_dialog.dart';
 import 'dialogs/transit_faq_dialog.dart';
+import 'dialogs/app_update_dialog.dart';
+import '../../services/updates/app_update_service.dart';
 import 'widgets/settings_card.dart';
 import 'widgets/settings_row_item.dart';
 import 'widgets/settings_theme_selector.dart';
@@ -43,6 +46,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
+  bool _isCheckingUpdate = false;
   @override
   void initState() {
     super.initState();
@@ -94,8 +98,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 Text(
                   'Browser Location Access',
                   style: TrackletFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontSize: TrackletTypography.fontSize18,
+                    fontWeight: TrackletTypography.weightSemiBold,
                     color: TrackletColors.adaptiveTextPrimary(ctx),
                   ),
                 ),
@@ -107,8 +111,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               '2. Set "Location" to "Allow".\n'
               '3. Refresh the page or tap "Refresh GPS Status".',
               style: TrackletFonts.outfit(
-                fontSize: 14,
-                height: 1.5,
+                fontSize: TrackletTypography.fontSize14,
+                height: TrackletTypography.lineHeightRelaxed,
                 color: TrackletColors.adaptiveTextSecondary(ctx),
               ),
             ),
@@ -119,7 +123,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   'Got It',
                   style: TrackletFonts.outfit(
                     color: TrackletColors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -182,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 Text(
                   isGuest ? 'Exit Guest Session' : 'Log Out',
                   style: TrackletFonts.outfit(
-                    fontSize: 18.0,
+                    fontSize: TrackletTypography.fontSize18,
                     fontWeight: FontWeight.bold,
                     color: TrackletColors.adaptiveTextPrimary(ctx),
                   ),
@@ -204,7 +208,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   'Cancel',
                   style: TrackletFonts.outfit(
                     color: TrackletColors.adaptiveTextSecondary(ctx),
-                    fontWeight: FontWeight.w600,
+                    fontWeight: TrackletTypography.weightSemiBold,
                   ),
                 ),
               ),
@@ -216,11 +220,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   shape: const RoundedRectangleBorder(
                     borderRadius: TrackletRadii.roundedSm,
                   ),
-                  elevation: 0,
+                  elevation: TrackletShadows.elevationLevel0,
                 ),
                 child: Text(
                   isGuest ? 'Exit Guest Mode' : 'Log Out',
-                  style: TrackletFonts.outfit(fontWeight: FontWeight.w600),
+                  style: TrackletFonts.outfit(
+                    fontWeight: TrackletTypography.weightSemiBold,
+                  ),
                 ),
               ),
             ],
@@ -284,7 +290,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         appBar: AppBar(
           backgroundColor: TrackletColors.adaptiveBackground(context),
           foregroundColor: TrackletColors.adaptiveTextPrimary(context),
-          elevation: 0.0,
+          elevation: TrackletShadows.elevationLevel0,
           scrolledUnderElevation: 0.0,
           leading: IconButton(
             icon: const Icon(TrackletIcons.chevronLeft, size: 22),
@@ -300,112 +306,187 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           title: Text(
             'App Settings',
             style: TrackletFonts.outfit(
-              fontSize: 22.0,
+              fontSize: TrackletTypography.fontSize22,
               fontWeight: FontWeight.bold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
           centerTitle: false,
         ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: TrackletSpacing.lg,
-            vertical: TrackletSpacing.lg,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ==========================================
-              // SECTION 1: STUDENT / GUEST PROFILE CARD
-              // ==========================================
-              _buildSectionHeader(
-                isGuest ? 'Guest Profile' : 'Student Profile',
-              ),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                padding: const EdgeInsets.all(TrackletSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap:
-                              () => AvatarPickerSheet.show(
-                                context,
-                                currentSeed: profile.avatarSeed,
-                                userEmail: profile.email,
-                                userName: profile.name,
-                              ),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              VoxelAvatar(
-                                email: profile.email,
-                                name: profile.name,
-                                avatarSeed: profile.avatarSeed,
-                                size: TrackletSpacing.avatar,
-                                isGuest: isGuest,
-                              ),
-                              Positioned(
-                                bottom: -2,
-                                right: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: TrackletColors.primary,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: TrackletColors.adaptiveSurface(
-                                        context,
-                                      ),
-                                      width: 1.5,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TrackletSpacing.lg,
+              vertical: TrackletSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ==========================================
+                // SECTION 1: STUDENT / GUEST PROFILE CARD
+                // ==========================================
+                _buildSectionHeader(
+                  isGuest ? 'Guest Profile' : 'Student Profile',
+                ),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  padding: const EdgeInsets.all(TrackletSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap:
+                                () => AvatarPickerSheet.show(
+                                  context,
+                                  currentSeed: profile.avatarSeed,
+                                  userEmail: profile.email,
+                                  userName: profile.name,
+                                ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                VoxelAvatar(
+                                  email: profile.email,
+                                  name: profile.name,
+                                  avatarSeed: profile.avatarSeed,
+                                  size: TrackletSpacing.avatar,
+                                  isGuest: isGuest,
+                                ),
+                                Positioned(
+                                  bottom: -2,
+                                  right: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(
+                                      TrackletSpacing.xs,
                                     ),
-                                  ),
-                                  child: const animated.LucideAnimatedIcon(
-                                    icon: animated.sparkles,
-                                    size: 12,
-                                    color: Colors.white,
-                                    trigger: animated.AnimationTrigger.manual,
+                                    decoration: BoxDecoration(
+                                      color: TrackletColors.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: TrackletColors.adaptiveSurface(
+                                          context,
+                                        ),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: const animated.LucideAnimatedIcon(
+                                      icon: animated.sparkles,
+                                      size: 12,
+                                      color: TrackletColors.textInverse,
+                                      trigger: animated.AnimationTrigger.manual,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: TrackletSpacing.compactLg),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      isGuest ? 'Guest Rider' : profile.name,
-                                      style: TrackletFonts.outfit(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            TrackletColors.adaptiveTextPrimary(
+                          const SizedBox(width: TrackletSpacing.compactLg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        isGuest ? 'Guest Rider' : profile.name,
+                                        style: TrackletFonts.outfit(
+                                          fontSize:
+                                              TrackletTypography.fontSize18,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              TrackletColors.adaptiveTextPrimary(
+                                                context,
+                                              ),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (!isGuest)
+                                      InkWell(
+                                        onTap:
+                                            () => ChangeDisplayNameDialog.show(
                                               context,
                                             ),
+                                        borderRadius: TrackletRadii.roundedFull,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(
+                                            TrackletSpacing.compact,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                TrackletColors.isDark(context)
+                                                    ? TrackletColors
+                                                        .darkSurfaceElevated
+                                                    : TrackletColors.background,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            TrackletIcons.pencil,
+                                            size: 16.0,
+                                            color: TrackletColors.primary,
+                                          ),
+                                        ),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                  ],
+                                ),
+                                const SizedBox(height: TrackletSpacing.xxs),
+                                Text(
+                                  isGuest
+                                      ? 'Guest Session (Device Only)'
+                                      : profile.email,
+                                  style: TrackletTypography.bodySmall.copyWith(
+                                    color: TrackletColors.adaptiveTextSecondary(
+                                      context,
                                     ),
                                   ),
-                                  if (!isGuest)
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: TrackletSpacing.xs),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: TrackletSpacing.sm,
+                                        vertical: TrackletSpacing.xxs,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: TrackletColors.primary
+                                            .withValues(alpha: 0.1),
+                                        borderRadius: TrackletRadii.roundedXs,
+                                      ),
+                                      child: Text(
+                                        isGuest
+                                            ? 'Guest Account'
+                                            : (profile.rollNumber ??
+                                                'Student Account'),
+                                        style: TrackletFonts.robotoMono(
+                                          fontSize:
+                                              TrackletTypography.fontSize11,
+                                          fontWeight:
+                                              TrackletTypography.weightSemiBold,
+                                          color: TrackletColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
                                     InkWell(
                                       onTap:
-                                          () => ChangeDisplayNameDialog.show(
+                                          () => AvatarPickerSheet.show(
                                             context,
+                                            currentSeed: profile.avatarSeed,
+                                            userEmail: profile.email,
+                                            userName: profile.name,
                                           ),
-                                      borderRadius: TrackletRadii.roundedFull,
+                                      borderRadius: TrackletRadii.roundedXs,
                                       child: Container(
-                                        padding: const EdgeInsets.all(
-                                          TrackletSpacing.compact,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: TrackletSpacing.sm,
+                                          vertical: TrackletSpacing.xxs,
                                         ),
                                         decoration: BoxDecoration(
                                           color:
@@ -413,632 +494,600 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                                   ? TrackletColors
                                                       .darkSurfaceElevated
                                                   : TrackletColors.background,
-                                          shape: BoxShape.circle,
+                                          borderRadius: TrackletRadii.roundedXs,
+                                          border: Border.all(
+                                            color: TrackletColors.primary
+                                                .withValues(alpha: 0.3),
+                                          ),
                                         ),
-                                        child: const Icon(
-                                          TrackletIcons.pencil,
-                                          size: 16.0,
-                                          color: TrackletColors.primary,
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            animated.LucideAnimatedIcon(
+                                              icon: animated.sparkles,
+                                              size: 12,
+                                              color: TrackletColors.primary,
+                                              trigger:
+                                                  animated
+                                                      .AnimationTrigger
+                                                      .manual,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Change Avatar',
+                                              style: TextStyle(
+                                                fontSize:
+                                                    TrackletTypography
+                                                        .fontSize11,
+                                                fontWeight:
+                                                    TrackletTypography
+                                                        .weightSemiBold,
+                                                color: TrackletColors.primary,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                ],
-                              ),
-                              const SizedBox(height: TrackletSpacing.xxs),
-                              Text(
-                                isGuest
-                                    ? 'Guest Session (Device Only)'
-                                    : profile.email,
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: TrackletSpacing.compactLg),
+                      _buildDivider(context),
+                      const SizedBox(height: TrackletSpacing.md),
+                      if (isGuest)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              TrackletIcons.info,
+                              size: 18.0,
+                              color: TrackletColors.primary,
+                            ),
+                            const SizedBox(width: TrackletSpacing.compactMd),
+                            Expanded(
+                              child: Text(
+                                'You are using BusTracker in guest mode. Live tracking, routes, and timetables are available on this device. Sign in with your @nitc.ac.in email to sync bookmarks and preferences.',
                                 style: TrackletTypography.bodySmall.copyWith(
                                   color: TrackletColors.adaptiveTextSecondary(
                                     context,
                                   ),
+                                  height: TrackletTypography.lineHeightBody,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: TrackletSpacing.xs),
-                              Row(
+                            ),
+                          ],
+                        )
+                      else
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children: [
+                            _buildAcademicPill(
+                              icon: TrackletIcons.graduationCap,
+                              label: profile.semester,
+                            ),
+                            _buildAcademicPill(
+                              icon: TrackletIcons.gitBranch,
+                              label: profile.branch,
+                            ),
+                            _buildAcademicPill(
+                              icon: TrackletIcons.calendar,
+                              label: 'Batch ${profile.batch}',
+                            ),
+                            _buildAcademicPill(
+                              icon: TrackletIcons.building,
+                              label: profile.hostel,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 2: ACCOUNT & SECURITY
+                // ==========================================
+                _buildSectionHeader('Account & Security'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  child: Column(
+                    children: [
+                      if (isGuest)
+                        SettingsRowItem(
+                          title: 'Sign In with NITC Account',
+                          subtitle:
+                              'Upgrade to a permanent verified student account',
+                          leadingIcon: TrackletIcons.logIn,
+                          leadingIconColor: TrackletColors.primary,
+                          showChevron: true,
+                          onTap: () {
+                            ref.read(authNotifierProvider.notifier).signOut();
+                            context.go('/login');
+                          },
+                        )
+                      else ...[
+                        SettingsRowItem(
+                          title: 'Edit Display Name',
+                          subtitle: profile.name,
+                          leadingIcon: TrackletIcons.award,
+                          leadingIconColor: TrackletColors.primary,
+                          showChevron: true,
+                          onTap: () => ChangeDisplayNameDialog.show(context),
+                        ),
+                        _buildDivider(context),
+                        SettingsRowItem(
+                          title: 'Change Username',
+                          subtitle:
+                              profile.username != null &&
+                                      profile.username!.isNotEmpty
+                                  ? '@${profile.username}'
+                                  : 'Set your unique campus username',
+                          leadingIcon: TrackletIcons.atSign,
+                          leadingIconColor: TrackletColors.primary,
+                          showChevron: true,
+                          onTap:
+                              () => ChangeUsernameDialog.show(
+                                context,
+                                currentUsername: profile.username ?? '',
+                              ),
+                        ),
+                        _buildDivider(context),
+                        SettingsRowItem(
+                          title: 'Change Password',
+                          subtitle:
+                              'Update your student account security credentials',
+                          leadingIcon: TrackletIcons.lock,
+                          leadingIconColor: TrackletColors.primary,
+                          showChevron: true,
+                          onTap: () => ChangePasswordDialog.show(context),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 3: LOCATION & PERMISSIONS
+                // ==========================================
+                _buildSectionHeader('Location & Permissions'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  padding: const EdgeInsets.all(TrackletSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: TrackletSpacing.large,
+                                height: TrackletSpacing.large,
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF6F61EF,
+                                  ).withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  TrackletIcons.locateFixed,
+                                  color: TrackletColors.primary,
+                                  size: 22.0,
+                                ),
+                              ),
+                              const SizedBox(width: TrackletSpacing.md),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: TrackletSpacing.sm,
-                                      vertical: TrackletSpacing.xxs,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: TrackletColors.primary.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: TrackletRadii.roundedXs,
-                                    ),
-                                    child: Text(
-                                      isGuest
-                                          ? 'Guest Account'
-                                          : (profile.rollNumber ??
-                                              'Student Account'),
-                                      style: TrackletFonts.robotoMono(
-                                        fontSize: 11.0,
-                                        fontWeight: FontWeight.w600,
-                                        color: TrackletColors.primary,
-                                      ),
-                                    ),
+                                  Text(
+                                    'Location Access',
+                                    style: TrackletTypography.bodyMedium
+                                        .copyWith(
+                                          fontSize:
+                                              TrackletTypography.fontSize16,
+                                          fontWeight:
+                                              TrackletTypography.weightSemiBold,
+                                          color:
+                                              TrackletColors.adaptiveTextPrimary(
+                                                context,
+                                              ),
+                                        ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  InkWell(
-                                    onTap:
-                                        () => AvatarPickerSheet.show(
-                                          context,
-                                          currentSeed: profile.avatarSeed,
-                                          userEmail: profile.email,
-                                          userName: profile.name,
-                                        ),
-                                    borderRadius: TrackletRadii.roundedXs,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: TrackletSpacing.sm,
-                                        vertical: TrackletSpacing.xxs,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            TrackletColors.isDark(context)
-                                                ? TrackletColors
-                                                    .darkSurfaceElevated
-                                                : TrackletColors.background,
-                                        borderRadius: TrackletRadii.roundedXs,
-                                        border: Border.all(
-                                          color: TrackletColors.primary
-                                              .withValues(alpha: 0.3),
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          animated.LucideAnimatedIcon(
-                                            icon: animated.sparkles,
-                                            size: 12,
-                                            color: TrackletColors.primary,
-                                            trigger:
-                                                animated
-                                                    .AnimationTrigger
-                                                    .manual,
+                                  const SizedBox(height: TrackletSpacing.xxs),
+                                  Text(
+                                    'For nearest bus stop detection',
+                                    style: TrackletTypography.bodySmall.copyWith(
+                                      color:
+                                          TrackletColors.adaptiveTextSecondary(
+                                            context,
                                           ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            'Change Avatar',
-                                            style: TextStyle(
-                                              fontSize: 11.0,
-                                              fontWeight: FontWeight.w600,
-                                              color: TrackletColors.primary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: TrackletSpacing.compactLg),
-                    _buildDivider(context),
-                    const SizedBox(height: TrackletSpacing.md),
-                    if (isGuest)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            TrackletIcons.info,
-                            size: 18.0,
-                            color: TrackletColors.primary,
+                          _buildLocationStatusBadge(
+                            locationState.permissionState,
                           ),
-                          const SizedBox(width: TrackletSpacing.compactMd),
-                          Expanded(
-                            child: Text(
-                              'You are using BusTracker in guest mode. Live tracking, routes, and timetables are available on this device. Sign in with your @nitc.ac.in email to sync bookmarks and preferences.',
+                        ],
+                      ),
+                      const SizedBox(height: TrackletSpacing.md),
+                      Text(
+                        'BusTracker uses your location while viewing the map to calculate walking distances to nearby stops and show your position. Location data stays on your device.',
+                        style: TrackletTypography.bodySmall.copyWith(
+                          fontSize: TrackletTypography.fontSize12_5,
+                          height: TrackletTypography.lineHeightBodyRelaxed,
+                          color: TrackletColors.adaptiveTextSecondary(context),
+                        ),
+                      ),
+                      const SizedBox(height: TrackletSpacing.md),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final service = ref.read(locationServiceProvider);
+                            if (locationState.permissionState ==
+                                LocationPermissionState.deniedForever) {
+                              if (kIsWeb) {
+                                _showWebLocationHelpDialog();
+                              } else {
+                                await service.openAppSettings();
+                              }
+                              return;
+                            }
+                            if (locationState.permissionState ==
+                                LocationPermissionState.serviceDisabled) {
+                              if (kIsWeb) {
+                                _showWebLocationHelpDialog();
+                              } else {
+                                await service.openLocationSettings();
+                              }
+                              return;
+                            }
+                            if (locationState.permissionState ==
+                                LocationPermissionState.unsupported) {
+                              if (kIsWeb) {
+                                _showWebLocationHelpDialog();
+                              } else {
+                                _showInfoSnackBar(
+                                  'Location is not supported on this platform.',
+                                );
+                              }
+                              return;
+                            }
+
+                            await ref
+                                .read(locationStateProvider.notifier)
+                                .requestAndFetchLocation();
+                            final newState = ref.read(locationStateProvider);
+                            if (newState.hasPermission) {
+                              _showSuccessSnackBar(
+                                'Location permission granted',
+                              );
+                            } else if (newState.errorMessage != null) {
+                              _showInfoSnackBar(newState.errorMessage!);
+                            }
+                          },
+                          icon:
+                              locationState.isLoading
+                                  ? const SizedBox(
+                                    width: TrackletSpacing.lg,
+                                    height: TrackletSpacing.lg,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                      color: TrackletColors.primary,
+                                    ),
+                                  )
+                                  : const Icon(
+                                    TrackletIcons.locateFixed,
+                                    size: 16.0,
+                                  ),
+                          label: Text(
+                            locationState.permissionState ==
+                                    LocationPermissionState.deniedForever
+                                ? (kIsWeb
+                                    ? 'Browser Permission Help'
+                                    : 'Open Device Settings')
+                                : locationState.permissionState ==
+                                    LocationPermissionState.serviceDisabled
+                                ? 'Turn On Location (GPS)'
+                                : locationState.hasPermission
+                                ? 'Refresh GPS Status'
+                                : 'Enable Location Access',
+                            style: TrackletFonts.outfit(
+                              fontSize: TrackletTypography.fontSize14,
+                              fontWeight: TrackletTypography.weightSemiBold,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: TrackletColors.primary,
+                            side: const BorderSide(
+                              color: TrackletColors.primary,
+                            ),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: TrackletRadii.roundedSm,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: TrackletSpacing.compactMd,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 4: APPEARANCE & DISPLAY
+                // ==========================================
+                _buildSectionHeader('Appearance & Display'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(TrackletSpacing.lg),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Theme Preference',
+                              style: TrackletTypography.bodyMedium.copyWith(
+                                fontSize: TrackletTypography.fontSize15,
+                                fontWeight: TrackletTypography.weightSemiBold,
+                                color: TrackletColors.adaptiveTextPrimary(
+                                  context,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: TrackletSpacing.xxs),
+                            Text(
+                              'Choose interface appearance',
                               style: TrackletTypography.bodySmall.copyWith(
                                 color: TrackletColors.adaptiveTextSecondary(
                                   context,
                                 ),
-                                height: 1.4,
                               ),
                             ),
-                          ),
-                        ],
-                      )
-                    else
-                      Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: [
-                          _buildAcademicPill(
-                            icon: TrackletIcons.graduationCap,
-                            label: profile.semester,
-                          ),
-                          _buildAcademicPill(
-                            icon: TrackletIcons.gitBranch,
-                            label: profile.branch,
-                          ),
-                          _buildAcademicPill(
-                            icon: TrackletIcons.calendar,
-                            label: 'Batch ${profile.batch}',
-                          ),
-                          _buildAcademicPill(
-                            icon: TrackletIcons.building,
-                            label: profile.hostel,
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 2: ACCOUNT & SECURITY
-              // ==========================================
-              _buildSectionHeader('Account & Security'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    if (isGuest)
-                      SettingsRowItem(
-                        title: 'Sign In with NITC Account',
-                        subtitle:
-                            'Upgrade to a permanent verified student account',
-                        leadingIcon: TrackletIcons.logIn,
-                        leadingIconColor: TrackletColors.primary,
-                        showChevron: true,
-                        onTap: () {
-                          ref.read(authNotifierProvider.notifier).signOut();
-                          context.go('/login');
-                        },
-                      )
-                    else ...[
-                      SettingsRowItem(
-                        title: 'Edit Display Name',
-                        subtitle: profile.name,
-                        leadingIcon: TrackletIcons.award,
-                        leadingIconColor: TrackletColors.primary,
-                        showChevron: true,
-                        onTap: () => ChangeDisplayNameDialog.show(context),
-                      ),
-                      _buildDivider(context),
-                      SettingsRowItem(
-                        title: 'Change Username',
-                        subtitle:
-                            profile.username != null &&
-                                    profile.username!.isNotEmpty
-                                ? '@${profile.username}'
-                                : 'Set your unique campus username',
-                        leadingIcon: TrackletIcons.atSign,
-                        leadingIconColor: TrackletColors.primary,
-                        showChevron: true,
-                        onTap:
-                            () => ChangeUsernameDialog.show(
-                              context,
-                              currentUsername: profile.username ?? '',
-                            ),
-                      ),
-                      _buildDivider(context),
-                      SettingsRowItem(
-                        title: 'Change Password',
-                        subtitle:
-                            'Update your student account security credentials',
-                        leadingIcon: TrackletIcons.lock,
-                        leadingIconColor: TrackletColors.primary,
-                        showChevron: true,
-                        onTap: () => ChangePasswordDialog.show(context),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 3: LOCATION & PERMISSIONS
-              // ==========================================
-              _buildSectionHeader('Location & Permissions'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                padding: const EdgeInsets.all(TrackletSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: TrackletSpacing.large,
-                              height: TrackletSpacing.large,
-                              decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFF6F61EF,
-                                ).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                TrackletIcons.locateFixed,
-                                color: TrackletColors.primary,
-                                size: 22.0,
-                              ),
-                            ),
-                            const SizedBox(width: TrackletSpacing.md),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Location Access',
-                                  style: TrackletTypography.bodyMedium.copyWith(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w600,
-                                    color: TrackletColors.adaptiveTextPrimary(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: TrackletSpacing.xxs),
-                                Text(
-                                  'For nearest bus stop detection',
-                                  style: TrackletTypography.bodySmall.copyWith(
-                                    color: TrackletColors.adaptiveTextSecondary(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: TrackletSpacing.compactMd),
+                            SettingsThemeSelector(
+                              selectedMode: prefs.themeMode,
+                              enableHaptics: prefs.hapticFeedbackEnabled,
+                              onChanged: (String val) {
+                                prefsNotifier.setThemeMode(val);
+                              },
                             ),
                           ],
                         ),
-                        _buildLocationStatusBadge(
-                          locationState.permissionState,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: TrackletSpacing.md),
-                    Text(
-                      'BusTracker uses your location while viewing the map to calculate walking distances to nearby stops and show your position. Location data stays on your device.',
-                      style: TrackletTypography.bodySmall.copyWith(
-                        fontSize: 12.5,
-                        height: 1.45,
-                        color: TrackletColors.adaptiveTextSecondary(context),
                       ),
-                    ),
-                    const SizedBox(height: TrackletSpacing.md),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final service = ref.read(locationServiceProvider);
-                          if (locationState.permissionState ==
-                              LocationPermissionState.deniedForever) {
-                            if (kIsWeb) {
-                              _showWebLocationHelpDialog();
-                            } else {
-                              await service.openAppSettings();
-                            }
-                            return;
-                          }
-                          if (locationState.permissionState ==
-                              LocationPermissionState.serviceDisabled) {
-                            if (kIsWeb) {
-                              _showWebLocationHelpDialog();
-                            } else {
-                              await service.openLocationSettings();
-                            }
-                            return;
-                          }
-                          if (locationState.permissionState ==
-                              LocationPermissionState.unsupported) {
-                            if (kIsWeb) {
-                              _showWebLocationHelpDialog();
-                            } else {
-                              _showInfoSnackBar(
-                                'Location is not supported on this platform.',
-                              );
-                            }
-                            return;
-                          }
-
-                          await ref
-                              .read(locationStateProvider.notifier)
-                              .requestAndFetchLocation();
-                          final newState = ref.read(locationStateProvider);
-                          if (newState.hasPermission) {
-                            _showSuccessSnackBar('Location permission granted');
-                          } else if (newState.errorMessage != null) {
-                            _showInfoSnackBar(newState.errorMessage!);
-                          }
-                        },
-                        icon:
-                            locationState.isLoading
-                                ? const SizedBox(
-                                  width: TrackletSpacing.lg,
-                                  height: TrackletSpacing.lg,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                    color: TrackletColors.primary,
-                                  ),
-                                )
-                                : const Icon(
-                                  TrackletIcons.locateFixed,
-                                  size: 16.0,
-                                ),
-                        label: Text(
-                          locationState.permissionState ==
-                                  LocationPermissionState.deniedForever
-                              ? (kIsWeb
-                                  ? 'Browser Permission Help'
-                                  : 'Open Device Settings')
-                              : locationState.permissionState ==
-                                  LocationPermissionState.serviceDisabled
-                              ? 'Turn On Location (GPS)'
-                              : locationState.hasPermission
-                              ? 'Refresh GPS Status'
-                              : 'Enable Location Access',
-                          style: TrackletFonts.outfit(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: TrackletColors.primary,
-                          side: const BorderSide(color: TrackletColors.primary),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: TrackletRadii.roundedSm,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: TrackletSpacing.compactMd,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 4: APPEARANCE & DISPLAY
-              // ==========================================
-              _buildSectionHeader('Appearance & Display'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(TrackletSpacing.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Theme Preference',
-                            style: TrackletTypography.bodyMedium.copyWith(
-                              fontSize: 15.0,
-                              fontWeight: FontWeight.w600,
-                              color: TrackletColors.adaptiveTextPrimary(
-                                context,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: TrackletSpacing.xxs),
-                          Text(
-                            'Choose interface appearance',
-                            style: TrackletTypography.bodySmall.copyWith(
-                              color: TrackletColors.adaptiveTextSecondary(
-                                context,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: TrackletSpacing.compactMd),
-                          SettingsThemeSelector(
-                            selectedMode: prefs.themeMode,
-                            enableHaptics: prefs.hapticFeedbackEnabled,
-                            onChanged: (String val) {
-                              prefsNotifier.setThemeMode(val);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Haptic Feedback',
-                      subtitle:
-                          'Tactile vibrations when selecting stops & routes',
-                      leadingIcon: TrackletIcons.smartphone,
-                      leadingIconColor: TrackletColors.primary,
-                      hasSwitch: true,
-                      switchValue: prefs.hapticFeedbackEnabled,
-                      onSwitchChanged: (bool val) {
-                        prefsNotifier.toggleHapticFeedback(val);
-                        if (val) {
-                          HapticFeedback.lightImpact();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 5: SUPPORT & FEEDBACK
-              // ==========================================
-              _buildSectionHeader('Support & Feedback'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: 'Report an App Bug',
-                      subtitle: 'Submit reproduction steps or track on GitHub',
-                      leadingIcon: TrackletIcons.alertCircle,
-                      leadingIconColor: TrackletColors.error,
-                      showChevron: true,
-                      onTap: () => context.push('/bug-report'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'General App Feedback',
-                      subtitle: 'Rate your experience and share improvements',
-                      leadingIcon: TrackletIcons.star,
-                      leadingIconColor: const Color(0xFFF59E0B),
-                      showChevron: true,
-                      onTap: () => context.push('/feedback'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Suggest a Feature',
-                      subtitle: 'Propose ideas for campus transit tracking',
-                      leadingIcon: TrackletIcons.sparkles,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => context.push('/feature-suggestion'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Transit FAQ',
-                      subtitle:
-                          'Common questions about campus buses & tracking',
-                      leadingIcon: TrackletIcons.helpCircle,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => TransitFaqDialog.show(context),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Report Bus / Route Issue',
-                      subtitle:
-                          'Report delays, incorrect stops, or schedule mismatch',
-                      leadingIcon: TrackletIcons.alertTriangle,
-                      leadingIconColor: TrackletColors.warningStrong,
-                      showChevron: true,
-                      onTap:
-                          () => _launchEmail(
-                            'BusTracker Issue Report - [Bus / Route]',
-                            'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.rollNumber ?? "N/A"})',
-                          ),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Contact Transport Committee',
-                      subtitle: 'Email transport@nitc.ac.in',
-                      leadingIcon: TrackletIcons.mail,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap:
-                          () => _launchEmail(
-                            'BusTracker Inquiry / Suggestion',
-                            'Hi NITC Transport Committee,\n\n',
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 6: ABOUT TRACKLET & LEGAL
-              // ==========================================
-              _buildSectionHeader('About BusTracker & Legal'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: 'About BusTracker',
-                      subtitle: 'Mission, team, build info, and architecture',
-                      leadingIcon: TrackletIcons.info,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => context.push('/about'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Terms of Service',
-                      subtitle: 'Guidelines for campus transit tracking usage',
-                      leadingIcon: TrackletIcons.fileText,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => context.push('/terms'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Privacy Policy',
-                      subtitle: 'How student data and location are handled',
-                      leadingIcon: TrackletIcons.shield,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => context.push('/privacy'),
-                    ),
-                    _buildDivider(context),
-                    SettingsRowItem(
-                      title: 'Open Source Licenses',
-                      subtitle: 'Third-party packages and dependencies',
-                      leadingIcon: TrackletIcons.code,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: () => context.push('/licenses'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.section),
-
-              // ==========================================
-              // SECTION 7: ACCOUNT ACTIONS (DESTRUCTIVE)
-              // ==========================================
-              _buildSectionHeader('Account Actions'),
-              const SizedBox(height: TrackletSpacing.sm),
-              SettingsCard(
-                child: Column(
-                  children: [
-                    SettingsRowItem(
-                      title: isGuest ? 'Exit Guest Mode' : 'Log Out',
-                      subtitle:
-                          isGuest
-                              ? 'End your current guest session on this device'
-                              : 'Sign out of your student account on this device',
-                      leadingIcon: TrackletIcons.logOut,
-                      leadingIconColor: TrackletColors.primary,
-                      showChevron: true,
-                      onTap: _showLogoutDialog,
-                    ),
-                    if (!isGuest) ...[
                       _buildDivider(context),
                       SettingsRowItem(
-                        title: 'Delete My Account',
+                        title: 'Haptic Feedback',
                         subtitle:
-                            'Permanently remove your profile and commute data',
-                        leadingIcon: TrackletIcons.trash2,
-                        leadingIconColor: TrackletColors.absentRed,
-                        titleColor: TrackletColors.absentRed,
+                            'Tactile vibrations when selecting stops & routes',
+                        leadingIcon: TrackletIcons.smartphone,
+                        leadingIconColor: TrackletColors.primary,
+                        hasSwitch: true,
+                        switchValue: prefs.hapticFeedbackEnabled,
+                        onSwitchChanged: (bool val) {
+                          prefsNotifier.toggleHapticFeedback(val);
+                          if (val) {
+                            HapticFeedback.lightImpact();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 5: SUPPORT & FEEDBACK
+                // ==========================================
+                _buildSectionHeader('Support & Feedback'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  child: Column(
+                    children: [
+                      SettingsRowItem(
+                        title: 'Report an App Bug',
+                        subtitle:
+                            'Submit reproduction steps or track on GitHub',
+                        leadingIcon: TrackletIcons.alertCircle,
+                        leadingIconColor: TrackletColors.error,
+                        showChevron: true,
+                        onTap: () => context.push('/bug-report'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'General App Feedback',
+                        subtitle: 'Rate your experience and share improvements',
+                        leadingIcon: TrackletIcons.star,
+                        leadingIconColor: TrackletColors.warning,
+                        showChevron: true,
+                        onTap: () => context.push('/feedback'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Suggest a Feature',
+                        subtitle: 'Propose ideas for campus transit tracking',
+                        leadingIcon: TrackletIcons.sparkles,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => context.push('/feature-suggestion'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Transit FAQ',
+                        subtitle:
+                            'Common questions about campus buses & tracking',
+                        leadingIcon: TrackletIcons.helpCircle,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => TransitFaqDialog.show(context),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Report Bus / Route Issue',
+                        subtitle:
+                            'Report delays, incorrect stops, or schedule mismatch',
+                        leadingIcon: TrackletIcons.alertTriangle,
+                        leadingIconColor: TrackletColors.warningStrong,
                         showChevron: true,
                         onTap:
-                            () => DeleteAccountDialog.show(
-                              context,
-                              username: profile.username ?? '',
+                            () => _launchEmail(
+                              'BusTracker Issue Report - [Bus / Route]',
+                              'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.rollNumber ?? "N/A"})',
+                            ),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Contact Transport Committee',
+                        subtitle: 'Email transport@nitc.ac.in',
+                        leadingIcon: TrackletIcons.mail,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap:
+                            () => _launchEmail(
+                              'BusTracker Inquiry / Suggestion',
+                              'Hi NITC Transport Committee,\n\n',
                             ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: TrackletSpacing.large),
-            ],
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 6: ABOUT TRACKLET & LEGAL
+                // ==========================================
+                _buildSectionHeader('About BusTracker & Legal'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  child: Column(
+                    children: [
+                      SettingsRowItem(
+                        title: 'Check for Updates',
+                        subtitle:
+                            _isCheckingUpdate
+                                ? 'Checking GitHub for newer releases…'
+                                : 'Download the latest version from GitHub',
+                        leadingIcon: Icons.system_update_rounded,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: !_isCheckingUpdate,
+                        trailing:
+                            _isCheckingUpdate
+                                ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: TrackletColors.primary,
+                                  ),
+                                )
+                                : null,
+                        onTap:
+                            _isCheckingUpdate ? null : _handleCheckForUpdates,
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'About BusTracker',
+                        subtitle: 'Mission, team, build info, and architecture',
+                        leadingIcon: TrackletIcons.info,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => context.push('/about'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Terms of Service',
+                        subtitle:
+                            'Guidelines for campus transit tracking usage',
+                        leadingIcon: TrackletIcons.fileText,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => context.push('/terms'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Privacy Policy',
+                        subtitle: 'How student data and location are handled',
+                        leadingIcon: TrackletIcons.shield,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => context.push('/privacy'),
+                      ),
+                      _buildDivider(context),
+                      SettingsRowItem(
+                        title: 'Open Source Licenses',
+                        subtitle: 'Third-party packages and dependencies',
+                        leadingIcon: TrackletIcons.code,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: () => context.push('/licenses'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.section),
+
+                // ==========================================
+                // SECTION 7: ACCOUNT ACTIONS (DESTRUCTIVE)
+                // ==========================================
+                _buildSectionHeader('Account Actions'),
+                const SizedBox(height: TrackletSpacing.sm),
+                SettingsCard(
+                  child: Column(
+                    children: [
+                      SettingsRowItem(
+                        title: isGuest ? 'Exit Guest Mode' : 'Log Out',
+                        subtitle:
+                            isGuest
+                                ? 'End your current guest session on this device'
+                                : 'Sign out of your student account on this device',
+                        leadingIcon: TrackletIcons.logOut,
+                        leadingIconColor: TrackletColors.primary,
+                        showChevron: true,
+                        onTap: _showLogoutDialog,
+                      ),
+                      if (!isGuest) ...[
+                        _buildDivider(context),
+                        SettingsRowItem(
+                          title: 'Delete My Account',
+                          subtitle:
+                              'Permanently remove your profile and commute data',
+                          leadingIcon: TrackletIcons.trash2,
+                          leadingIconColor: TrackletColors.absentRed,
+                          titleColor: TrackletColors.absentRed,
+                          showChevron: true,
+                          onTap:
+                              () => DeleteAccountDialog.show(
+                                context,
+                                username: profile.username ?? '',
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: TrackletSpacing.large),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildDivider(BuildContext context) {
     return Divider(height: 1, color: TrackletColors.adaptiveBorder(context));
@@ -1053,10 +1102,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       child: Text(
         title,
         style: TrackletTypography.labelLarge.copyWith(
-          fontSize: 16.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize16,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: TrackletColors.adaptiveTextSecondary(context),
-          letterSpacing: 0.2,
+          letterSpacing: TrackletTypography.letterSpacingSubtle,
         ),
       ),
     );
@@ -1084,7 +1133,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Text(
             label,
             style: TrackletTypography.bodySmall.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: TrackletTypography.weightSemiBold,
               color: TrackletColors.adaptiveTextPrimary(context),
             ),
           ),
@@ -1155,11 +1204,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       child: Text(
         label,
         style: TrackletTypography.labelSmall.copyWith(
-          fontSize: 12.0,
-          fontWeight: FontWeight.w600,
+          fontSize: TrackletTypography.fontSize12,
+          fontWeight: TrackletTypography.weightSemiBold,
           color: fgColor,
         ),
       ),
     );
+  }
+
+  Future<void> _handleCheckForUpdates() async {
+    setState(() => _isCheckingUpdate = true);
+    try {
+      final updateService = AppUpdateService();
+      final updateInfo = await updateService.checkForUpdate();
+      if (!mounted) return;
+      await AppUpdateDialog.show(context, updateInfo);
+    } catch (e) {
+      if (!mounted) return;
+      _showInfoSnackBar('Could not check for updates. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingUpdate = false);
+      }
+    }
   }
 }
