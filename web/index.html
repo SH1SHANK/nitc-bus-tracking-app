@@ -28,18 +28,24 @@
   <title>BusTracker • NITC Bus Tracking</title>
   <link rel="manifest" href="manifest.json">
   <script>
-    // Flush stale service workers and old cache storage from prior application builds
+    // Flush stale service workers and old cache storage from prior application builds,
+    // preserving OneSignalSDKWorker for push notifications
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for (var i = 0; i < registrations.length; i++) {
-          registrations[i].unregister();
+          var scriptUrl = (registrations[i].active && registrations[i].active.scriptURL) || '';
+          if (!scriptUrl.includes('OneSignalSDKWorker')) {
+            registrations[i].unregister();
+          }
         }
       });
     }
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var i = 0; i < names.length; i++) {
-          caches.delete(names[i]);
+          if (!names[i].includes('onesignal')) {
+            caches.delete(names[i]);
+          }
         }
       });
     }
