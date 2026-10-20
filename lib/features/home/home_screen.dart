@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../design_system/tokens/shadows.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ import '../../core/formatting/transit_formatter.dart';
 import '../../core/geo/geo_point.dart';
 import '../../data/auth/auth_repository.dart';
 import '../../data/notifications/notification_repository.dart';
+import '../../data/preferences/user_preferences.dart';
 import '../../data/profile/profile.dart';
 import '../../data/transit/bus.dart';
 import '../../data/transit/bus_route.dart';
@@ -57,10 +60,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // Observe push subscription registration and display completion dialog once registered
+        // Persist only subscriptions that OneSignal reports as opted in.
         OneSignalService.setupPushSubscriptionObserver(
-          context,
           onRegistered: (subId) {
+            final pushPreference =
+                ref.read(userPreferencesProvider).pushNotificationsEnabled;
+            if (pushPreference == false) {
+              unawaited(OneSignalService.disablePushNotifications());
+              return;
+            }
+            if (pushPreference == null) {
+              unawaited(
+                ref
+                    .read(userPreferencesProvider.notifier)
+                    .setPushNotificationsEnabled(true),
+              );
+            }
             final authRepo = ref.read(authRepositoryProvider);
             if (authRepo.isAuthenticated) {
               ref

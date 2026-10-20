@@ -31,6 +31,7 @@ class UserPreferences {
     this.themeMode = 'Light',
     this.hapticFeedbackEnabled = true,
     this.map3DBuildingsEnabled = true,
+    this.pushNotificationsEnabled,
   });
 
   final String preferredStopId;
@@ -41,6 +42,7 @@ class UserPreferences {
   final String themeMode;
   final bool hapticFeedbackEnabled;
   final bool map3DBuildingsEnabled;
+  final bool? pushNotificationsEnabled;
 
   UserPreferences copyWith({
     String? preferredStopId,
@@ -51,6 +53,7 @@ class UserPreferences {
     String? themeMode,
     bool? hapticFeedbackEnabled,
     bool? map3DBuildingsEnabled,
+    bool? pushNotificationsEnabled,
   }) {
     return UserPreferences(
       preferredStopId: preferredStopId ?? this.preferredStopId,
@@ -63,6 +66,8 @@ class UserPreferences {
           hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
       map3DBuildingsEnabled:
           map3DBuildingsEnabled ?? this.map3DBuildingsEnabled,
+      pushNotificationsEnabled:
+          pushNotificationsEnabled ?? this.pushNotificationsEnabled,
     );
   }
 
@@ -75,6 +80,7 @@ class UserPreferences {
     'theme_mode': themeMode,
     'haptic_feedback_enabled': hapticFeedbackEnabled,
     'map_3d_buildings_enabled': map3DBuildingsEnabled,
+    'push_notifications_enabled': pushNotificationsEnabled,
   };
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) {
@@ -100,6 +106,7 @@ class UserPreferences {
       themeMode: validTheme,
       hapticFeedbackEnabled: json['haptic_feedback_enabled'] as bool? ?? true,
       map3DBuildingsEnabled: json['map_3d_buildings_enabled'] as bool? ?? true,
+      pushNotificationsEnabled: json['push_notifications_enabled'] as bool?,
     );
   }
 
@@ -113,7 +120,8 @@ class UserPreferences {
           timeFormat == other.timeFormat &&
           themeMode == other.themeMode &&
           hapticFeedbackEnabled == other.hapticFeedbackEnabled &&
-          map3DBuildingsEnabled == other.map3DBuildingsEnabled;
+          map3DBuildingsEnabled == other.map3DBuildingsEnabled &&
+          pushNotificationsEnabled == other.pushNotificationsEnabled;
 
   @override
   int get hashCode => Object.hash(
@@ -123,6 +131,7 @@ class UserPreferences {
     themeMode,
     hapticFeedbackEnabled,
     map3DBuildingsEnabled,
+    pushNotificationsEnabled,
   );
 }
 
@@ -186,6 +195,10 @@ class UserPreferencesNotifier extends Notifier<UserPreferences> {
 
   Future<void> toggleMap3DBuildings(bool enabled) async {
     await _persist(state.copyWith(map3DBuildingsEnabled: enabled));
+  }
+
+  Future<void> setPushNotificationsEnabled(bool enabled) async {
+    await _persist(state.copyWith(pushNotificationsEnabled: enabled));
   }
 
   Future<void> resetPreferences() async {
