@@ -16,10 +16,18 @@ from tool.generate_release_notes import (
     validate_tag_against_pubspec,
     categorize_commits,
     generate_markdown,
-    get_artifact_details
+    get_artifact_details,
+    github_username_from_email,
 )
 
 class TestReleaseNotesGenerator(unittest.TestCase):
+
+    def test_github_noreply_email_becomes_lowercase_username(self):
+        self.assertEqual(
+            github_username_from_email("104988834+SH1SHANK@users.noreply.github.com"),
+            "sh1shank",
+        )
+        self.assertIsNone(github_username_from_email("shashank@example.com"))
 
     def test_pubspec_version_parsing(self):
         with tempfile.NamedTemporaryFile("w+", delete=False) as tmp:
@@ -72,7 +80,18 @@ class TestReleaseNotesGenerator(unittest.TestCase):
             "canonical": "0.1.0+1"
         }
         categories = {
-            "features": {"title": "🚀 Features & UX Improvements", "commits": []},
+            "features": {
+                "title": "🚀 Features & UX Improvements",
+                "commits": [
+                    {
+                        "sha": "11111111",
+                        "short_sha": "1111111",
+                        "subject": "feat: test author attribution",
+                        "author": "Shashank Mergu",
+                        "author_handle": "sh1shank",
+                    }
+                ],
+            },
             "fixes": {"title": "🐛 Bug Fixes", "commits": []},
             "security_ci": {"title": "🔒 Security & CI/CD Hardening", "commits": []},
             "maintenance": {"title": "🧰 Maintenance & Refactoring", "commits": []}
@@ -86,6 +105,7 @@ class TestReleaseNotesGenerator(unittest.TestCase):
 
         md = generate_markdown(version_info, "v0.1.0", "v0.0.9", categories, artifacts)
         self.assertIn("# BusTracker v0.1.0", md)
+        self.assertIn("by @sh1shank", md)
         self.assertIn("`e3b0c44298fc1c14...`", md)
         self.assertIn("`50.8 MB`", md)
         self.assertIn("arm64-v8a", md)

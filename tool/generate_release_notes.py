@@ -58,6 +58,15 @@ def run_git(args):
     except subprocess.CalledProcessError:
         return ""
 
+def github_username_from_email(email):
+    """Return a GitHub noreply username without treating display names as handles."""
+    match = re.fullmatch(
+        r"(?:[0-9]+\+)?([^@]+)@users\.noreply\.github\.com",
+        email.strip(),
+        re.IGNORECASE,
+    )
+    return match.group(1).lower() if match else None
+
 def find_previous_tag(current_tag=None):
     """Finds the most recent release tag prior to current_tag, or returns root commit."""
     all_tags = run_git(["tag", "--sort=-creatordate"]).splitlines()
@@ -79,7 +88,7 @@ def get_commits_between(base_ref, head_ref="HEAD"):
     else:
         commit_range = f"{base_ref}..{head_ref}"
 
-    output = run_git(["log", "--no-merges", "--pretty=format:%H%x09%s%x09%an", commit_range])
+    output = run_git(["log", "--no-merges", "--pretty=format:%H%x09%s%x09%an%x09%ae", commit_range])
     commits = []
     if not output:
         return commits
@@ -90,11 +99,13 @@ def get_commits_between(base_ref, head_ref="HEAD"):
             full_sha = parts[0]
             subject = parts[1]
             author = parts[2] if len(parts) > 2 else "Contributor"
+            author_email = parts[3] if len(parts) > 3 else ""
             commits.append({
                 "sha": full_sha,
                 "short_sha": full_sha[:7],
                 "subject": subject,
-                "author": author
+                "author": author,
+                "author_handle": github_username_from_email(author_email),
             })
     return commits
 
@@ -226,7 +237,12 @@ def generate_markdown(version_info, release_tag, prev_tag, categories, artifacts
                 lines.append("")
                 for c in cat["commits"]:
                     sha_link = f"[`{c['short_sha']}`]({repo_url}/commit/{c['sha']})"
-                    lines.append(f"* {c['subject']} in {sha_link} by @{c['author']}")
+                    attribution = (
+                        f"@{c['author_handle']}"
+                        if c.get("author_handle")
+                        else c["author"]
+                    )
+                    lines.append(f"* {c['subject']} in {sha_link} by {attribution}")
                 lines.append("")
 
     lines.append("---")
