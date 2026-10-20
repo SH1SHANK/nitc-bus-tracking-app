@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors TrackletSpacing and TrackletTypography for native RemoteViews. -->
+    <dimen name="widget_space_xxs">2dp</dimen>
+    <dimen name="widget_space_xs">4dp</dimen>
+    <dimen name="widget_space_sm">8dp</dimen>
+    <dimen name="widget_space_md">12dp</dimen>
+    <dimen name="widget_space_card_inset">12dp</dimen>
+    <dimen name="widget_space_card_inset_vertical">6dp</dimen>
+    <dimen name="widget_space_divider_vertical">4dp</dimen>
+    <dimen name="widget_space_state_icon_gap">8dp</dimen>
+    <dimen name="widget_size_divider">1dp</dimen>
+    <dimen name="widget_size_status_dot">6dp</dimen>
+    <dimen name="widget_size_state_icon">32dp</dimen>
+    <dimen name="widget_size_empty_bus_icon">22dp</dimen>
+    <dimen name="widget_size_icon_tiny">12dp</dimen>
+    <dimen name="widget_size_icon_small">18dp</dimen>
+    <dimen name="widget_size_refresh_target">48dp</dimen>
+    <dimen name="widget_type_supporting">12sp</dimen>
+    <dimen name="widget_type_stop">14sp</dimen>
+    <dimen name="widget_type_state_title">14sp</dimen>
+    <dimen name="widget_type_bus_name">16sp</dimen>
+    <dimen name="widget_type_distance">18sp</dimen>
+    <!-- Mirrors TrackletRadii.cardLg, banner, and full. -->
+    <dimen name="widget_radius_card">18dp</dimen>
+</resources>

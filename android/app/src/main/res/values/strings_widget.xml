@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">Nearest bus</string>
+    <string name="widget_title">Nearest bus</string>
+    <string name="widget_description">Shows the closest qualifying bus serving your monitored stop.</string>
+    <string name="widget_loading_stop">Locating campus stop…</string>
+    <string name="widget_default_bus">Scanning active buses…</string>
+    <string name="widget_default_distance">Waiting for a bus</string>
+    <string name="widget_default_freshness">Live positions will appear here</string>
+    <string name="widget_loading_title">Finding nearby buses</string>
+    <string name="widget_loading_subtitle">Checking live campus positions</string>
+    <string name="widget_no_eligible_buses">No service at this stop</string>
+    <string name="widget_no_active_buses">No buses available</string>
+    <string name="widget_empty_subtitle">Check back for live updates.</string>
+    <string name="widget_other_stop_subtitle">Try a different stop.</string>
+    <string name="widget_location_unavailable_subtitle">Refresh to check again.</string>
+    <string name="widget_offline_state">Refresh or open the app to retry.</string>
+    <string name="widget_error_state">Bus locations unavailable</string>
+    <string name="widget_stale_location">Location outdated</string>
+    <string name="widget_location_unavailable">Bus location unavailable</string>
+    <string name="widget_tap_to_open">Tap to open live map</string>
+    <string name="widget_refresh_tooltip">Refresh</string>
+    <string name="widget_refreshing_tooltip">Refreshing bus locations</string>
+</resources>

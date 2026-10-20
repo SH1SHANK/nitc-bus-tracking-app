@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tracklet Design Tokens (Dark Palette) -->
+    <!-- Surface & Card (TrackletColors.darkSurfaceElevated & darkCardBorder) -->
+    <color name="widget_background">#1F2430</color>
+    <color name="widget_border">#2A3040</color>
+    <color name="widget_divider">#232836</color>
+
+    <!-- Typography (TrackletColors.darkTextPrimary, darkTextSecondary, darkTextMuted) -->
+    <color name="widget_text_primary">#F1F4F8</color>
+    <color name="widget_text_secondary">#9098A9</color>
+    <color name="widget_text_muted">#687082</color>
+    <color name="widget_stop_text">#D4CEFB</color>
+
+    <!-- Accent & Brand (TrackletColors.primaryDark & primaryContainerDark) -->
+    <color name="widget_icon_tint">#8B7EF8</color>
+    <color name="widget_btn_bg">#262445</color>
+    <color name="widget_route_line">#8B7EF8</color>
+    <color name="widget_route_start">#39D2C0</color>
+    <color name="widget_route_end">#F7C2AA</color>
+
+    <!-- Live Status Semantic (TrackletColors.busLiveTextDark & busLiveBgDark) -->
+    <color name="widget_live_dot">#4ADE80</color>
+    <color name="widget_live_text">#4ADE80</color>
+
+    <!-- Stale / Warning -->
+    <color name="widget_stale_dot">#F59E0B</color>
+    <color name="widget_stale_text">#FDE68A</color>
+
+    <!-- Error (TrackletColors.onErrorContainerDark & errorContainerDark) -->
+    <color name="widget_error_text">#FFB4AB</color>
+</resources>

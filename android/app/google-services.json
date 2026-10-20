@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "629888156428",
+    "project_id": "nitc-bus-tracking-app",
+    "storage_bucket": "nitc-bus-tracking-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629888156428:android:a22d14c080decefd73ff29",
+        "android_client_info": {
+          "package_name": "in.ac.nitc.tracklet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629888156428-jov9gl4q79b4h5v85me2150bfpmbjci5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLiACVBujhABBr9wX450kNUX4hy7zBO4U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629888156428-jov9gl4q79b4h5v85me2150bfpmbjci5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

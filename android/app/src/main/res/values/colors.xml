@@ -2,4 +2,34 @@
 <resources>
     <color name="ic_launcher_background">#6F61EF</color>
     <color name="tracklet_primary">#6F61EF</color>
+
+    <!-- Tracklet semantic color roles, mirrored from TrackletColors for RemoteViews. -->
+    <!-- Surface & Card -->
+    <color name="widget_background">#F7F8FA</color>
+    <color name="widget_border">#E0E3E7</color>
+    <color name="widget_divider">#E5E7EB</color>
+
+    <!-- Text -->
+    <color name="widget_text_primary">#15161E</color>
+    <color name="widget_text_secondary">#606A85</color>
+    <color name="widget_text_muted">#9098A9</color>
+    <color name="widget_stop_text">#4536C6</color>
+
+    <!-- Brand -->
+    <color name="widget_icon_tint">#6F61EF</color>
+    <color name="widget_btn_bg">#EFEFFD</color>
+    <color name="widget_route_line">#6F61EF</color>
+    <color name="widget_route_start">#39D2C0</color>
+    <color name="widget_route_end">#EE8B60</color>
+
+    <!-- Live status -->
+    <color name="widget_live_dot">#03C03C</color>
+    <color name="widget_live_text">#027A26</color>
+
+    <!-- Stale / Warning -->
+    <color name="widget_stale_dot">#F59E0B</color>
+    <color name="widget_stale_text">#92400E</color>
+
+    <!-- Error -->
+    <color name="widget_error_text">#C5222E</color>
 </resources>

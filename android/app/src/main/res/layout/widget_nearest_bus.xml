@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/widget_space_card_inset"
+    android:paddingTop="@dimen/widget_space_card_inset_vertical"
+    android:paddingEnd="@dimen/widget_space_card_inset"
+    android:paddingBottom="@dimen/widget_space_card_inset_vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+          <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/widget_size_icon_tiny"
+                android:layout_height="@dimen/widget_size_icon_tiny"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_pin" />
+
+            <TextView
+            android:id="@+id/widget_stop_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/widget_space_xs"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_loading_stop"
+            android:textColor="@color/widget_stop_text"
+            android:textSize="@dimen/widget_type_stop"
+            android:textFontWeight="500" />
+          </LinearLayout>
+
+          <TextView
+              android:id="@+id/widget_stop_distance"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginStart="16dp"
+              android:layout_marginTop="@dimen/widget_space_xxs"
+              android:ellipsize="end"
+              android:fontFamily="@font/outfit"
+              android:maxLines="1"
+              android:textColor="@color/widget_text_secondary"
+              android:textSize="@dimen/widget_type_supporting" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_btn_refresh"
+            android:layout_width="@dimen/widget_size_refresh_target"
+            android:layout_height="@dimen/widget_size_refresh_target"
+            android:background="@drawable/widget_refresh_btn_bg"
+            android:contentDescription="@string/widget_refresh_tooltip"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/widget_refresh_icon"
+                android:layout_width="@dimen/widget_size_icon_small"
+                android:layout_height="@dimen/widget_size_icon_small"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_refresh" />
+
+            <ProgressBar
+                android:id="@+id/widget_refresh_progress"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="@dimen/widget_size_icon_small"
+                android:layout_height="@dimen/widget_size_icon_small"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/widget_icon_tint"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/widget_size_divider"
+        android:layout_marginTop="@dimen/widget_space_divider_vertical"
+        android:layout_marginBottom="@dimen/widget_space_divider_vertical"
+        android:background="@color/widget_divider"
+        android:importantForAccessibility="no"
+        android:text="" />
+
+    <LinearLayout
+        android:id="@+id/widget_bus_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/widget_bus_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_default_bus"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="@dimen/widget_type_bus_name"
+            android:textFontWeight="500" />
+
+        <TextView
+            android:id="@+id/widget_distance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/widget_space_xxs"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_default_distance"
+            android:textColor="@color/widget_text_secondary"
+            android:textSize="@dimen/widget_type_distance"
+            android:textFontWeight="500" />
+
+        <LinearLayout
+            android:id="@+id/widget_badge_live"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/widget_space_xs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/widget_badge_dot"
+                android:layout_width="@dimen/widget_size_status_dot"
+                android:layout_height="@dimen/widget_size_status_dot"
+                android:importantForAccessibility="no"
+                android:src="@drawable/widget_live_dot" />
+
+            <TextView
+                android:id="@+id/widget_badge_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/widget_space_xs"
+                android:fontFamily="@font/outfit"
+                android:text="@string/widget_default_freshness"
+                android:textColor="@color/widget_live_text"
+                android:textSize="@dimen/widget_type_supporting"
+                android:textFontWeight="500" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_loading_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/widget_loading_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_loading_title"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="@dimen/widget_type_state_title"
+            android:textFontWeight="500" />
+
+        <TextView
+            android:id="@+id/widget_loading_submessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/widget_space_xxs"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_loading_subtitle"
+            android:textColor="@color/widget_text_secondary"
+            android:textSize="@dimen/widget_type_supporting" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_empty_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/widget_empty_illustration"
+            android:layout_width="@dimen/widget_size_state_icon"
+            android:layout_height="@dimen/widget_size_state_icon"
+            android:layout_marginEnd="@dimen/widget_space_state_icon_gap"
+            android:background="@drawable/widget_empty_icon_background">
+
+            <ImageView
+                android:layout_width="@dimen/widget_size_empty_bus_icon"
+                android:layout_height="@dimen/widget_size_empty_bus_icon"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_widget_bus_empty" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/widget_empty_text_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_empty_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_no_active_buses"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="@dimen/widget_type_state_title"
+            android:textFontWeight="500" />
+
+        <TextView
+            android:id="@+id/widget_empty_submessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/widget_space_xxs"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_empty_subtitle"
+            android:textColor="@color/widget_text_secondary"
+            android:textSize="@dimen/widget_type_supporting" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_error_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/widget_error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_error_state"
+            android:textColor="@color/widget_error_text"
+            android:textSize="@dimen/widget_type_state_title"
+            android:textFontWeight="500" />
+
+        <TextView
+            android:id="@+id/widget_error_submessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/widget_space_xxs"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit"
+            android:maxLines="1"
+            android:text="@string/widget_offline_state"
+            android:textColor="@color/widget_text_secondary"
+            android:textSize="@dimen/widget_type_supporting" />
+    </LinearLayout>
+
+</LinearLayout>

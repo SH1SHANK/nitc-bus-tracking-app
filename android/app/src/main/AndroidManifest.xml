@@ -84,6 +84,20 @@
             </intent-filter>
         </activity>
 
+        <!-- Nearest Bus Native App Widget Provider -->
+        <receiver
+            android:name=".widget.NearestBusWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="in.ac.nitc.tracklet.ACTION_REFRESH_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_nearest_bus_info" />
+        </receiver>
+
         <!-- Used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
