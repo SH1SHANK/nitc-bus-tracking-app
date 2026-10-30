@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/geo/geo_point.dart';
 import '../../data/campus/campus_building_repository.dart';
+import '../../data/campus/campus_building.dart';
 import '../../design_system/components/tracklet_empty_state.dart';
 import '../../design_system/components/tracklet_error_state.dart';
 import '../../design_system/components/tracklet_skeleton.dart';
@@ -33,6 +34,7 @@ import 'bus_stop_progress.dart';
 import 'providers/map_state_provider.dart';
 import 'widgets/bus_detail_sheet.dart';
 import 'widgets/bus_marker_widget.dart';
+import 'widgets/building_discovery.dart';
 import 'widgets/map_controls.dart';
 import 'widgets/route_selector_card.dart';
 import 'widgets/route_stops_sheet.dart';
@@ -41,7 +43,10 @@ import 'widgets/stop_marker_widget.dart';
 
 /// Map-first campus transit screen with lightweight route and stop overlays.
 class MapScreen extends ConsumerStatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, this.busBodyColors = const {}});
+
+  /// Optional per-bus body tints. Omit an ID to preserve its GLB material.
+  final Map<String, Color> busBodyColors;
 
   @override
   ConsumerState<MapScreen> createState() => _MapScreenState();
@@ -53,6 +58,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   bool _isRouteDetailsExpanded = false;
   int _cameraActionGeneration = 0;
   Bus? _selectedBus;
+  CampusBuilding? _selectedBuilding;
   bool _isBusDetailsExpanded = false;
   String? _followingBusId;
   bool _showRoutes = true;
@@ -60,7 +66,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
   DateTime? _lastStopEventRefresh;
   bool _hasFittedInitialFleet = false;
   bool _hasUserPannedMap = false;
-  int _lastFleetCount = 0;
   bool _userExplicitlySelectedRoute = false;
   final Map<String, double> _previousRouteProgress = {};
   final Map<String, double> _previousSpeedMetersPerSecond = {};
@@ -149,6 +154,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
             longitude:
                 from.longitude + (to.longitude - from.longitude) * fraction,
           ),
+          headingDegrees: bearing,
           width: 24,
           height: 24,
           child: IgnorePointer(
@@ -604,6 +610,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _selectStop(Stop stop) {
     ref.read(mapStateNotifierProvider.notifier).clearSelectedBus();
     setState(() {
+      _selectedBuilding = null;
       _selectedBus = null;
       _isBusDetailsExpanded = false;
       _followingBusId = null;
@@ -620,6 +627,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   void _applyBusSelection(Bus bus) {
     setState(() {
+      _selectedBuilding = null;
       _selectedBus = bus;
       _isBusDetailsExpanded = false;
       _followingBusId = bus.hasValidLocation ? bus.id : null;
@@ -639,6 +647,46 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _selectBus(Bus bus) {
     _applyBusSelection(bus);
     ref.read(mapStateNotifierProvider.notifier).selectBus(bus);
+  }
+
+  Future<void> _openBuildingSearch() async {
+    List<CampusBuilding> buildings;
+    try {
+      buildings = await ref.read(campusBuildingsProvider.future);
+    } catch (error) {
+      if (mounted) {
+        TrackletSnackBar.showError(context, 'Campus buildings are unavailable');
+      }
+      return;
+    }
+    if (!mounted) return;
+
+    final building = await showModalBottomSheet<CampusBuilding>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: TrackletColors.adaptiveSurfaceElevated(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BuildingSearchSheet(buildings: buildings),
+    );
+    if (building == null || !mounted) return;
+
+    ref.read(mapStateNotifierProvider.notifier).clearSelection();
+    ref.read(mapStateNotifierProvider.notifier).clearSelectedBus();
+    setState(() {
+      _selectedBuilding = building;
+      _selectedBus = null;
+      _isBusDetailsExpanded = false;
+      _followingBusId = null;
+      _isRouteDetailsExpanded = false;
+    });
+    _mapController.animatedMoveTo(
+      this,
+      building.location,
+      zoom: MapConfig.buildingSelectionZoom,
+      disableAnimations: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
+    );
   }
 
   @override
@@ -694,7 +742,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       );
     }
 
-    final labels = ref.watch(mapLabelsProvider);
+    final labels = ref.watch(mapLabelsProvider(_selectedBuilding?.id));
     final activeStopIds = mapState.activeRouteStopIds;
     final selectedRoute = mapState.selectedRoute;
     final routeAccentColor =
@@ -757,7 +805,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
     if (!_hasFittedInitialFleet && validBusPoints.isNotEmpty) {
       _hasFittedInitialFleet = true;
-      _lastFleetCount = validBusPoints.length;
       if (!_hasUserPannedMap && _selectedBus == null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -816,13 +863,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
         for (final bus in next.value ?? const <Bus>[])
           if (bus.hasValidLocation) bus.position.point,
       ];
-      final fleetCountChanged = _lastFleetCount != newValidBusPoints.length;
-      _lastFleetCount = newValidBusPoints.length;
 
       if (!_hasUserPannedMap &&
           _selectedBus == null &&
           newValidBusPoints.isNotEmpty) {
-        if (!_hasFittedInitialFleet || fleetCountChanged) {
+        if (!_hasFittedInitialFleet) {
           _hasFittedInitialFleet = true;
           _fitFleetBounds(newValidBusPoints);
         }
@@ -900,6 +945,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
           isRouteStop: activeStopIds.contains(stop.id),
           isMajorHub: stop.isMajorHub,
           accentColor: routeAccentColor,
+          showLabel: _showStopLabel(
+            stop.isMajorHub,
+            activeStopIds.contains(stop.id),
+            mapState.selectedStop?.id == stop.id,
+          ),
           alignment:
               _showStopLabel(
                     stop.isMajorHub,
@@ -955,6 +1005,19 @@ class _MapScreenState extends ConsumerState<MapScreen>
           epoch: bus.position.epoch,
           timestamp: bus.position.timestamp,
           speedKmH: bus.position.speedKmH,
+          show3dModel: switch (bus.trackingState()) {
+            BusTrackingState.liveMoving ||
+            BusTrackingState.liveStationary => true,
+            _ => false,
+          },
+          busBodyColor: widget.busBodyColors[bus.id],
+          accentColor: _busRouteColor(bus, mapState.routes),
+          headingDegrees:
+              bus.position.hasHeading &&
+                      bus.position.speedKmH >=
+                          BusTelemetry.stationarySpeedThresholdKmH
+                  ? bus.position.heading
+                  : null,
           onTap: () => _selectBus(bus),
           child: BusMarkerWidget(
             key: ValueKey('bus-marker-${bus.id}'),
@@ -1041,25 +1104,32 @@ class _MapScreenState extends ConsumerState<MapScreen>
         selectedRoute?.isGeometryAvailable == true
             ? selectedRoute!.path
             : routeStopCoordinates;
-    final isBusDetailsVisible = selectedBus != null;
-    final isStopDetailsVisible = mapState.selectedStop != null;
+    final isBuildingDetailsVisible = _selectedBuilding != null;
+    final isBusDetailsVisible =
+        !isBuildingDetailsVisible && selectedBus != null;
+    final isStopDetailsVisible =
+        !isBuildingDetailsVisible && mapState.selectedStop != null;
     final isErrorFleetVisible =
+        !isBuildingDetailsVisible &&
         !isBusDetailsVisible &&
         !isStopDetailsVisible &&
         selectedRoute == null &&
         liveBusesAsync.hasError;
     final isLoadingFleetVisible =
+        !isBuildingDetailsVisible &&
         !isBusDetailsVisible &&
         !isStopDetailsVisible &&
         selectedRoute == null &&
         liveBusesAsync.isLoading &&
         !liveBusesAsync.hasValue;
     final isFleetOverviewVisible =
+        !isBuildingDetailsVisible &&
         !isBusDetailsVisible &&
         !isStopDetailsVisible &&
         selectedRoute == null &&
         validBusPoints.isNotEmpty;
     final isEmptyFleetVisible =
+        !isBuildingDetailsVisible &&
         !isBusDetailsVisible &&
         !isStopDetailsVisible &&
         (!_userExplicitlySelectedRoute || selectedRoute == null) &&
@@ -1077,7 +1147,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
       double.infinity,
     );
     final controlsBottom =
-        isBusDetailsVisible && _isBusDetailsExpanded
+        isBuildingDetailsVisible
+            ? sheetBottom + 166.0
+            : isBusDetailsVisible && _isBusDetailsExpanded
             ? (screenHeight * 0.56 + sheetBottom + 8.0).clamp(
               0.0,
               maxControlsHeight,
@@ -1102,7 +1174,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () {
-          if (_selectedBus != null) {
+          if (_selectedBuilding != null) {
+            setState(() => _selectedBuilding = null);
+          } else if (_selectedBus != null) {
             ref.read(mapStateNotifierProvider.notifier).clearSelectedBus();
             setState(() {
               _selectedBus = null;
@@ -1157,6 +1231,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       .read(mapStateNotifierProvider.notifier)
                       .clearSelectedBus();
                   setState(() {
+                    _selectedBuilding = null;
                     _selectedBus = null;
                     _isBusDetailsExpanded = false;
                     _followingBusId = null;
@@ -1175,6 +1250,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   stopCount: mapState.selectedRouteStops.length,
                   onOpenRoutePicker:
                       () => _openRoutePicker(mapState.routes, selectedRoute),
+                  onSearchBuildings: _openBuildingSearch,
                   onClearRoute:
                       selectedRoute != null
                           ? () {
@@ -1313,7 +1389,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   );
                 },
                 child:
-                    isBusDetailsVisible
+                    isBuildingDetailsVisible
+                        ? BuildingDetailSheet(
+                          key: ValueKey(
+                            'building-details-${_selectedBuilding!.id}',
+                          ),
+                          building: _selectedBuilding!,
+                          onClose:
+                              () => setState(() => _selectedBuilding = null),
+                        )
+                        : isBusDetailsVisible
                         ? BusDetailSheet(
                           key: ValueKey('bus-details-${selectedBus.id}'),
                           bus: selectedBus,

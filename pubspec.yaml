@@ -19,16 +19,12 @@ dependencies:
   go_router: ^18.0.2
   supabase_flutter: ^2.18.0
   geolocator: ^14.1.1
-  flutter_map: ^8.3.2
-  latlong2: ^0.9.1
+  mapbox_maps_flutter: ^3.33.0
   moon_design: ^1.1.0
   shared_preferences: ^2.5.6
   animated_custom_dropdown: ^4.0.0
   flutter_animate: ^4.5.0
   url_launcher: ^6.3.3
-  flutter_map_mbtiles: ^1.0.4
-  path_provider: ^2.1.6
-  path: ^1.9.1
   http: ^1.2.0
   package_info_plus: ^10.2.2
   onesignal_flutter: ^5.5.2
@@ -56,7 +52,7 @@ flutter:
     - assets/images/Abstract_Gradient_Background_4K.jpg
     - assets/images/Research_New_Pin_Crop.gif
     - assets/images/flow.gif
-    - assets/maps/nitc_campus.mbtiles
+    - assets/models/bus_low_poly.glb
 
   fonts:
     - family: Outfit

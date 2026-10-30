@@ -11,6 +11,7 @@ class CampusBuilding {
     this.category,
     this.amenity,
     this.buildingType,
+    this.description,
   });
 
   final String id;
@@ -19,6 +20,7 @@ class CampusBuilding {
   final String? category;
   final String? amenity;
   final String? buildingType;
+  final String? description;
 
   /// Returns null for malformed metadata or coordinates outside WGS84 bounds.
   static CampusBuilding? tryFromJson(Map<String, dynamic> json) {
@@ -49,8 +51,20 @@ class CampusBuilding {
       category: _optionalText(json['category']),
       amenity: _optionalText(json['amenity']),
       buildingType: _optionalText(json['building_type']),
+      description: _optionalText(json['description']),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'lat': location.latitude,
+    'lng': location.longitude,
+    if (category != null) 'category': category,
+    if (amenity != null) 'amenity': amenity,
+    if (buildingType != null) 'building_type': buildingType,
+    if (description != null) 'description': description,
+  };
 
   static double? _coordinate(Object? value) {
     if (value is! num) return null;

@@ -15,24 +15,7 @@ class MapConfig {
   static const double minZoom = 15.0;
   static const double maxZoom = 20.0;
 
-  /// Tile URL template with `{z}/{x}/{y}` placeholders for fallback tile rendering.
-  static String get tileUrlTemplate => AppConfig.mapTileUrlTemplate;
-
-  /// Attribution text required by tile provider.
-  static String get attributionText => AppConfig.mapAttribution;
-
-  /// Mapbox raster tile URL template.
-  static String get mapboxTileUrlTemplate => AppConfig.mapboxTileUrlTemplate;
-
-  /// Mapbox raster tile URL template for theme.
-  static String mapboxTileUrlTemplateForTheme(bool isDark) =>
-      AppConfig.mapboxTileUrlTemplateForTheme(isDark);
-
-  /// Mapbox attribution text.
-  static String get mapboxAttribution => AppConfig.mapboxAttribution;
-
-  /// NITC Campus Region Bounding Box matching QGIS MBTiles extent
-  /// (with slight padding for camera bounds clamping).
+  /// Campus display bounds retained from the former offline map camera limits.
   static const double minLat = 11.3050;
   static const double maxLat = 11.3280;
   static const double minLng = 75.9220;
@@ -41,6 +24,7 @@ class MapConfig {
   /// Zoom level thresholds for progressive detail filtering.
   static const double zoomBucketDetailed = 18.5;
   static const double zoomBucketMedium = 16.5;
+  static const double buildingSelectionZoom = 17.6;
 
   /// Marker dimensions for consistent map styling.
   static const double busMarkerSize = 48.0;

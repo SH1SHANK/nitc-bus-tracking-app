@@ -1,17 +1,19 @@
 # Geographically Anchored 3D Campus Model: Research and Architecture
 
-**Status:** Research only; no application implementation was performed.  
-**Repository branch inspected:** `feat/glb-map-integration` (the requested literal `glb-map-inetgration` is not the active branch name).  
-**Model inspected:** `/Users/shashankmergu/Downloads/NITCmap (1).glb`  
+**Status:** Historical research snapshot; the 2D map engine migration was completed after this research. The 3D model evaluation remains research only.
+**Repository branch inspected:** `feat/glb-map-integration` (the requested literal `glb-map-inetgration` is not the active branch name).
+**Model inspected:** `/Users/shashankmergu/Downloads/NITCmap (1).glb`
 **Research date:** 2026-10-19 (Asia/Kolkata)
 
 ## Executive summary
 
-The app has two different map engines today. Android and other non-Web builds use `flutter_map` 8.3.2, with Mapbox raster tiles when online and bundled MBTiles as the offline basemap. Web uses Mapbox GL JS 3.9.4 through the existing JavaScript bridge. There is no `mapbox_maps_flutter` dependency or resolved version in `pubspec.lock`, so there is no installed Flutter Mapbox ModelLayer API to verify or call. Android currently has a 2D Flutter map, not a Mapbox vector-map camera; the Web map is the only current Mapbox GL map.
+> **Architecture update (2026-10-21):** The live application now uses `mapbox_maps_flutter` 3.33.0 for both Android and web, with the shared `MapWidget`, GeoJSON sources, and style layers in `lib/services/maps/map_adapter.dart`. The MBTiles asset, `flutter_map`/`flutter_map_mbtiles` packages, and web-specific Mapbox GL JS bridge have been removed. The earlier implementation inventory and migration recommendation below describe the repository as inspected on 2026-10-19 and are historical, not current-state guidance. Map display requires a configured Mapbox public token; uncached content requires network access, and the app no longer guarantees offline campus coverage.
+
+At the research date, Android used `flutter_map` with Mapbox raster tiles and bundled MBTiles while web used a Mapbox GL JS bridge. No Mapbox Flutter ModelLayer support had been evaluated in that checkout.
 
 The GLB is a Blender-exported glTF 2.0 binary of 36,150,600 bytes (about 34.5 MiB). Static inspection found 117 nodes, 115 meshes, 425 primitives, 565,395 position vertices, 886,047 indices, 236 materials, 78 textures, and 72 embedded images. One mesh has 145,792 vertices, above Mapbox's documented 65,536-vertex per-mesh limit. The model also requires `EXT_texture_webp`, which Mapbox documents as unsupported, and uses optional material extensions beyond metallic-roughness. It is not ready for a Mapbox ModelLayer without asset conversion and geometry splitting.
 
-**Recommendation:** use map-native ModelLayers on each platform, with the map engine that already exists on Web and a deliberate Android migration from `flutter_map` to the official Mapbox Maps SDK for Flutter (or a native Android Mapbox view if the Flutter wrapper proves unsuitable). On Web, add a GL JS `model` layer to the existing bridge. On Android, use the Flutter SDK's `MapWidget`, style-loaded callback, `addStyleModel`, GeoJSON source, and `ModelLayer`. Keep Riverpod as the source for buses, stops, routes, and building labels; adapt those data into each platform's native map sources and annotations. This approach is map-projected and camera-synchronized by the map renderer. It is a material Android map-engine change and requires an offline-map plan. No single currently installed Flutter map package provides this complete implementation on both targets.
+**Historical recommendation:** use map-native ModelLayers on each platform and migrate Android to the official Mapbox Maps SDK for Flutter. That migration is now in place for the 2D map; 3D ModelLayer work remains unimplemented.
 
 Use a separate campus viewer as fallback if preserving the current Android `flutter_map` and MBTiles behavior is a stronger constraint than seeing the model in the live map. `flutter_3d_controller` 2.3.0 is suitable for such a viewer, but it is not a geospatial map layer and cannot by itself keep the campus model geographically registered to Mapbox.
 

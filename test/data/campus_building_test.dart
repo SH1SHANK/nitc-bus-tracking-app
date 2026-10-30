@@ -16,6 +16,7 @@ void main() {
         'lng': 75.934246,
         'lon': 75.93425,
         'building_type': 'college',
+        'description': 'Central offices',
       });
 
       expect(building, isNotNull);
@@ -26,6 +27,7 @@ void main() {
       );
       expect(building.category, 'Academic');
       expect(building.buildingType, 'college');
+      expect(building.description, 'Central offices');
     });
 
     test('rejects missing names and invalid or non-finite coordinates', () {
@@ -75,6 +77,28 @@ void main() {
       },
     );
 
+    test('does not serialize invalid or unnamed point geometry', () {
+      final collection =
+          jsonDecode(
+                TrackletMapCartography.toGeoJson([
+                  const MapLabelFeature(
+                    id: 'null-island',
+                    name: 'Invalid point',
+                    point: GeoPoint(latitude: 0, longitude: 0),
+                    kind: MapLabelKind.building,
+                  ),
+                  const MapLabelFeature(
+                    id: 'unnamed',
+                    name: ' ',
+                    point: GeoPoint(latitude: 11.32, longitude: 75.93),
+                    kind: MapLabelKind.building,
+                  ),
+                ]),
+              )
+              as Map<String, dynamic>;
+      expect(collection['features'], isEmpty);
+    });
+
     test(
       'suppresses base symbols and restyles discovered footprint and road layers',
       () {
@@ -106,6 +130,18 @@ void main() {
           '#F7F5F0',
         );
         expect(
+          TrackletMapCartography.layerOverrides(
+            MapBaseLayerTreatment.hideSymbols,
+          )['visibility'],
+          'none',
+        );
+        expect(
+          TrackletMapCartography.layerOverrides(
+            MapBaseLayerTreatment.hideBuildingExtrusions,
+          )['visibility'],
+          'none',
+        );
+        expect(
           TrackletMapCartography.treatmentFor(
             type: 'fill',
             sourceLayer: 'land',
@@ -121,6 +157,46 @@ void main() {
         );
       },
     );
+
+    test('reveals selected, key, then secondary buildings by zoom', () {
+      expect(
+        TrackletMapCartography.isPriorityLandmark('NITC Central Library'),
+        isTrue,
+      );
+      expect(
+        TrackletMapCartography.isPriorityLandmark('Electrical Machines Lab'),
+        isFalse,
+      );
+
+      final layers = TrackletMapCartography.labelLayerDefinitions();
+      final priority = layers.singleWhere(
+        (layer) =>
+            layer['id'] == TrackletMapCartography.priorityBuildingLabelsLayerId,
+      );
+      final secondary = layers.singleWhere(
+        (layer) =>
+            layer['id'] ==
+            TrackletMapCartography.secondaryBuildingLabelsLayerId,
+      );
+      final selected = layers.singleWhere(
+        (layer) =>
+            layer['id'] == TrackletMapCartography.selectedBuildingLabelLayerId,
+      );
+
+      expect(priority['minzoom'], 16.25);
+      expect(secondary['minzoom'], 18.25);
+      expect(selected['minzoom'], 14);
+      expect((priority['layout'] as Map)['text-allow-overlap'], isFalse);
+      expect((secondary['layout'] as Map)['text-ignore-placement'], isFalse);
+      expect(
+        TrackletMapCartography.labelLayerDefinitions(isDark: true).singleWhere(
+          (layer) =>
+              layer['id'] ==
+              TrackletMapCartography.priorityBuildingLabelsLayerId,
+        )['paint'],
+        isNot(priority['paint']),
+      );
+    });
 
     test(
       'symbol layers yield to collisions except for the selected stop label',

@@ -96,7 +96,7 @@ flowchart TD
         C2["Vector Polyline Road Snapping Algorithm"]
         C3["Dynamic Arrival Time (ETA) Calculation Engine"]
         C4["Shortest-Arc Heading Vector Interpolation"]
-        C5["Offline MBTiles Vector Cache Storage"]
+        C5["Shared Mapbox Flutter MapWidget"]
         C1 --> C2 --> C3
         C1 --> C4
         C1 --> C5
@@ -293,8 +293,8 @@ Arrival times are calculated on the client using real road distance rather than 
 ### 4. Vector Campus Cartography
 The interactive map features high-resolution building footprints of academic departments, administrative buildings, libraries, and student hostels, derived from OpenStreetMap geometry. Buildings are stylized using simplified vector silhouettes for visual clarity at mobile scale.
 
-### 5. Offline Campus Map Caching (MBTiles)
-For seamless operation during cellular dead zones on campus, BusTracker includes an embedded SQLite/MBTiles vector tile cache. Commuters can view full campus roads, building geometry, and stop locations completely offline without an active network connection.
+### 5. Unified Mapbox Campus Map
+Android and web render the campus map through the official `mapbox_maps_flutter` `MapWidget`. Shared GeoJSON sources and style layers render bus/stop markers, route lines, campus labels, and camera interactions across both platforms. Map display requires a configured Mapbox public token; uncached map content requires a network connection, and offline campus coverage is not guaranteed.
 
 ### 6. 3D Voxel Avatar Customization
 Commuters personalize their transit profiles using an integrated 3D Voxel avatar engine powered by DiceBear. Riders can tap the dice shuffle button (`Icons.casino_rounded`) to randomize between distinctive visual personas with satisfying haptic feedback.
@@ -308,8 +308,8 @@ Virtual 30-meter arrival and 45-meter departure geofences automatically record t
 ### 9. Moon Design System v1 and Adaptive Themes
 Engineered exclusively with solid, high-contrast surfaces conforming to the Moon Design System v1 specification. The interface supports adaptive light and dark themes with dedicated contrast-compliant typography and full screen-reader accessibility semantics.
 
-### 10. Hardware Workbench and Admin Metrics
-Administrative users with authorized `@nitc.ac.in` privileges can access an administrative dashboard featuring live telemetry throughput charts, device hardware health monitors, sequence inspection tools, and audit logs.
+### 10. Supabase-Backed Telemetry and Admin Metrics
+The rider map reads active bus positions and trip events from Supabase database projections, with Supabase Broadcast updates and database-backed refreshes. Device telemetry is ingested from registered hardware and persisted in Supabase; the application has no synthetic telemetry generator. Administrators can inspect database-backed telemetry metrics, device health, sequence state, and audit logs.
 
 ---
 
@@ -349,7 +349,7 @@ Administrative users with authorized `@nitc.ac.in` privileges can access an admi
 │   │   ├── theme/                   # Moon Design System theme configurations (light/dark)
 │   │   └── tokens/                  # Color palettes, radii, spacing, typography, and motion tokens
 │   ├── features/
-│   │   ├── admin/                   # Admin dashboard, telemetry graphs, and device workbench
+│   │   ├── admin/                   # Admin dashboard, telemetry graphs, and device management
 │   │   ├── auth/                    # Login, Create Account, Forgot Password, and Reset screens
 │   │   ├── feedback/                # In-app bug reporting and feature suggestion forms
 │   │   ├── home/                    # Commuter home dashboard, active bus list, quick ETA cards
@@ -361,11 +361,11 @@ Administrative users with authorized `@nitc.ac.in` privileges can access an admi
 │   │   └── splash/                  # Fluid branded splash screen with route hydration
 │   ├── services/
 │   │   ├── location/                # Device geolocation and permissions handling
-│   │   ├── maps/                    # Map adapters, offline MBTiles managers, network listeners
+│   │   ├── maps/                    # Shared Mapbox camera, GeoJSON, and style-layer adapter
 │   │   └── storage/                 # Encrypted local key-value storage
 │   └── main.dart                    # Application entry point
 ├── supabase/
-│   ├── functions/                   # Supabase Edge Functions (e.g. Telemetry Simulator)
+│   ├── functions/                   # Supabase Edge Functions (notification and cleanup)
 │   ├── migrations/                  # Versioned PostgreSQL schema migrations and PostGIS functions
 │   ├── tests/                       # SQL unit tests for RLS policies and stored procedures
 │   ├── AUTH_CONFIGURATION.md        # OAuth redirect and SMTP configuration guide
@@ -462,7 +462,7 @@ flutter build apk --debug
 - [x] Orthogonal polyline route snapping eliminating campus GPS scatter
 - [x] Dynamic arrival engine computing road-distance ETAs with dwell-time compensation
 - [x] Cartographic vector campus map with accurate NITC building footprint geometry
-- [x] Offline campus map caching via embedded MBTiles and SQLite storage
+- [x] Unified Mapbox map rendering on Android and web
 - [x] 3D Voxel avatar customization engine with instant persona randomizer
 - [x] Fluid navigation shell with curved floating dock and Lucide animated icons
 - [x] Google OAuth 2.0 with strict `@nitc.ac.in` institutional domain restriction

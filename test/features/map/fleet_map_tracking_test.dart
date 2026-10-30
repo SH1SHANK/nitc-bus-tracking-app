@@ -221,7 +221,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(BusMarkerWidget), findsNWidgets(2));
+      expect(
+        tester
+            .widget<TrackletMapView>(find.byType(TrackletMapView))
+            .markers
+            .where((marker) => marker.id.startsWith('bus-')),
+        hasLength(2),
+      );
 
       // Open route picker and select Route 2
       await tester.tap(find.byType(RouteSelectorCard));
@@ -237,9 +243,6 @@ void main() {
           mapView.markers.where((m) => m.id.startsWith('bus-')).toList();
       expect(markers, hasLength(2));
       expect(markers.map((m) => m.id), containsAll(['bus-bus-1', 'bus-bus-2']));
-      expect(find.byType(BusMarkerWidget), findsNWidgets(2));
-      expect(find.byKey(const ValueKey('bus-marker-bus-1')), findsOneWidget);
-      expect(find.byKey(const ValueKey('bus-marker-bus-2')), findsOneWidget);
     });
 
     testWidgets('duplicate telemetry does not create duplicate markers', (
@@ -288,8 +291,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Only 1 marker should be created
-      expect(find.byType(BusMarkerWidget), findsOneWidget);
-      expect(find.byKey(const ValueKey('bus-marker-bus-1')), findsOneWidget);
+      expect(
+        tester
+            .widget<TrackletMapView>(find.byType(TrackletMapView))
+            .markers
+            .where((marker) => marker.id == 'bus-bus-1'),
+        hasLength(1),
+      );
     });
 
     testWidgets(
@@ -337,20 +345,20 @@ void main() {
         await tester.pumpAndSettle();
 
         // Invalid bus has no marker
+        final markers =
+            tester
+                .widget<TrackletMapView>(find.byType(TrackletMapView))
+                .markers;
         expect(
-          find.byKey(const ValueKey('bus-marker-bus-invalid')),
-          findsNothing,
+          markers.where((marker) => marker.id == 'bus-bus-invalid'),
+          isEmpty,
         );
-
-        // Stale bus has marker with stale styling
-        expect(
-          find.byKey(const ValueKey('bus-marker-bus-stale')),
-          findsOneWidget,
+        final marker = markers.singleWhere(
+          (item) => item.id == 'bus-bus-stale',
         );
-        final marker = tester.widget<BusMarkerWidget>(
-          find.byKey(const ValueKey('bus-marker-bus-stale')),
-        );
-        expect(marker.bus.trackingState(), BusTrackingState.stale);
+        final busMarker = marker.child as BusMarkerWidget;
+        expect(busMarker.bus.trackingState(), BusTrackingState.stale);
+        expect(marker.show3dModel, isFalse);
       },
     );
 
@@ -370,7 +378,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(BusMarkerWidget), findsNothing);
+      expect(
+        tester
+            .widget<TrackletMapView>(find.byType(TrackletMapView))
+            .markers
+            .where((marker) => marker.id.startsWith('bus-')),
+        isEmpty,
+      );
       expect(find.byKey(const ValueKey('empty-fleet-card')), findsOneWidget);
       expect(find.text('No active buses right now'), findsOneWidget);
       expect(
@@ -462,7 +476,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(const ValueKey('bus-marker-bus-tap-test')));
+        tester
+            .widget<TrackletMapView>(find.byType(TrackletMapView))
+            .markers
+            .singleWhere((marker) => marker.id == 'bus-bus-tap-test')
+            .onTap!
+            .call();
         await tester.pumpAndSettle();
 
         expect(find.byType(BusDetailSheet), findsOneWidget);

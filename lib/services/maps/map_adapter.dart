@@ -1,29 +1,21 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_map/flutter_map.dart' as fmap;
-import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
-import 'package:latlong2/latlong.dart' as ll;
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/geo/geo_point.dart';
 import '../../core/logging/app_logger.dart';
 import '../../data/transit/bus_telemetry.dart';
-import '../../design_system/components/tracklet_error_state.dart';
 import '../../design_system/tokens/colors.dart';
-import '../../design_system/components/icons/tracklet_icons.dart';
-import '../../design_system/tokens/radii.dart';
 import '../../design_system/tokens/spacing.dart';
-import '../../design_system/tokens/typography.dart';
 import 'map_cartography.dart';
 import 'map_config.dart';
-import 'mapbox_web_bridge.dart';
-import 'network_connectivity.dart';
-import 'offline_map_manager.dart';
+import 'bus_model_style.dart';
 
-/// Marker representation data passed from feature layer into the map adapter.
+/// Marker data shared by the map feature and the Mapbox style source.
 class MapMarkerData {
   const MapMarkerData({
     required this.id,
@@ -31,9 +23,6 @@ class MapMarkerData {
     required this.child,
     this.title,
     this.subtitle,
-    this.width = 48.0,
-    this.height = 48.0,
-    this.alignment = Alignment.center,
     this.isSelected = false,
     this.isRouteStop = false,
     this.isMajorHub = false,
@@ -44,16 +33,23 @@ class MapMarkerData {
     this.epoch,
     this.timestamp,
     this.speedKmH,
+    this.showLabel = true,
+    this.headingDegrees,
+    this.show3dModel = false,
+    this.busBodyColor,
+    this.width = 48,
+    this.height = 48,
+    this.alignment = Alignment.center,
   });
 
   final String id;
   final GeoPoint point;
+
+  /// Retained for source compatibility; Mapbox renders the corresponding data
+  /// through style layers so Android and web use the same representation.
   final Widget child;
   final String? title;
   final String? subtitle;
-  final double width;
-  final double height;
-  final Alignment alignment;
   final bool isSelected;
   final bool isRouteStop;
   final bool isMajorHub;
@@ -64,9 +60,17 @@ class MapMarkerData {
   final int? epoch;
   final DateTime? timestamp;
   final double? speedKmH;
+  final bool showLabel;
+  final double? headingDegrees;
+  final bool show3dModel;
+
+  /// Custom body tint for this bus; null preserves material_4's GLB color.
+  final Color? busBodyColor;
+  final double width;
+  final double height;
+  final Alignment alignment;
 }
 
-/// Polyline representation data passed from feature layer into the map adapter.
 class MapPolylineData {
   const MapPolylineData({
     required this.id,
@@ -83,145 +87,100 @@ class MapPolylineData {
   final bool isDotted;
 }
 
-abstract class _WebMapController {
-  void moveTo(GeoPoint point, {double? zoom});
-  void animatedMoveTo(GeoPoint point, {double? zoom});
-  void fitBounds(
-    List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
+class _MarkerTransition {
+  const _MarkerTransition({
+    required this.from,
+    required this.to,
+    required this.startedAt,
+    required this.duration,
+    required this.fromHeading,
+    required this.toHeading,
   });
-  void animatedFitBounds(
-    List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
-  });
-  GeoPoint get center;
-  double get zoom;
+
+  final GeoPoint from;
+  final GeoPoint to;
+  final DateTime startedAt;
+  final Duration duration;
+  final double? fromHeading;
+  final double? toHeading;
 }
 
-/// Unified map controller handle exposed to feature code for camera manipulations.
+/// Map camera façade used by the feature layer on Android and web.
 class TrackletMapController {
-  TrackletMapController() : _mapController = fmap.MapController();
+  MapboxMap? _map;
+  GeoPoint _center = MapConfig.campusCenter;
+  double _zoom = MapConfig.defaultZoom;
 
-  final fmap.MapController _mapController;
-  AnimationController? _activeAnimation;
-  _WebMapController? _webMapController;
+  GeoPoint get center => _center;
+  double get zoom => _zoom;
+
+  Future<void> attach(MapboxMap map) async {
+    _map = map;
+    await map.setBounds(
+      CameraBoundsOptions(
+        bounds: CoordinateBounds(
+          southwest: Point(
+            coordinates: Position(MapConfig.minLng, MapConfig.minLat),
+          ),
+          northeast: Point(
+            coordinates: Position(MapConfig.maxLng, MapConfig.maxLat),
+          ),
+          infiniteBounds: false,
+        ),
+        minZoom: MapConfig.minZoom,
+        maxZoom: MapConfig.maxZoom,
+      ),
+    );
+    await map.setCamera(_cameraOptions(_center, _zoom));
+  }
+
+  void updateCamera(CameraState state) {
+    final coordinates = state.center.coordinates;
+    _center = GeoPoint(
+      latitude: coordinates.lat.toDouble(),
+      longitude: coordinates.lng.toDouble(),
+    );
+    _zoom = state.zoom;
+  }
 
   void moveTo(GeoPoint point, {double? zoom}) {
-    if (!BusTelemetry.isValidPoint(point)) {
-      AppLogger.warning('Camera moveTo rejected invalid point: $point');
-      return;
-    }
-    if (kIsWeb && _webMapController != null) {
-      _webMapController!.moveTo(point, zoom: zoom);
-      return;
-    }
-    _activeAnimation?.stop();
-    _activeAnimation = null;
-    try {
-      _mapController.move(
-        ll.LatLng(point.latitude, point.longitude),
-        zoom ?? MapConfig.defaultZoom,
-      );
-    } catch (e) {
-      AppLogger.warning('Camera moveTo failed: $e');
-    }
+    if (!_isValidPoint(point)) return;
+    _center = point;
+    _zoom = zoom ?? _zoom;
+    final map = _map;
+    if (map != null) _sendCamera(map.setCamera(_cameraOptions(point, _zoom)));
   }
 
   void animatedMoveTo(
     TickerProvider vsync,
-    GeoPoint target, {
+    GeoPoint point, {
     double? zoom,
     Duration duration = const Duration(milliseconds: 380),
     Curve curve = Curves.easeOutCubic,
     bool disableAnimations = false,
   }) {
-    if (!BusTelemetry.isValidPoint(target)) {
-      AppLogger.warning(
-        'Camera animatedMoveTo rejected invalid target: $target',
-      );
-      return;
-    }
-    if (kIsWeb && _webMapController != null) {
-      _webMapController!.animatedMoveTo(target, zoom: zoom);
-      return;
-    }
+    if (!_isValidPoint(point)) return;
+    _center = point;
+    _zoom = zoom ?? _zoom;
+    final map = _map;
+    if (map == null) return;
+    final camera = _cameraOptions(point, _zoom);
     if (disableAnimations) {
-      moveTo(target, zoom: zoom);
-      return;
+      _sendCamera(map.setCamera(camera));
+    } else {
+      _sendCamera(
+        map.easeTo(
+          camera,
+          MapAnimationOptions(duration: duration.inMilliseconds),
+        ),
+      );
     }
-
-    _activeAnimation?.stop();
-    _activeAnimation?.dispose();
-    _activeAnimation = null;
-    final startLatLng = _mapController.camera.center;
-    final startZoom = _mapController.camera.zoom;
-    final endLatLng = ll.LatLng(target.latitude, target.longitude);
-    final endZoom = zoom ?? startZoom;
-
-    final controller = AnimationController(vsync: vsync, duration: duration);
-    _activeAnimation = controller;
-    final animation = CurvedAnimation(parent: controller, curve: curve);
-
-    controller.addListener(() {
-      try {
-        final currentLat =
-            startLatLng.latitude +
-            (endLatLng.latitude - startLatLng.latitude) * animation.value;
-        final currentLng =
-            startLatLng.longitude +
-            (endLatLng.longitude - startLatLng.longitude) * animation.value;
-        final currentZoom = startZoom + (endZoom - startZoom) * animation.value;
-        _mapController.move(ll.LatLng(currentLat, currentLng), currentZoom);
-      } catch (e) {
-        AppLogger.warning('Camera animatedMoveTo tick failed: $e');
-      }
-    });
-
-    controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        controller.dispose();
-        if (_activeAnimation == controller) {
-          _activeAnimation = null;
-        }
-      }
-    });
-
-    controller.forward();
   }
 
   void fitBounds(
     List<GeoPoint> points, {
     EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
-  }) {
-    if (kIsWeb && _webMapController != null) {
-      _webMapController!.fitBounds(points, padding: padding);
-      return;
-    }
-    _activeAnimation?.stop();
-    _activeAnimation?.dispose();
-    _activeAnimation = null;
-    final validPoints = points.where(_isValidPoint).toList();
-    if (validPoints.isEmpty) return;
-    if (validPoints.length == 1) {
-      moveTo(validPoints.first);
-      return;
-    }
-
-    try {
-      final latLngs =
-          validPoints
-              .map((point) => ll.LatLng(point.latitude, point.longitude))
-              .toList();
-      if (latLngs.length < 2) return;
-      final bounds = fmap.LatLngBounds.fromPoints(latLngs);
-      _mapController.fitCamera(
-        fmap.CameraFit.bounds(bounds: bounds, padding: padding),
-      );
-    } catch (e) {
-      AppLogger.warning('Camera fitBounds failed: $e');
-    }
-  }
+  }) => unawaited(_fitBounds(points, padding, animated: false));
 
   void animatedFitBounds(
     TickerProvider vsync,
@@ -230,302 +189,112 @@ class TrackletMapController {
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeOutCubic,
     bool disableAnimations = false,
-  }) {
-    if (kIsWeb && _webMapController != null) {
-      _webMapController!.animatedFitBounds(points, padding: padding);
-      return;
-    }
-    if (disableAnimations || points.isEmpty) {
-      fitBounds(points, padding: padding);
-      return;
-    }
+  }) => unawaited(
+    _fitBounds(
+      points,
+      padding,
+      animated: !disableAnimations,
+      duration: duration,
+    ),
+  );
 
-    if (points.length == 1) {
-      animatedMoveTo(
-        vsync,
-        points.first,
-        duration: duration,
-        curve: curve,
-        disableAnimations: disableAnimations,
+  Future<void> _fitBounds(
+    List<GeoPoint> points,
+    EdgeInsets padding, {
+    required bool animated,
+    Duration duration = const Duration(milliseconds: 400),
+  }) async {
+    final map = _map;
+    final valid = points.where(_isValidPoint).toList();
+    if (map == null || valid.isEmpty) return;
+    if (valid.length == 1) {
+      _center = valid.single;
+      final camera = _cameraOptions(valid.single, _zoom);
+      try {
+        if (animated) {
+          await map.easeTo(
+            camera,
+            MapAnimationOptions(duration: duration.inMilliseconds),
+          );
+        } else {
+          await map.setCamera(camera);
+        }
+      } catch (error, stackTrace) {
+        AppLogger.warning(
+          'Map camera bounds update failed: $error',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+      return;
+    }
+    try {
+      final camera = await map.cameraForCoordinatesPadding(
+        valid.map(_mapPoint).toList(),
+        CameraOptions(zoom: _zoom),
+        MbxEdgeInsets(
+          top: padding.top,
+          left: padding.left,
+          bottom: padding.bottom,
+          right: padding.right,
+        ),
+        null,
+        null,
       );
-      return;
+      if (animated) {
+        await map.easeTo(
+          camera,
+          MapAnimationOptions(duration: duration.inMilliseconds),
+        );
+      } else {
+        await map.setCamera(camera);
+      }
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Map camera bounds update failed: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
-
-    // Direct fit camera via flutter_map CameraFit which guarantees bounds containment
-    fitBounds(points, padding: padding);
   }
 
   void recenterCampus({TickerProvider? vsync, bool disableAnimations = false}) {
-    if (vsync != null && !disableAnimations) {
+    if (vsync == null) {
+      moveTo(MapConfig.campusCenter, zoom: MapConfig.defaultZoom);
+    } else {
       animatedMoveTo(
         vsync,
         MapConfig.campusCenter,
         zoom: MapConfig.defaultZoom,
+        disableAnimations: disableAnimations,
       );
-    } else {
-      moveTo(MapConfig.campusCenter, zoom: MapConfig.defaultZoom);
     }
   }
 
-  GeoPoint get center {
-    if (kIsWeb && _webMapController != null) {
-      return _webMapController!.center;
-    }
-    final cameraCenter = _mapController.camera.center;
-    return GeoPoint(
-      latitude: cameraCenter.latitude,
-      longitude: cameraCenter.longitude,
+  void dispose() => _map = null;
+
+  void _sendCamera(Future<void> action) {
+    unawaited(
+      action.catchError((Object error, StackTrace stackTrace) {
+        AppLogger.warning(
+          'Map camera update failed: $error',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }),
     );
-  }
-
-  double get zoom {
-    if (kIsWeb && _webMapController != null) {
-      return _webMapController!.zoom;
-    }
-    return _mapController.camera.zoom;
-  }
-
-  void dispose() {
-    _activeAnimation?.stop();
-    _activeAnimation?.dispose();
-    _activeAnimation = null;
-    _webMapController = null;
-    _mapController.dispose();
   }
 }
 
 bool _isValidPoint(GeoPoint point) => BusTelemetry.isValidPoint(point);
 
-class _MarkerTrack {
-  _MarkerTrack({
-    required this.from,
-    required this.to,
-    required this.startElapsed,
-    required this.duration,
-    required this.marker,
-  });
+Point _mapPoint(GeoPoint point) =>
+    Point(coordinates: Position(point.longitude, point.latitude));
 
-  GeoPoint from;
-  GeoPoint to;
-  Duration startElapsed;
-  Duration duration;
-  MapMarkerData marker;
+CameraOptions _cameraOptions(GeoPoint point, double zoom) =>
+    CameraOptions(center: _mapPoint(point), zoom: zoom);
 
-  bool isComplete(Duration currentElapsed) {
-    if (duration == Duration.zero) return true;
-    return (currentElapsed - startElapsed) >= duration;
-  }
-
-  GeoPoint currentPoint(
-    Duration currentElapsed, {
-    bool disableAnimations = false,
-  }) {
-    if (disableAnimations || duration == Duration.zero) return to;
-    final elapsed = currentElapsed - startElapsed;
-    if (elapsed >= duration) return to;
-    if (elapsed.isNegative) return from;
-    final t = (elapsed.inMicroseconds / duration.inMicroseconds).clamp(
-      0.0,
-      1.0,
-    );
-    final curvedT = Curves.easeOutCubic.transform(t);
-    return BusTelemetry.interpolatePoint(from, to, curvedT);
-  }
-}
-
-class _AnimatedMarkerLayer extends StatefulWidget {
-  const _AnimatedMarkerLayer({required this.markers});
-
-  final List<MapMarkerData> markers;
-
-  @override
-  State<_AnimatedMarkerLayer> createState() => _AnimatedMarkerLayerState();
-}
-
-class _AnimatedMarkerLayerState extends State<_AnimatedMarkerLayer>
-    with SingleTickerProviderStateMixin {
-  late final Ticker _ticker;
-  final Map<String, _MarkerTrack> _tracks = {};
-  Duration _currentElapsed = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = createTicker(_onTick);
-    for (final marker in widget.markers) {
-      if (BusTelemetry.isValidPoint(marker.point)) {
-        _tracks[marker.id] = _MarkerTrack(
-          from: marker.point,
-          to: marker.point,
-          startElapsed: Duration.zero,
-          duration: Duration.zero,
-          marker: marker,
-        );
-      }
-    }
-  }
-
-  void _onTick(Duration elapsed) {
-    _currentElapsed = elapsed;
-    var hasActive = false;
-    for (final track in _tracks.values) {
-      if (!track.isComplete(elapsed)) {
-        hasActive = true;
-        break;
-      }
-    }
-    setState(() {});
-    if (!hasActive && _ticker.isActive) {
-      _ticker.stop();
-      _currentElapsed = Duration.zero;
-      for (final track in _tracks.values) {
-        track.duration = Duration.zero;
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _AnimatedMarkerLayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final disableAnimations =
-        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final currentIds = <String>{};
-    var needsAnimation = false;
-
-    for (final marker in widget.markers) {
-      if (!BusTelemetry.isValidPoint(marker.point)) continue;
-      currentIds.add(marker.id);
-      final existing = _tracks[marker.id];
-
-      if (existing == null || !marker.animatePosition || disableAnimations) {
-        _tracks[marker.id] = _MarkerTrack(
-          from: marker.point,
-          to: marker.point,
-          startElapsed: Duration.zero,
-          duration: Duration.zero,
-          marker: marker,
-        );
-        continue;
-      }
-
-      final prevMarker = existing.marker;
-      final prevTime = prevMarker.timestamp;
-      final incomingTime = marker.timestamp;
-      final prevSeq = prevMarker.sequenceNumber;
-      final incomingSeq = marker.sequenceNumber;
-
-      if (prevTime == null ||
-          incomingTime == null ||
-          !BusTelemetry.shouldAcceptPacket(
-            previousEpoch: prevMarker.epoch,
-            incomingEpoch: marker.epoch,
-            previousSequence: prevSeq,
-            previousTimestamp: prevTime,
-            incomingSequence: incomingSeq,
-            incomingTimestamp: incomingTime,
-          )) {
-        existing.marker = marker;
-        continue;
-      }
-
-      final currentPos = existing.currentPoint(
-        _currentElapsed,
-        disableAnimations: disableAnimations,
-      );
-      final isSeqReset = BusTelemetry.isSequenceReset(prevSeq, incomingSeq);
-      final isEpochReset = BusTelemetry.isEpochReset(
-        prevMarker.epoch,
-        marker.epoch,
-      );
-      final isLargeJump = BusTelemetry.isLargeJump(currentPos, marker.point);
-      final isStationaryJitter =
-          (prevMarker.speedKmH ?? double.infinity) <
-              BusTelemetry.stationarySpeedThresholdKmH &&
-          (marker.speedKmH ?? double.infinity) <
-              BusTelemetry.stationarySpeedThresholdKmH &&
-          BusTelemetry.distanceMeters(currentPos, marker.point) <
-              BusTelemetry.stationaryDistanceThresholdMeters;
-      final timeDifference = incomingTime.difference(prevTime);
-
-      if (isEpochReset ||
-          isSeqReset ||
-          isLargeJump ||
-          isStationaryJitter ||
-          timeDifference > BusTelemetry.maxInterpolationGap) {
-        existing.from = marker.point;
-        existing.to = marker.point;
-        existing.startElapsed = Duration.zero;
-        existing.duration = Duration.zero;
-        existing.marker = marker;
-      } else {
-        existing.from = currentPos;
-        existing.to = marker.point;
-        existing.startElapsed =
-            _ticker.isActive ? _currentElapsed : Duration.zero;
-        existing.duration = BusTelemetry.animationDuration(timeDifference);
-        existing.marker = marker;
-        needsAnimation = true;
-      }
-    }
-
-    _tracks.removeWhere((id, _) => !currentIds.contains(id));
-
-    if (needsAnimation && !_ticker.isActive && !disableAnimations) {
-      _currentElapsed = Duration.zero;
-      _ticker.start();
-    }
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    super.dispose();
-  }
-
-  ll.LatLng _displayedPoint(
-    MapMarkerData marker, {
-    required bool disableAnimations,
-  }) {
-    final track = _tracks[marker.id];
-    if (track == null) {
-      return ll.LatLng(marker.point.latitude, marker.point.longitude);
-    }
-    final point = track.currentPoint(
-      _currentElapsed,
-      disableAnimations: disableAnimations,
-    );
-    return ll.LatLng(point.latitude, point.longitude);
-  }
-
-  fmap.Marker _buildMarker(
-    MapMarkerData incoming, {
-    required bool disableAnimations,
-  }) {
-    return fmap.Marker(
-      key: ValueKey('map-marker-${incoming.id}'),
-      point: _displayedPoint(incoming, disableAnimations: disableAnimations),
-      width: incoming.width,
-      height: incoming.height,
-      alignment: incoming.alignment,
-      child: RepaintBoundary(child: incoming.child),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final disableAnimations =
-        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    return fmap.MarkerLayer(
-      markers: [
-        for (final incoming in widget.markers)
-          if (BusTelemetry.isValidPoint(incoming.point))
-            _buildMarker(incoming, disableAnimations: disableAnimations),
-      ],
-    );
-  }
-}
-
-/// Primary map view backed by Mapbox online raster tiles with local QGIS-generated NITC MBTiles offline fallback.
+/// Single Mapbox Maps SDK view for Android and web.
 class TrackletMapView extends StatefulWidget {
   const TrackletMapView({
     super.key,
@@ -538,9 +307,6 @@ class TrackletMapView extends StatefulWidget {
     this.onTap,
     this.onUserGesture,
     this.onZoomChanged,
-    this.offlineMapManager,
-    this.isOnline,
-    this.showOfflineBadge = true,
   });
 
   final TrackletMapController controller;
@@ -552,777 +318,874 @@ class TrackletMapView extends StatefulWidget {
   final void Function(GeoPoint point)? onTap;
   final VoidCallback? onUserGesture;
   final ValueChanged<double>? onZoomChanged;
-  final OfflineMapManager? offlineMapManager;
-  final bool? isOnline;
-  final bool showOfflineBadge;
 
   @override
   State<TrackletMapView> createState() => _TrackletMapViewState();
 }
 
-class _TrackletMapViewState extends State<TrackletMapView> {
-  late final OfflineMapManager _mapManager;
-  MbTilesTileProvider? _tileProvider;
-  String? _initError;
-  bool _isInitializing = false;
-  bool _useOsmFallback = false;
+class _TrackletMapViewState extends State<TrackletMapView>
+    with WidgetsBindingObserver {
+  static const _markerSource = 'tracklet-markers';
+  static const _routeSource = 'tracklet-routes';
+  static const _labelSource = TrackletMapCartography.stopLabelSourceId;
+  static const _buildingLabelSource =
+      TrackletMapCartography.campusBuildingSourceId;
+  static const _markerLayer = 'tracklet-marker-circles';
+  static const _markerTextLayer = 'tracklet-marker-labels';
+  static const _directionLayer = 'tracklet-directions';
+  static const _busModelSource = 'tracklet-live-bus-models';
+  static const _busModelLayer = 'tracklet-live-bus-model-layer';
+  static const _busModelAssetUri = 'asset://${BusModelStyle.assetPath}';
 
-  late bool _isMapboxOnline;
-  int _consecutiveTileErrors = 0;
-  Timer? _reconnectTimer;
+  MapboxMap? _map;
+  StreamSubscription<MapContentGestureContext>? _panSubscription;
+  StreamSubscription<MapContentGestureContext>? _zoomSubscription;
+  Timer? _markerAnimationTimer;
+  bool _markerFrameSyncing = false;
+  bool _markerFramePending = false;
+  final Map<String, _MarkerTransition> _markerTransitions = {};
+  final Map<String, GeoPoint> _renderedMarkerPoints = {};
+  final Map<String, double> _renderedMarkerHeadings = {};
+  String? _lastMarkerData;
+  String? _lastRouteData;
 
   @override
   void initState() {
     super.initState();
-    _mapManager = widget.offlineMapManager ?? OfflineMapManager();
-    _isMapboxOnline = (widget.isOnline ?? true) && AppConfig.isMapboxConfigured;
-    if (!kIsWeb) {
-      _initOfflineMap();
-      if (_isMapboxOnline && widget.isOnline == null) {
-        _checkInitialConnectivity();
-      }
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_markerTransitions.isNotEmpty) _startMarkerAnimationTimer();
+    } else {
+      _markerAnimationTimer?.cancel();
+      _markerAnimationTimer = null;
     }
   }
 
-  Future<void> _checkInitialConnectivity() async {
-    final online = await NetworkConnectivity.isHostReachable('api.mapbox.com');
-    if (!mounted) return;
-    if (!online && _isMapboxOnline) {
-      AppLogger.info(
-        'Initial network check unreachable for Mapbox. Falling back to offline local MBTiles.',
-        tag: 'TrackletMapView',
-      );
-      setState(() {
-        _isMapboxOnline = false;
-      });
-      _scheduleReconnectionCheck();
-    }
-  }
+  bool _styleReady = false;
+  bool _busModelLayerInstalled = false;
+  bool _busModelUnavailable = false;
+  Set<String> _busModelIds = {};
+  final Map<String, GeoPoint> _busModelAnchors = {};
+  final Map<String, String> _busModelFeatureState = {};
+  String? _error;
+  String? _styleUri;
 
-  void _onMapboxTileError(Object error) {
-    _consecutiveTileErrors++;
-    final isNetwork = _isNetworkError(error);
-    if (_consecutiveTileErrors >= 3 || isNetwork) {
-      if (mounted && _isMapboxOnline) {
-        AppLogger.warning(
-          'Mapbox tile loading error ($error). Falling back to offline local MBTiles.',
-          tag: 'TrackletMapView',
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final styleUri = AppConfig.effectiveMapboxStyleUrlForTheme(dark);
+    if (_styleUri != null && styleUri != _styleUri) {
+      _styleReady = false;
+      final map = _map;
+      if (map != null) {
+        unawaited(
+          map.setStyleURI(styleUri).catchError((Object error) {
+            AppLogger.warning(
+              'Map style update failed: $error',
+              tag: 'TrackletMapView',
+            );
+          }),
         );
-        setState(() {
-          _isMapboxOnline = false;
-        });
-        _scheduleReconnectionCheck();
       }
     }
-  }
-
-  bool _isNetworkError(Object error) {
-    final errorStr = error.toString().toLowerCase();
-    return errorStr.contains('socketexception') ||
-        errorStr.contains('failed host lookup') ||
-        errorStr.contains('clientexception') ||
-        errorStr.contains('httpexception') ||
-        errorStr.contains('handshake') ||
-        errorStr.contains('network') ||
-        errorStr.contains('connection') ||
-        errorStr.contains('timeout') ||
-        errorStr.contains('401') ||
-        errorStr.contains('403') ||
-        errorStr.contains('404') ||
-        errorStr.contains('500');
-  }
-
-  void _scheduleReconnectionCheck() {
-    _reconnectTimer?.cancel();
-    if (widget.isOnline != null || !AppConfig.isMapboxConfigured) return;
-    _reconnectTimer = Timer.periodic(const Duration(seconds: 25), (
-      timer,
-    ) async {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      final online = await NetworkConnectivity.isHostReachable(
-        'api.mapbox.com',
-      );
-      if (online && mounted) {
-        timer.cancel();
-        AppLogger.info(
-          'Network reachability restored. Re-enabling Mapbox primary map.',
-          tag: 'TrackletMapView',
-        );
-        setState(() {
-          _isMapboxOnline = true;
-          _consecutiveTileErrors = 0;
-        });
-      }
-    });
+    _styleUri = styleUri;
   }
 
   @override
   void didUpdateWidget(covariant TrackletMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isOnline != oldWidget.isOnline) {
-      setState(() {
-        _isMapboxOnline =
-            (widget.isOnline ?? true) && AppConfig.isMapboxConfigured;
-        _consecutiveTileErrors = 0;
-      });
-      if (!_isMapboxOnline && widget.isOnline == null) {
-        _scheduleReconnectionCheck();
-      } else if (_isMapboxOnline) {
-        _reconnectTimer?.cancel();
+    _prepareMarkerTransitions(oldWidget.markers);
+    if (_styleReady) _syncMapData(oldWidget: oldWidget);
+  }
+
+  void _prepareMarkerTransitions(List<MapMarkerData> previousMarkers) {
+    final previousById = {
+      for (final marker in previousMarkers) marker.id: marker,
+    };
+    final activeIds = <String>{};
+    final now = DateTime.now();
+    for (final marker in widget.markers) {
+      if (!marker.id.startsWith('bus-') ||
+          !marker.animatePosition ||
+          !_isValidPoint(marker.point)) {
+        continue;
       }
+      activeIds.add(marker.id);
+      final previous = previousById[marker.id];
+      final from = _renderedMarkerPoints[marker.id] ?? previous?.point;
+      if (from == null || !_isValidPoint(from)) {
+        _renderedMarkerPoints[marker.id] = marker.point;
+        continue;
+      }
+      if (from == marker.point) continue;
+      if (BusTelemetry.isLargeJump(from, marker.point)) {
+        _renderedMarkerPoints[marker.id] = marker.point;
+        _markerTransitions.remove(marker.id);
+        continue;
+      }
+      final previousTime = previous?.timestamp;
+      final cadence =
+          previousTime == null || marker.timestamp == null
+              ? BusTelemetry.pollingInterval
+              : marker.timestamp!.difference(previousTime);
+      if (cadence <= Duration.zero ||
+          cadence > BusTelemetry.maxInterpolationGap) {
+        _renderedMarkerPoints[marker.id] = marker.point;
+        _markerTransitions.remove(marker.id);
+        continue;
+      }
+      final duration = BusTelemetry.animationDuration(cadence);
+      final fromHeading =
+          _renderedMarkerHeadings[marker.id] ?? previous?.headingDegrees;
+      final toHeading = marker.headingDegrees;
+      if (toHeading == null && fromHeading != null) {
+        _renderedMarkerHeadings[marker.id] = fromHeading;
+      }
+      _markerTransitions[marker.id] = _MarkerTransition(
+        from: from,
+        to: marker.point,
+        startedAt: now,
+        duration: duration,
+        fromHeading: fromHeading,
+        toHeading: toHeading,
+      );
+    }
+    _renderedMarkerPoints.removeWhere((id, _) => !activeIds.contains(id));
+    _renderedMarkerHeadings.removeWhere((id, _) => !activeIds.contains(id));
+    _markerTransitions.removeWhere((id, _) => !activeIds.contains(id));
+    if (_markerTransitions.isEmpty) {
+      _markerAnimationTimer?.cancel();
+      _markerAnimationTimer = null;
+    } else {
+      _startMarkerAnimationTimer();
     }
   }
 
-  Future<void> _initOfflineMap() async {
-    if (kIsWeb) return;
+  void _startMarkerAnimationTimer() {
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed ||
+        _markerTransitions.isEmpty) {
+      return;
+    }
+    _markerAnimationTimer ??= Timer.periodic(
+      const Duration(milliseconds: 33),
+      (_) => _syncMarkerFrame(),
+    );
+  }
 
-    setState(() {
-      _isInitializing = true;
-      _initError = null;
-    });
+  GeoPoint _displayedPoint(MapMarkerData marker) =>
+      _renderedMarkerPoints[marker.id] ?? marker.point;
 
-    try {
-      await _mapManager.initialize();
-      final provider = _mapManager.createTileProvider();
-      if (!mounted) {
-        provider.dispose();
-        return;
+  double? _displayedHeading(MapMarkerData marker) =>
+      _renderedMarkerHeadings[marker.id] ?? marker.headingDegrees;
+
+  Future<void> _syncMarkerFrame() async {
+    if (!_styleReady || _map == null || !mounted) return;
+    if (_markerFrameSyncing) {
+      _markerFramePending = true;
+      return;
+    }
+    _markerFrameSyncing = true;
+    final now = DateTime.now();
+    for (final entry in _markerTransitions.entries.toList()) {
+      final transition = entry.value;
+      final fraction = (now.difference(transition.startedAt).inMicroseconds /
+              transition.duration.inMicroseconds)
+          .clamp(0.0, 1.0);
+      _renderedMarkerPoints[entry.key] = BusTelemetry.interpolatePoint(
+        transition.from,
+        transition.to,
+        fraction,
+      );
+      if (transition.fromHeading != null && transition.toHeading != null) {
+        _renderedMarkerHeadings[entry.key] = BusTelemetry.interpolateHeading(
+          transition.fromHeading!,
+          transition.toHeading!,
+          fraction,
+        );
       }
-      setState(() {
-        _tileProvider = provider;
-        _isInitializing = false;
-      });
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        'Failed to initialize offline MBTiles tile provider: $e',
-        error: e,
+      if (fraction >= 1) {
+        _renderedMarkerPoints[entry.key] = transition.to;
+        _markerTransitions.remove(entry.key);
+        final marker =
+            widget.markers.where((item) => item.id == entry.key).firstOrNull;
+        if (marker != null && marker.headingDegrees != null) {
+          _renderedMarkerHeadings[entry.key] = marker.headingDegrees!;
+        }
+      }
+    }
+    try {
+      await _syncBusModels();
+      final data = _markerData();
+      if (data != _lastMarkerData) {
+        await _map!.setStyleSourceProperty(_markerSource, 'data', data);
+        _lastMarkerData = data;
+      }
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Bus marker animation update failed',
+        error: error,
         stackTrace: stackTrace,
         tag: 'TrackletMapView',
       );
-      if (!mounted) return;
-      setState(() {
-        _tileProvider = null;
-        _isInitializing = false;
-        _initError = 'Failed to load offline campus map: $e';
-      });
+    } finally {
+      _markerFrameSyncing = false;
+      if (_markerTransitions.isEmpty) {
+        _markerAnimationTimer?.cancel();
+        _markerAnimationTimer = null;
+      }
+      if (_markerFramePending) {
+        _markerFramePending = false;
+        unawaited(_syncMarkerFrame());
+      }
     }
   }
 
-  @override
-  void dispose() {
-    _reconnectTimer?.cancel();
-    _tileProvider?.dispose();
-    super.dispose();
+  Future<void> _onMapCreated(MapboxMap map) async {
+    _map = map;
+    try {
+      await widget.controller.attach(map);
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Mapbox camera configuration failed',
+        error: error,
+        stackTrace: stackTrace,
+        tag: 'TrackletMapView',
+      );
+    }
+    map.addInteraction(
+      TapInteraction.onMap((context) => unawaited(_onMapTap(context))),
+    );
+    _panSubscription = map.gestures.pan.gestureEvents.listen(
+      (_) => widget.onUserGesture?.call(),
+    );
+    _zoomSubscription = map.gestures.zoom.gestureEvents.listen(
+      (_) => widget.onUserGesture?.call(),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (kIsWeb) {
-      if (AppConfig.isMapboxConfigured && _isMapboxOnline) {
-        return _TrackletWebMapboxView(
-          key: const ValueKey('tracklet_mapbox_web_view'),
-          controller: widget.controller,
-          initialCenter: widget.initialCenter,
-          initialZoom: widget.initialZoom,
-          markers: widget.markers,
-          polylines: widget.polylines,
-          labels: widget.labels,
-          onTap: widget.onTap,
-          onUserGesture: widget.onUserGesture,
-          onZoomChanged: widget.onZoomChanged,
-        );
-      }
-
-      if (!_useOsmFallback) {
-        return _MapboxWebConfigPlaceholder(
-          onUseOsmFallback: () => setState(() => _useOsmFallback = true),
-        );
-      }
+  Future<void> _onStyleLoaded(StyleLoadedEventData _) async {
+    _styleReady = false;
+    _lastMarkerData = null;
+    _lastRouteData = null;
+    _busModelLayerInstalled = false;
+    _busModelUnavailable = false;
+    _busModelIds.clear();
+    _busModelAnchors.clear();
+    _busModelFeatureState.clear();
+    try {
+      await _installStyleLayers();
+      _styleReady = true;
+      _error = null;
+      await _syncMapData();
+    } catch (error, stackTrace) {
+      _error = 'Map setup failed. Check your connection and try again.';
+      AppLogger.error(
+        'Mapbox style setup failed',
+        error: error,
+        stackTrace: stackTrace,
+        tag: 'TrackletMapView',
+      );
     }
+    if (mounted) setState(() {});
+  }
 
-    final isFallbackActive =
-        AppConfig.isMapboxConfigured &&
-        !_isMapboxOnline &&
-        _tileProvider != null;
-
-    final isDark = TrackletColors.isDark(context);
-    final mapboxTileUrl = AppConfig.mapboxTileUrlTemplateForTheme(isDark);
-
-    final mapWidget = fmap.FlutterMap(
-      key: const ValueKey('tracklet_offline_mbtiles_map_view'),
-      mapController: widget.controller._mapController,
-      options: fmap.MapOptions(
-        initialCenter: ll.LatLng(
-          widget.initialCenter.latitude,
-          widget.initialCenter.longitude,
+  Future<void> _installStyleLayers() async {
+    final map = _map;
+    if (map == null) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    await _styleBaseMap(map);
+    await _syncBusModels();
+    await map.addStyleSource(_markerSource, _geoJsonSource(_markerData()));
+    await map.addStyleSource(_routeSource, _geoJsonSource(_routeData()));
+    await map.addStyleSource(
+      _labelSource,
+      _geoJsonSource(
+        TrackletMapCartography.toGeoJson(
+          widget.labels.where((label) => label.kind == MapLabelKind.stop),
         ),
-        initialZoom: widget.initialZoom,
-        minZoom: MapConfig.minZoom,
-        maxZoom: MapConfig.maxZoom,
-        cameraConstraint: fmap.CameraConstraint.containCenter(
-          bounds: fmap.LatLngBounds(
-            const ll.LatLng(MapConfig.minLat, MapConfig.minLng),
-            const ll.LatLng(MapConfig.maxLat, MapConfig.maxLng),
-          ),
+      ),
+    );
+    await map.addStyleSource(
+      _buildingLabelSource,
+      _geoJsonSource(
+        TrackletMapCartography.toGeoJson(
+          widget.labels.where((label) => label.kind == MapLabelKind.building),
         ),
-        onPositionChanged: (camera, hasGesture) {
-          widget.onZoomChanged?.call(camera.zoom);
-          if (hasGesture) widget.onUserGesture?.call();
+      ),
+    );
+    await map.addStyleLayer(
+      jsonEncode({
+        'id': 'tracklet-route-lines',
+        'type': 'line',
+        'source': _routeSource,
+        'filter': [
+          '!=',
+          ['get', 'dotted'],
+          true,
+        ],
+        'layout': {'line-cap': 'round', 'line-join': 'round'},
+        'paint': {
+          'line-color': ['get', 'color'],
+          'line-width': ['get', 'width'],
+          'line-opacity': ['get', 'opacity'],
         },
-        onTap: (tapPosition, point) {
-          widget.onTap?.call(
-            GeoPoint(latitude: point.latitude, longitude: point.longitude),
+      }),
+      null,
+    );
+    await map.addStyleLayer(
+      jsonEncode({
+        'id': 'tracklet-route-dotted-lines',
+        'type': 'line',
+        'source': _routeSource,
+        'filter': [
+          '==',
+          ['get', 'dotted'],
+          true,
+        ],
+        'layout': {'line-cap': 'round', 'line-join': 'round'},
+        'paint': {
+          'line-color': ['get', 'color'],
+          'line-width': ['get', 'width'],
+          'line-opacity': ['get', 'opacity'],
+          'line-dasharray': [2, 2],
+        },
+      }),
+      null,
+    );
+    await map.addStyleLayer(
+      jsonEncode({
+        'id': _markerLayer,
+        'type': 'circle',
+        'source': _markerSource,
+        'filter': [
+          'all',
+          [
+            '!=',
+            ['get', 'kind'],
+            'direction',
+          ],
+          [
+            '!=',
+            ['get', 'model3d'],
+            true,
+          ],
+        ],
+        'paint': {
+          'circle-radius': ['get', 'radius'],
+          'circle-color': ['get', 'color'],
+          'circle-stroke-color': ['get', 'stroke'],
+          'circle-stroke-width': ['get', 'strokeWidth'],
+        },
+      }),
+      null,
+    );
+    await map.addStyleLayer(
+      jsonEncode({
+        'id': _markerTextLayer,
+        'type': 'symbol',
+        'source': _markerSource,
+        'filter': [
+          'all',
+          [
+            '!=',
+            ['get', 'kind'],
+            'direction',
+          ],
+          [
+            '!=',
+            ['get', 'label'],
+            '',
+          ],
+        ],
+        'layout': {
+          'text-field': ['get', 'label'],
+          'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+          'text-size': ['get', 'textSize'],
+          'text-anchor': ['get', 'textAnchor'],
+          'text-offset': ['get', 'textOffset'],
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+        },
+        'paint': {
+          'text-color': ['get', 'labelColor'],
+          'text-halo-color': ['get', 'halo'],
+          'text-halo-width': 1.5,
+        },
+      }),
+      null,
+    );
+    await map.addStyleLayer(
+      jsonEncode({
+        'id': _directionLayer,
+        'type': 'symbol',
+        'source': _markerSource,
+        'filter': [
+          '==',
+          ['get', 'kind'],
+          'direction',
+        ],
+        'layout': {
+          'text-field': '➤',
+          'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+          'text-size': 16,
+          'text-rotate': ['get', 'rotation'],
+          'text-rotation-alignment': 'map',
+          'text-allow-overlap': true,
+        },
+        'paint': {
+          'text-color': ['get', 'color'],
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1,
+        },
+      }),
+      null,
+    );
+    for (final definition in TrackletMapCartography.labelLayerDefinitions(
+      isDark: isDark,
+    )) {
+      await map.addStyleLayer(jsonEncode(definition), null);
+    }
+  }
+
+  Future<void> _syncBusModels() async {
+    final map = _map;
+    if (map == null || _busModelUnavailable) return;
+    final models =
+        widget.markers
+            .where(
+              (marker) => marker.show3dModel && _isValidPoint(marker.point),
+            )
+            .toList();
+    final modelIds = models.map((marker) => marker.id).toSet();
+    if (modelIds.length != _busModelIds.length ||
+        !modelIds.containsAll(_busModelIds)) {
+      try {
+        if (_busModelLayerInstalled) {
+          await map.removeStyleLayer(_busModelLayer);
+          await map.removeStyleSource(_busModelSource);
+          _busModelLayerInstalled = false;
+        }
+        _busModelIds = modelIds;
+        _busModelAnchors
+          ..clear()
+          ..addEntries(
+            models.map((marker) => MapEntry(marker.id, marker.point)),
           );
-        },
-      ),
-      children: [
-        // 1. Local MBTiles fallback basemap layer (rendered when offline or as base)
-        if (_tileProvider != null)
-          fmap.TileLayer(
-            key: const ValueKey('tracklet_offline_mbtiles_tile_layer'),
-            tileProvider: _tileProvider,
-            maxZoom: MapConfig.maxZoom,
-            minZoom: MapConfig.minZoom,
-          )
-        else if (kIsWeb && _useOsmFallback)
-          fmap.TileLayer(
-            key: const ValueKey('tracklet_osm_fallback_tile_layer'),
-            urlTemplate: AppConfig.mapTileUrlTemplate,
-            userAgentPackageName: 'org.nitc.tracklet',
-            maxZoom: MapConfig.maxZoom,
-            minZoom: MapConfig.minZoom,
-          ),
+        _busModelFeatureState.clear();
+        if (models.isEmpty) return;
 
-        // 2. Mapbox Primary Online Tile Layer
-        if (_isMapboxOnline &&
-            AppConfig.isMapboxConfigured &&
-            mapboxTileUrl.isNotEmpty)
-          fmap.TileLayer(
-            key: const ValueKey('tracklet_mapbox_tile_layer'),
-            urlTemplate: mapboxTileUrl,
-            userAgentPackageName: 'org.nitc.tracklet',
-            maxZoom: MapConfig.maxZoom,
-            minZoom: MapConfig.minZoom,
-            retinaMode: fmap.RetinaMode.isHighDensity(context),
-            tileBuilder: (context, tileWidget, tile) {
-              if (_consecutiveTileErrors > 0) {
-                _consecutiveTileErrors = 0;
-              }
-              return tileWidget;
-            },
-            errorTileCallback: (tile, error, stackTrace) {
-              _onMapboxTileError(error);
-            },
-          ),
-
-        if (widget.polylines.isNotEmpty)
-          fmap.PolylineLayer(
-            polylines:
-                widget.polylines
-                    .where(
-                      (line) =>
-                          line.points.length >= 2 &&
-                          line.points.every(_isValidPoint),
-                    )
-                    .map(
-                      (line) => fmap.Polyline(
-                        points:
-                            line.points
-                                .map(
-                                  (point) => ll.LatLng(
-                                    point.latitude,
-                                    point.longitude,
-                                  ),
-                                )
-                                .toList(),
-                        color: line.color,
-                        strokeWidth: line.strokeWidth,
-                        strokeCap: StrokeCap.round,
-                        strokeJoin: StrokeJoin.round,
-                        pattern:
-                            line.isDotted
-                                ? const fmap.StrokePattern.dotted()
-                                : const fmap.StrokePattern.solid(),
-                      ),
-                    )
-                    .toList(),
-          ),
-        if (widget.markers.isNotEmpty)
-          _AnimatedMarkerLayer(markers: widget.markers),
-      ],
-    );
-
-    if (_initError != null && _tileProvider == null && !_isMapboxOnline) {
-      return Stack(
-        children: [
-          mapWidget,
-          Positioned(
-            bottom: TrackletSpacing.screenMargin,
-            left: TrackletSpacing.screenMargin,
-            right: TrackletSpacing.screenMargin,
-            child: TrackletErrorState(
-              title: 'Offline Basemap Unavailable',
-              message:
-                  _initError ?? 'Offline MBTiles database could not be loaded.',
-              onRetry: _initOfflineMap,
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_isInitializing || (isFallbackActive && widget.showOfflineBadge)) {
-      return Stack(
-        children: [
-          mapWidget,
-          if (_isInitializing)
-            const Positioned(
-              top: TrackletSpacing.md,
-              right: TrackletSpacing.md,
-              child: SizedBox(
-                key: ValueKey('tracklet_map_initializing'),
-                width: 24,
-                height: 24,
-              ),
-            ),
-          if (isFallbackActive && widget.showOfflineBadge)
-            Positioned(
-              bottom: TrackletSpacing.screenMargin,
-              left: TrackletSpacing.screenMargin,
-              child: Material(
-                key: const ValueKey('tracklet_offline_map_badge'),
-                color: TrackletColors.adaptiveSurfaceElevated(
-                  context,
-                ).withValues(alpha: 0.92),
-                borderRadius: TrackletRadii.roundedPill,
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TrackletSpacing.compactMd,
-                    vertical: 5,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        TrackletIcons.cloudOff,
-                        size: 14,
-                        color: TrackletColors.adaptiveTextSecondary(context),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Offline Campus Map',
-                        style: TrackletTypography.caption.copyWith(
-                          fontWeight: TrackletTypography.weightSemiBold,
-                          color: TrackletColors.adaptiveTextSecondary(context),
-                        ),
-                      ),
-                    ],
-                  ),
+        final modelUri =
+            await MapboxMapsOptions.getFlutterAssetPath(_busModelAssetUri) ??
+            _busModelAssetUri;
+        await map.addSource(
+          ModelSource(
+            id: _busModelSource,
+            models: [
+              for (final marker in models)
+                ModelSourceModel(
+                  id: marker.id,
+                  uri: modelUri,
+                  position: [
+                    _displayedPoint(marker).longitude,
+                    _displayedPoint(marker).latitude,
+                  ],
+                  orientation: const [0, 0, 0],
+                  materialOverrideNames: [BusModelStyle.bodyMaterialName],
+                  featureProperties: {'trackletId': marker.id},
                 ),
-              ),
-            ),
-        ],
-      );
-    }
-
-    return mapWidget;
-  }
-}
-
-class _TrackletWebMapboxView extends StatefulWidget {
-  const _TrackletWebMapboxView({
-    super.key,
-    required this.controller,
-    required this.initialCenter,
-    required this.initialZoom,
-    required this.markers,
-    required this.polylines,
-    required this.labels,
-    this.onTap,
-    this.onUserGesture,
-    this.onZoomChanged,
-  });
-
-  final TrackletMapController controller;
-  final GeoPoint initialCenter;
-  final double initialZoom;
-  final List<MapMarkerData> markers;
-  final List<MapPolylineData> polylines;
-  final List<MapLabelFeature> labels;
-  final void Function(GeoPoint point)? onTap;
-  final VoidCallback? onUserGesture;
-  final ValueChanged<double>? onZoomChanged;
-
-  @override
-  State<_TrackletWebMapboxView> createState() => _TrackletWebMapboxViewState();
-}
-
-class _TrackletWebMapboxViewState extends State<_TrackletWebMapboxView>
-    implements _WebMapController {
-  late final String _viewId;
-  late GeoPoint _currentCenter;
-  late double _currentZoom;
-  bool _isLoaded = false;
-  String? _errorMessage;
-  bool? _lastIsDark;
-
-  @override
-  GeoPoint get center => _currentCenter;
-
-  @override
-  double get zoom => _currentZoom;
-
-  @override
-  void initState() {
-    super.initState();
-    _viewId = 'map-${identityHashCode(this)}';
-    _currentCenter = widget.initialCenter;
-    _currentZoom = widget.initialZoom;
-    widget.controller._webMapController = this;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final isDark = TrackletColors.isDark(context);
-    if (_lastIsDark != null && _lastIsDark != isDark && _isLoaded) {
-      final styleUrl = AppConfig.effectiveMapboxStyleUrlForTheme(isDark);
-      MapboxWebBridge.setStyle(_viewId, styleUrl);
-    }
-    _lastIsDark = isDark;
-  }
-
-  @override
-  void didUpdateWidget(covariant _TrackletWebMapboxView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_isLoaded) return;
-    _syncMapData();
-  }
-
-  void _syncMapData() {
-    final buses = <Map<String, dynamic>>[];
-    String? selectedBusId;
-    Map<String, dynamic>? userLoc;
-
-    for (final marker in widget.markers) {
-      if (marker.id == 'user-location-marker') {
-        userLoc = {'lat': marker.point.latitude, 'lng': marker.point.longitude};
-      } else if (marker.id.startsWith('bus-')) {
-        final busId = marker.id.substring(4);
-        if (marker.isSelected) selectedBusId = busId;
-        final hexColor =
-            marker.accentColor != null
-                ? '#${(marker.accentColor!.toARGB32() & 0x00FFFFFF).toRadixString(16).padLeft(6, '0')}'
-                : '#6F61EF';
-        buses.add({
-          'id': busId,
-          'name': marker.title ?? 'Bus',
-          'lat': marker.point.latitude,
-          'lng': marker.point.longitude,
-          'routeColor': hexColor,
-          'isSelected': marker.isSelected,
-          'isStale': marker.subtitle?.toLowerCase().contains('stale') ?? false,
-          'isStationary':
-              marker.subtitle?.toLowerCase().contains('stationary') ?? false,
-        });
+            ],
+          ),
+        );
+        await map.addLayer(
+          ModelLayer(id: _busModelLayer, sourceId: _busModelSource)
+            ..modelScaleExpression = BusModelStyle.modelScaleExpression
+            ..modelType = ModelType.LOCATION_INDICATOR
+            ..modelColorExpression = BusModelStyle.bodyColorExpression
+            ..modelColorMixIntensityExpression =
+                BusModelStyle.bodyColorMixIntensityExpression
+            ..modelRotationExpression = const ['feature-state', 'rotation']
+            ..modelTranslationExpression = const [
+              'feature-state',
+              'translation',
+            ],
+        );
+        _busModelLayerInstalled = true;
+      } catch (error, stackTrace) {
+        _busModelUnavailable = true;
+        _busModelLayerInstalled = false;
+        _busModelIds.clear();
+        _busModelAnchors.clear();
+        _busModelFeatureState.clear();
+        AppLogger.warning(
+          '3D bus models unavailable; keeping 2D bus markers: $error',
+          error: error,
+          stackTrace: stackTrace,
+          tag: 'TrackletMapView',
+        );
+        try {
+          await map.removeStyleLayer(_busModelLayer);
+        } catch (_) {}
+        try {
+          await map.removeStyleSource(_busModelSource);
+        } catch (_) {}
       }
     }
 
-    final routes = <Map<String, dynamic>>[];
-    for (final poly in widget.polylines) {
-      final hexColor =
-          '#${(poly.color.toARGB32() & 0x00FFFFFF).toRadixString(16).padLeft(6, '0')}';
-      routes.add({
-        'id': poly.id,
-        'color': hexColor,
-        'points': [
-          for (final pt in poly.points)
-            {'lat': pt.latitude, 'lng': pt.longitude},
-        ],
+    if (!_busModelLayerInstalled) return;
+    for (final marker in models) {
+      final anchor = _busModelAnchors[marker.id];
+      if (anchor == null) continue;
+      final state = jsonEncode({
+        'bodyColorEnabled': marker.busBodyColor != null,
+        'bodyColor':
+            marker.busBodyColor == null
+                ? '#ffffff'
+                : _hex(marker.busBodyColor!),
+        'rotation': BusModelStyle.rotation(_displayedHeading(marker)),
+        'translation': BusModelStyle.translation(
+          anchor,
+          _displayedPoint(marker),
+        ),
+      });
+      if (_busModelFeatureState[marker.id] == state) continue;
+      try {
+        await map.setFeatureState(_busModelSource, null, marker.id, state);
+        _busModelFeatureState[marker.id] = state;
+      } catch (error, stackTrace) {
+        _busModelUnavailable = true;
+        _busModelLayerInstalled = false;
+        AppLogger.warning(
+          '3D bus model update failed; keeping 2D bus markers: $error',
+          error: error,
+          stackTrace: stackTrace,
+          tag: 'TrackletMapView',
+        );
+        try {
+          await map.removeStyleLayer(_busModelLayer);
+        } catch (_) {}
+        try {
+          await map.removeStyleSource(_busModelSource);
+        } catch (_) {}
+        break;
+      }
+    }
+  }
+
+  Future<void> _styleBaseMap(MapboxMap map) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final layers = await map.getStyleLayers();
+    for (final layer in layers.whereType<StyleObjectInfo>()) {
+      try {
+        final properties = jsonDecode(
+          await map.getStyleLayerProperties(layer.id),
+        );
+        final sourceLayer =
+            properties is Map ? properties['source-layer'] as String? : null;
+        final treatment = TrackletMapCartography.treatmentFor(
+          type: layer.type,
+          sourceLayer: sourceLayer,
+        );
+        for (final entry
+            in TrackletMapCartography.layerOverrides(
+              treatment,
+              isDark: isDark,
+            ).entries) {
+          await map.setStyleLayerProperty(layer.id, entry.key, entry.value);
+        }
+      } catch (error) {
+        AppLogger.warning(
+          'Map style layer ${layer.id} could not be themed: $error',
+          tag: 'TrackletMapView',
+        );
+      }
+    }
+  }
+
+  Future<void> _syncMapData({TrackletMapView? oldWidget}) async {
+    final map = _map;
+    if (map == null || !_styleReady) return;
+    try {
+      await _syncBusModels();
+      final markerData = _markerData();
+      if (markerData != _lastMarkerData) {
+        await map.setStyleSourceProperty(_markerSource, 'data', markerData);
+        _lastMarkerData = markerData;
+      }
+      final routeData = _routeData();
+      if (routeData != _lastRouteData) {
+        await map.setStyleSourceProperty(_routeSource, 'data', routeData);
+        _lastRouteData = routeData;
+      }
+      if (oldWidget == null || !identical(widget.labels, oldWidget.labels)) {
+        await map.setStyleSourceProperty(
+          _labelSource,
+          'data',
+          TrackletMapCartography.toGeoJson(
+            widget.labels.where((label) => label.kind == MapLabelKind.stop),
+          ),
+        );
+        await map.setStyleSourceProperty(
+          _buildingLabelSource,
+          'data',
+          TrackletMapCartography.toGeoJson(
+            widget.labels.where((label) => label.kind == MapLabelKind.building),
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      _error = 'Map data could not be updated. The map will retry on refresh.';
+      AppLogger.error(
+        'Mapbox feature update failed',
+        error: error,
+        stackTrace: stackTrace,
+        tag: 'TrackletMapView',
+      );
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _onMapTap(MapContentGestureContext context) async {
+    final map = _map;
+    if (map == null) return;
+    try {
+      final results = await map.queryRenderedFeatures(
+        RenderedQueryGeometry.fromScreenBox(
+          ScreenBox(
+            min: ScreenCoordinate(
+              x: context.touchPosition.x - 24,
+              y: context.touchPosition.y - 24,
+            ),
+            max: ScreenCoordinate(
+              x: context.touchPosition.x + 24,
+              y: context.touchPosition.y + 24,
+            ),
+          ),
+        ),
+        RenderedQueryOptions(
+          layerIds: [
+            _markerLayer,
+            _markerTextLayer,
+            _directionLayer,
+            if (_busModelLayerInstalled) _busModelLayer,
+          ],
+        ),
+      );
+      for (final result in results) {
+        final properties = result?.queriedFeature.feature['properties'];
+        final id =
+            (properties is Map ? properties['trackletId'] : null)?.toString() ??
+            result?.queriedFeature.feature['id']?.toString();
+        final marker =
+            widget.markers.where((item) => item.id == id).firstOrNull;
+        if (marker?.onTap != null) {
+          marker!.onTap!();
+          return;
+        }
+      }
+      final coordinates = context.touchPosition;
+      final point = await map.coordinateForPixel(coordinates);
+      widget.onTap?.call(
+        GeoPoint(
+          latitude: point.coordinates.lat.toDouble(),
+          longitude: point.coordinates.lng.toDouble(),
+        ),
+      );
+    } catch (error) {
+      AppLogger.warning(
+        'Map tap hit testing failed: $error',
+        tag: 'TrackletMapView',
+      );
+    }
+  }
+
+  String _markerData() {
+    final features = <Map<String, Object?>>[];
+    for (final marker in widget.markers) {
+      if (!_isValidPoint(marker.point)) continue;
+      final isBus = marker.id.startsWith('bus-');
+      final isUser = marker.id == 'user-location-marker';
+      final isDirection = marker.id.startsWith('route-direction-');
+      final kind =
+          isBus
+              ? 'bus'
+              : isUser
+              ? 'user'
+              : isDirection
+              ? 'direction'
+              : 'stop';
+      final stale =
+          marker.subtitle?.toLowerCase().contains('stale') == true ||
+          marker.subtitle?.toLowerCase().contains('offline') == true ||
+          marker.subtitle?.toLowerCase().contains('no location') == true;
+      final stationary =
+          marker.subtitle?.toLowerCase().contains('stationary') == true;
+      final color = _hex(
+        isUser
+            ? TrackletColors.primary
+            : stale
+            ? TrackletColors.busOffline
+            : stationary
+            ? TrackletColors.warningStrong
+            : marker.accentColor ?? TrackletColors.primary,
+      );
+      final label = isBus && marker.showLabel ? (marker.title ?? '') : '';
+      final displayedPoint = _applyScreenOffset(
+        marker,
+        _displayedPoint(marker),
+      );
+      features.add({
+        'type': 'Feature',
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [displayedPoint.longitude, displayedPoint.latitude],
+        },
+        'properties': {
+          'trackletId': marker.id,
+          'kind': kind,
+          'color': color,
+          'stroke': marker.isSelected ? '#FFFFFF' : color,
+          'strokeWidth': marker.isSelected ? 3 : (isUser ? 2 : 1.5),
+          'radius':
+              isUser
+                  ? 8
+                  : isDirection
+                  ? 0
+                  : marker.isSelected
+                  ? 10
+                  : isBus
+                  ? 8
+                  : marker.isMajorHub
+                  ? 7
+                  : 5.5,
+          'label': marker.showLabel ? label : '',
+          'labelColor': marker.isSelected ? '#342B74' : '#34313E',
+          'halo': '#FFFFFF',
+          'textSize': marker.isMajorHub || marker.isSelected ? 11 : 10,
+          'textAnchor': 'top',
+          'textOffset': [0, isBus ? 1.15 : 1.35],
+          'rotation': _displayedHeading(marker) ?? 0,
+          'model3d':
+              _busModelLayerInstalled &&
+              marker.show3dModel &&
+              !_busModelUnavailable,
+        },
       });
     }
-
-    final stops = <Map<String, dynamic>>[];
-    String? selectedStopId;
-    for (final marker in widget.markers) {
-      if (!marker.id.startsWith('bus-') &&
-          marker.id != 'user-location-marker') {
-        if (marker.isSelected) selectedStopId = marker.id;
-        final hexColor =
-            marker.accentColor != null
-                ? '#${(marker.accentColor!.toARGB32() & 0x00FFFFFF).toRadixString(16).padLeft(6, '0')}'
-                : '#6F61EF';
-        stops.add({
-          'id': marker.id,
-          'name': marker.title ?? '',
-          'lat': marker.point.latitude,
-          'lng': marker.point.longitude,
-          'color': hexColor,
-          'isMajorHub': marker.isMajorHub,
-          'isSelected': marker.isSelected,
-        });
-      }
-    }
-
-    MapboxWebBridge.updateBuses(_viewId, buses, selectedBusId);
-    MapboxWebBridge.updateRoutes(_viewId, routes, null);
-    MapboxWebBridge.updateStops(_viewId, stops, selectedStopId);
-    MapboxWebBridge.updateUserLocation(_viewId, userLoc);
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 
-  @override
-  void moveTo(GeoPoint point, {double? zoom}) {
-    _currentCenter = point;
-    if (zoom != null) _currentZoom = zoom;
-    MapboxWebBridge.flyTo(
-      _viewId,
-      point.longitude,
-      point.latitude,
-      zoom ?? _currentZoom,
+  String _routeData() {
+    final features = <Map<String, Object?>>[];
+    for (final line in widget.polylines) {
+      final points = line.points.where(_isValidPoint).toList();
+      if (points.length < 2) continue;
+      features.add({
+        'type': 'Feature',
+        'geometry': {
+          'type': 'LineString',
+          'coordinates': [
+            for (final point in points) [point.longitude, point.latitude],
+          ],
+        },
+        'properties': {
+          'color': _hex(line.color),
+          'width': line.strokeWidth,
+          'opacity': 1.0,
+          'dotted': line.isDotted,
+        },
+      });
+    }
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
+  }
+
+  GeoPoint _applyScreenOffset(MapMarkerData marker, GeoPoint point) {
+    if (marker.alignment == Alignment.center) return point;
+    final zoomScale =
+        40075016.686 *
+        math.cos(point.latitude * math.pi / 180) /
+        (512 * math.pow(2, widget.controller.zoom));
+    final xOffsetMeters = -marker.alignment.x * marker.width / 2 * zoomScale;
+    final yOffsetMeters = -marker.alignment.y * marker.height / 2 * zoomScale;
+    return GeoPoint(
+      latitude: point.latitude - yOffsetMeters / 111320,
+      longitude:
+          point.longitude +
+          xOffsetMeters / (111320 * math.cos(point.latitude * math.pi / 180)),
     );
   }
 
-  @override
-  void animatedMoveTo(GeoPoint point, {double? zoom}) {
-    moveTo(point, zoom: zoom);
+  String _geoJsonSource(String data) =>
+      jsonEncode({'type': 'geojson', 'data': jsonDecode(data)});
+
+  String _hex(Color color) =>
+      '#${(color.toARGB32() & 0x00FFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+  void _onCameraChanged(CameraChangedEventData event) {
+    widget.controller.updateCamera(event.cameraState);
+    widget.onZoomChanged?.call(event.cameraState.zoom);
   }
 
-  @override
-  void fitBounds(
-    List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
-  }) {
-    if (points.isEmpty) return;
-    if (points.length == 1) {
-      moveTo(points.first);
-      return;
-    }
-    double minLat = points.first.latitude;
-    double maxLat = points.first.latitude;
-    double minLng = points.first.longitude;
-    double maxLng = points.first.longitude;
-    for (final pt in points) {
-      if (pt.latitude < minLat) minLat = pt.latitude;
-      if (pt.latitude > maxLat) maxLat = pt.latitude;
-      if (pt.longitude < minLng) minLng = pt.longitude;
-      if (pt.longitude > maxLng) maxLng = pt.longitude;
-    }
-    MapboxWebBridge.fitBounds(
-      _viewId,
-      [minLng, minLat, maxLng, maxLat],
-      {
-        'top': padding.top.toInt(),
-        'bottom': padding.bottom.toInt(),
-        'left': padding.left.toInt(),
-        'right': padding.right.toInt(),
-      },
-    );
-  }
-
-  @override
-  void animatedFitBounds(
-    List<GeoPoint> points, {
-    EdgeInsets padding = const EdgeInsets.all(TrackletSpacing.mapViewportInset),
-  }) {
-    fitBounds(points, padding: padding);
+  void _onMapLoadError(MapLoadingErrorEventData event) {
+    _error = 'Map tiles could not be loaded. Check your connection.';
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    if (widget.controller._webMapController == this) {
-      widget.controller._webMapController = null;
-    }
-    MapboxWebBridge.destroy(_viewId);
+    _markerAnimationTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _panSubscription?.cancel();
+    _zoomSubscription?.cancel();
+    widget.controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(TrackletSpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                TrackletIcons.alertTriangle,
-                size: 44,
-                color: TrackletColors.warning,
-              ),
-              const SizedBox(height: TrackletSpacing.md),
-              Text(
-                'Mapbox Initialization Error',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: TrackletTypography.weightBold,
-                  color: TrackletColors.adaptiveTextPrimary(context),
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.xs),
-              Text(
-                _errorMessage!,
-                style: TextStyle(
-                  color: TrackletColors.adaptiveTextSecondary(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+    if (!AppConfig.isMapboxConfigured) {
+      return const Center(
+        child: Text('Mapbox access token is not configured.'),
       );
     }
-
-    final isDark = TrackletColors.isDark(context);
-    final styleUrl = AppConfig.effectiveMapboxStyleUrlForTheme(isDark);
-
-    return MapboxWebBridge.buildMapboxWebView(
-      viewId: _viewId,
-      accessToken: AppConfig.mapboxPublicToken,
-      styleUrl: styleUrl,
-      initialCenter: widget.initialCenter,
-      initialZoom: widget.initialZoom,
-      onMapClick: (point) => widget.onTap?.call(point),
-      onBusClick: (busId) {
-        final marker =
-            widget.markers.where((m) => m.id == 'bus-$busId').firstOrNull;
-        marker?.onTap?.call();
-      },
-      onStopClick: (stopId) {
-        final marker = widget.markers.where((m) => m.id == stopId).firstOrNull;
-        marker?.onTap?.call();
-      },
-      onCameraChange: (lat, lng, zoom) {
-        _currentCenter = GeoPoint(latitude: lat, longitude: lng);
-        _currentZoom = zoom;
-        widget.onZoomChanged?.call(zoom);
-      },
-      onUserGesture: () => widget.onUserGesture?.call(),
-      onLoad: () {
-        if (!mounted) return;
-        setState(() => _isLoaded = true);
-        _syncMapData();
-      },
-      onError: (err) {
-        if (!mounted) return;
-        setState(() => _errorMessage = err);
-      },
-    );
-  }
-}
-
-class _MapboxWebConfigPlaceholder extends StatelessWidget {
-  const _MapboxWebConfigPlaceholder({required this.onUseOsmFallback});
-
-  final VoidCallback onUseOsmFallback;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = TrackletColors.isDark(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Container(
-          margin: const EdgeInsets.all(TrackletSpacing.lg),
-          padding: const EdgeInsets.all(TrackletSpacing.xl),
-          decoration: BoxDecoration(
-            color: TrackletColors.adaptiveSurfaceElevated(context),
-            borderRadius: TrackletRadii.roundedXl,
-            border: Border.all(
-              color: TrackletColors.adaptiveCardBorder(context),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: TrackletColors.adaptiveTextPrimary(
-                  context,
-                ).withValues(alpha: isDark ? 0.35 : 0.12),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        MapWidget(
+          styleUri: _styleUri ?? AppConfig.effectiveMapboxStyleUrl,
+          viewport: CameraViewportState(
+            center: _mapPoint(widget.initialCenter),
+            zoom: widget.initialZoom,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: TrackletColors.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  TrackletIcons.radar,
-                  color: TrackletColors.primary,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.md),
-              Text(
-                'Mapbox Public Token Required',
-                style: TrackletTypography.titleMedium.copyWith(
-                  fontWeight: TrackletTypography.weightBold,
-                  color: TrackletColors.adaptiveTextPrimary(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: TrackletSpacing.sm),
-              Text(
-                'Interactive maps on web use Mapbox GL JS with full campus fleet rendering. To connect your public Mapbox token, provide it at build or run time:',
-                style: TrackletTypography.bodySmall.copyWith(
-                  color: TrackletColors.adaptiveTextSecondary(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: TrackletSpacing.md),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TrackletSpacing.md,
-                  vertical: TrackletSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? Colors.black45
-                          : TrackletColors.mapCanvasAlternate,
-                  borderRadius: TrackletRadii.roundedSm,
-                  border: Border.all(
-                    color: TrackletColors.adaptiveBorder(context),
-                  ),
-                ),
-                child: const SelectableText(
-                  '--dart-define=MAPBOX_PUBLIC_TOKEN=pk.your_token',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: TrackletTypography.fontSize12_5,
-                    fontWeight: TrackletTypography.weightSemiBold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: TrackletSpacing.lg),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onUseOsmFallback,
-                  icon: const Icon(TrackletIcons.compass, size: 18),
-                  label: const Text('Explore with OpenStreetMap Raster'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: TrackletSpacing.compactLg,
-                    ),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: TrackletRadii.roundedMd,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          onMapCreated: _onMapCreated,
+          onStyleLoadedListener: _onStyleLoaded,
+          onCameraChangeListener: _onCameraChanged,
+          onMapLoadErrorListener: _onMapLoadError,
         ),
-      ),
+        if (_error case final error?)
+          Positioned(
+            left: TrackletSpacing.md,
+            right: TrackletSpacing.md,
+            bottom: TrackletSpacing.md,
+            child: Material(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(TrackletSpacing.sm),
+                child: Text(
+                  error,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

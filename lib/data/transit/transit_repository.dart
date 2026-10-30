@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/geo/geo_point.dart';
 import '../../core/logging/app_logger.dart';
+import '../../services/storage/storage_service.dart';
 import '../supabase/supabase_client_provider.dart';
 import 'bus.dart';
 import 'bus_stop_event.dart';
@@ -30,12 +32,15 @@ abstract class TransitRepository {
 class SupabaseTransitRepository implements TransitRepository {
   SupabaseTransitRepository(
     this._supabase, {
+    StorageService? storageService,
     DateTime Function()? clock,
     Future<List<BusStopEvent>> Function(String tripId)? stopEventLoader,
-  }) : _clock = clock ?? DateTime.now,
+  }) : _storageService = storageService,
+       _clock = clock ?? DateTime.now,
        _stopEventLoader = stopEventLoader;
 
   final SupabaseClient? _supabase;
+  final StorageService? _storageService;
   final DateTime Function() _clock;
   final Future<List<BusStopEvent>> Function(String tripId)? _stopEventLoader;
   List<Bus> _lastKnownBuses = const [];
@@ -44,6 +49,9 @@ class SupabaseTransitRepository implements TransitRepository {
   _stopEventCache = {};
   final Map<String, Future<List<BusStopEvent>>> _stopEventRequests = {};
   final Map<String, int> _stopEventGenerations = {};
+
+  static const String _persistentStopsKey = 'tracklet_offline_stops_cache';
+  static const String _persistentRoutesKey = 'tracklet_offline_routes_cache';
 
   static const Duration _referenceDataTtl = Duration(minutes: 10);
   ({List<Stop> stops, DateTime expiresAt})? _stopsCache;
@@ -157,6 +165,12 @@ class SupabaseTransitRepository implements TransitRepository {
           routes: List.unmodifiable(routes),
           expiresAt: now.add(_referenceDataTtl),
         );
+        if (_storageService != null && routes.isNotEmpty) {
+          try {
+            final encoded = jsonEncode(routes.map((r) => r.toJson()).toList());
+            await _storageService.setString(_persistentRoutesKey, encoded);
+          } catch (_) {}
+        }
       }
       return routes;
     } catch (error, stackTrace) {
@@ -172,13 +186,41 @@ class SupabaseTransitRepository implements TransitRepository {
   @override
   Future<List<Stop>> getStops() async {
     final client = _supabase;
-    if (client == null) return const [];
 
     final now = _clock();
     if (_stopsCache != null && _stopsCache!.expiresAt.isAfter(now)) {
       TransitCacheMetrics.instance.recordHit('stops');
       return _stopsCache!.stops;
     }
+
+    // Try persistent offline cache first
+    if (_stopsCache == null && _storageService != null) {
+      final raw = _storageService.getString(_persistentStopsKey);
+      if (raw != null && raw.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(raw) as List;
+          final cachedStops = decoded
+              .whereType<Map<String, dynamic>>()
+              .map(Stop.fromJson)
+              .toList();
+          if (cachedStops.isNotEmpty) {
+            _stopsCache = (
+              stops: List.unmodifiable(cachedStops),
+              expiresAt: now.add(_referenceDataTtl),
+            );
+            TransitCacheMetrics.instance.recordHit('stops');
+            if (client == null) return cachedStops;
+            // Background refresh without blocking
+            _inFlightStops = _doGetStops(client).whenComplete(() {
+              _inFlightStops = null;
+            });
+            return cachedStops;
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (client == null) return _stopsCache?.stops ?? const [];
 
     final inFlight = _inFlightStops;
     if (inFlight != null) {
@@ -212,8 +254,21 @@ class SupabaseTransitRepository implements TransitRepository {
         stops: List.unmodifiable(stops),
         expiresAt: now.add(_referenceDataTtl),
       );
+
+      // Persist to local storage for offline use
+      if (_storageService != null && stops.isNotEmpty) {
+        try {
+          final encoded = jsonEncode(stops.map((s) => s.toJson()).toList());
+          await _storageService.setString(_persistentStopsKey, encoded);
+        } catch (_) {}
+      }
+
       return stops;
     } catch (error, stackTrace) {
+      // Degrade to cached stops if available on network error
+      if (_stopsCache != null) {
+        return _stopsCache!.stops;
+      }
       AppLogger.error(
         'Failed to fetch stops from Supabase',
         error: error,
@@ -631,5 +686,6 @@ class SupabaseTransitRepository implements TransitRepository {
 
 final transitRepositoryProvider = Provider<TransitRepository>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
-  return SupabaseTransitRepository(supabase);
+  final storage = ref.watch(storageServiceProvider);
+  return SupabaseTransitRepository(supabase, storageService: storage);
 });

@@ -131,12 +131,15 @@ abstract final class BusTelemetry {
       incomingEpoch != null &&
       (previousEpoch == null || incomingEpoch > previousEpoch);
 
-  /// Linearly interpolates between geographic points [from] and [to] with fraction [t].
-  static GeoPoint interpolatePoint(GeoPoint from, GeoPoint to, double t) =>
-      GeoPoint(
-        latitude: from.latitude + (to.latitude - from.latitude) * t,
-        longitude: from.longitude + (to.longitude - from.longitude) * t,
-      );
+  /// Interpolates coordinates along the shortest longitude path.
+  static GeoPoint interpolatePoint(GeoPoint from, GeoPoint to, double t) {
+    final longitudeDelta = ((to.longitude - from.longitude + 540) % 360) - 180;
+    final longitude = from.longitude + longitudeDelta * t;
+    return GeoPoint(
+      latitude: from.latitude + (to.latitude - from.latitude) * t,
+      longitude: ((longitude + 540) % 360) - 180,
+    );
+  }
 
   /// Calculates smooth animation duration bounded between [minAnimationCadence] and [maxAnimationCadence].
   static Duration animationDuration(Duration cadence) => Duration(

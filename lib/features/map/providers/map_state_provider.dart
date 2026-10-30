@@ -251,28 +251,33 @@ final mapStateNotifierProvider =
     });
 
 /// Memoized map labels derived from map state and campus buildings.
-final mapLabelsProvider = Provider.autoDispose<List<MapLabelFeature>>((ref) {
-  final mapState = ref.watch(mapStateNotifierProvider);
-  final buildings =
-      ref.watch(campusBuildingsProvider).asData?.value ?? const [];
-  final activeStopIds = mapState.activeRouteStopIds;
+final mapLabelsProvider = Provider.autoDispose
+    .family<List<MapLabelFeature>, String?>((ref, selectedBuildingId) {
+      final mapState = ref.watch(mapStateNotifierProvider);
+      final buildings =
+          ref.watch(campusBuildingsProvider).asData?.value ?? const [];
+      final activeStopIds = mapState.activeRouteStopIds;
 
-  return [
-    for (final building in buildings)
-      MapLabelFeature(
-        id: 'building-${building.id}',
-        name: building.name,
-        point: building.location,
-        kind: MapLabelKind.building,
-      ),
-    for (final stop in mapState.stops)
-      MapLabelFeature(
-        id: 'stop-${stop.id}',
-        name: stop.name,
-        point: stop.location,
-        kind: MapLabelKind.stop,
-        isSelected: mapState.selectedStop?.id == stop.id,
-        isRouteStop: activeStopIds.contains(stop.id),
-      ),
-  ];
-});
+      return [
+        for (final building in buildings)
+          MapLabelFeature(
+            id: 'building-${building.id}',
+            name: building.name,
+            point: building.location,
+            kind: MapLabelKind.building,
+            isSelected: selectedBuildingId == building.id,
+            isPriorityLandmark: TrackletMapCartography.isPriorityLandmark(
+              building.name,
+            ),
+          ),
+        for (final stop in mapState.stops)
+          MapLabelFeature(
+            id: 'stop-${stop.id}',
+            name: stop.name,
+            point: stop.location,
+            kind: MapLabelKind.stop,
+            isSelected: mapState.selectedStop?.id == stop.id,
+            isRouteStop: activeStopIds.contains(stop.id),
+          ),
+      ];
+    });

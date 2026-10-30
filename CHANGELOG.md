@@ -65,7 +65,6 @@ This milestone represents the first public release candidate of **BusTracker** (
 - **16-Character Secret Invariant**: Enforced 16-character minimum secret length across API schemas, database functions, and provisioning tools.
 - **Monotonic Reboot Sessions**: Hardware cold-boot reset protocol (`POST /api/v1/auth/reset-session`) with epoch advancement and sequence zeroing.
 - **Advisory-Locked Telemetry Ingestion**: High-concurrency Postgres advisory locks preventing duplicate or out-of-order packet processing.
-- **Secure Telemetry Simulator**: Edge Function telemetry simulator hardened with HMAC SHA-256 signature verification and pg_cron scheduling.
 
 #### 📦 Deployment & Tooling
 - **Automated Vercel Deployment**: Web distribution with custom domain [nitc-bustracker.vercel.app](https://nitc-bustracker.vercel.app), strict Content Security Policy (CSP), and Wasm build compatibility.

@@ -6,8 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/config/app_config.dart';
 import '../core/logging/app_logger.dart';
 import '../data/supabase/supabase_client_provider.dart';
 import '../design_system/tokens/colors.dart';
@@ -24,6 +26,10 @@ Future<void> bootstrap() async {
     // Gracefully ignore in non-native or test harnesses
   }
   _installGlobalErrorHandlers();
+
+  if (AppConfig.isMapboxConfigured) {
+    MapboxOptions.setAccessToken(AppConfig.effectiveMapboxPublicToken.trim());
+  }
 
   // Configure edge-to-edge system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(

@@ -17,12 +17,14 @@ class RouteSelectorCard extends StatelessWidget {
     required this.stopCount,
     required this.onOpenRoutePicker,
     this.onClearRoute,
+    this.onSearchBuildings,
   });
 
   final BusRoute? selectedRoute;
   final int stopCount;
   final VoidCallback onOpenRoutePicker;
   final VoidCallback? onClearRoute;
+  final VoidCallback? onSearchBuildings;
 
   Color _parseRouteColor(String? colorHex) {
     if (colorHex == null || colorHex.isEmpty) return TrackletColors.primary;
@@ -141,6 +143,14 @@ class RouteSelectorCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (onSearchBuildings != null)
+                    IconButton(
+                      onPressed: onSearchBuildings,
+                      tooltip: 'Search campus buildings',
+                      icon: const Icon(TrackletIcons.search, size: 20),
+                      color: TrackletColors.adaptiveTextSecondary(context),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   AnimatedScale(
                     scale: (route != null && onClearRoute != null) ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 180),

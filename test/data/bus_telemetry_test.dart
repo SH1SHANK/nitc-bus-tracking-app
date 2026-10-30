@@ -14,6 +14,14 @@ void main() {
 
         expect(BusTelemetry.interpolatePoint(from, to, 0.5).latitude, 11.3205);
         expect(BusTelemetry.interpolateHeading(359, 1, 0.5), 0);
+        expect(
+          BusTelemetry.interpolatePoint(
+            const GeoPoint(latitude: 10, longitude: 179.9),
+            const GeoPoint(latitude: 10, longitude: -179.9),
+            0.5,
+          ).longitude,
+          closeTo(-180, 1e-8),
+        );
       },
     );
 

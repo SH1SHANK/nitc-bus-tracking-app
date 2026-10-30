@@ -16,6 +16,12 @@ class AppConfig {
 
   static const bool isProduction = environment == 'production';
 
+  /// Opt in with `--dart-define=INCLUDE_SIMULATED_BUSES=true` for map testing.
+  /// Production builds always keep simulator rows out of rider results.
+  static const bool includeSimulatedBuses =
+      !isProduction &&
+      bool.fromEnvironment('INCLUDE_SIMULATED_BUSES', defaultValue: false);
+
   // Supabase Configuration
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
@@ -81,19 +87,6 @@ class AppConfig {
   static bool get isCaptchaConfigured =>
       captchaEnabled && captchaSiteKey.isNotEmpty;
 
-  // Map Tile Provider Configuration Boundary
-  // Note: OpenStreetMap standard tiles are provided as a dev fallback.
-  // In production, point MAP_TILE_URL_TEMPLATE to a dedicated tile server (MapTiler, Stadia, Protomaps, etc.)
-  static const String mapTileUrlTemplate = String.fromEnvironment(
-    'MAP_TILE_URL_TEMPLATE',
-    defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  );
-
-  static const String mapAttribution = String.fromEnvironment(
-    'MAP_ATTRIBUTION',
-    defaultValue: '© OpenStreetMap contributors',
-  );
-
   // Mapbox Configuration
   static const String mapboxPublicToken = String.fromEnvironment(
     'MAPBOX_PUBLIC_TOKEN',
@@ -134,50 +127,6 @@ class AppConfig {
   static bool get isMapboxConfigured =>
       effectiveMapboxPublicToken.trim().isNotEmpty;
 
-  /// Mapbox raster tile URL template for flutter_map TileLayer based on dark/light mode.
-  /// Converts `mapbox://styles/{owner}/{style_id}` into:
-  /// `https://api.mapbox.com/styles/v1/{owner}/{style_id}/tiles/256/{z}/{x}/{y}{r}?access_token={token}`
-  static String mapboxTileUrlTemplateForTheme(bool isDark) {
-    if (!isMapboxConfigured) return '';
-    final style = effectiveMapboxStyleUrlForTheme(isDark).trim();
-    String owner = 'mapbox';
-    String styleId = isDark ? 'dark-v11' : 'streets-v12';
-
-    if (style.startsWith('mapbox://styles/')) {
-      final path = style.substring('mapbox://styles/'.length);
-      final parts = path.split('/');
-      if (parts.length >= 2) {
-        owner = parts[0];
-        styleId = parts[1];
-      }
-    } else if (style.startsWith('http://') || style.startsWith('https://')) {
-      final uri = Uri.tryParse(style);
-      if (uri != null) {
-        final segments = uri.pathSegments;
-        final stylesIdx = segments.indexOf('styles');
-        if (stylesIdx != -1 && segments.length > stylesIdx + 2) {
-          final after = segments[stylesIdx + 1];
-          if (after == 'v1' && segments.length > stylesIdx + 3) {
-            owner = segments[stylesIdx + 2];
-            styleId = segments[stylesIdx + 3];
-          } else {
-            owner = segments[stylesIdx + 1];
-            styleId = segments[stylesIdx + 2];
-          }
-        }
-      }
-    }
-
-    final token = effectiveMapboxPublicToken.trim();
-    return 'https://api.mapbox.com/styles/v1/$owner/$styleId/tiles/256/{z}/{x}/{y}{r}?access_token=$token';
-  }
-
-  static String get mapboxTileUrlTemplate =>
-      mapboxTileUrlTemplateForTheme(false);
-
-  static const String mapboxAttribution =
-      '© Mapbox © OpenStreetMap contributors';
-
   // Fastify Telemetry & Admin Backend Configuration
   static const String _backendUrl = String.fromEnvironment(
     'BACKEND_URL',
@@ -186,12 +135,6 @@ class AppConfig {
 
   static String get backendUrl =>
       isValidServiceUrl(_backendUrl, environment) ? _backendUrl : '';
-
-  // Hardware Simulator Credentials (from Flutter Android App Workbench)
-  static const String defaultSimulatorDeviceId = 'NITC-BUS-SIM-001';
-  static const String defaultSimulatorSecret =
-      'SimTrackerSecureKey2026_NitcPass#1';
-  static const String defaultSimulatorBusNumber = 'BUS-SIM-001';
 
   // Campus Geolocation Anchor (NITC Campus Center: 11.3216, 75.9337)
   static const double campusCenterLat = 11.3216;

@@ -17,6 +17,7 @@ class MapLabelFeature {
     required this.kind,
     this.isRouteStop = false,
     this.isSelected = false,
+    this.isPriorityLandmark = false,
   });
 
   final String id;
@@ -25,6 +26,7 @@ class MapLabelFeature {
   final MapLabelKind kind;
   final bool isRouteStop;
   final bool isSelected;
+  final bool isPriorityLandmark;
 }
 
 enum MapBaseLayerTreatment {
@@ -44,10 +46,38 @@ abstract final class TrackletMapCartography {
   static const String stopLabelSourceId = 'tracklet-stop-labels';
 
   static const String campusBuildingLabelsLayerId =
-      'tracklet-campus-building-labels';
+      priorityBuildingLabelsLayerId;
   static const String otherStopLabelsLayerId = 'tracklet-other-stop-labels';
   static const String routeStopLabelsLayerId = 'tracklet-route-stop-labels';
   static const String selectedStopLabelLayerId = 'tracklet-selected-stop-label';
+  static const String selectedBuildingHaloLayerId =
+      'tracklet-selected-building-halo';
+  static const String selectedBuildingLabelLayerId =
+      'tracklet-selected-building-label';
+  static const String priorityBuildingLabelsLayerId =
+      'tracklet-priority-building-labels';
+  static const String secondaryBuildingLabelsLayerId =
+      'tracklet-secondary-building-labels';
+
+  static const _priorityLandmarkNames = {
+    'main building',
+    'main gate',
+    'central library',
+    'administrative block',
+    'guest house',
+    'auditorium',
+    'gymkhana',
+    'mega hostel',
+    'rajpath',
+    'nlhc',
+    'elhc',
+    'bhaskara',
+  };
+
+  static bool isPriorityLandmark(String name) {
+    final normalized = name.toLowerCase();
+    return _priorityLandmarkNames.any(normalized.contains);
+  }
 
   /// Classifies the currently loaded style layer from its runtime metadata.
   /// This deliberately avoids assumptions about version-specific layer IDs.
@@ -76,26 +106,41 @@ abstract final class TrackletMapCartography {
     return MapBaseLayerTreatment.preserve;
   }
 
-  static Map<String, Object> layerOverrides(MapBaseLayerTreatment treatment) {
+  static Map<String, Object> layerOverrides(
+    MapBaseLayerTreatment treatment, {
+    bool isDark = false,
+  }) {
     return switch (treatment) {
       MapBaseLayerTreatment.warmBackground => {
-        'background-color': _hex(TrackletColors.mapCanvas),
+        'background-color': _hex(
+          isDark ? TrackletColors.mapCanvasDark : TrackletColors.mapCanvas,
+        ),
       },
       MapBaseLayerTreatment.warmLand => {
-        'fill-color': _hex(TrackletColors.mapLand),
+        'fill-color': _hex(
+          isDark ? TrackletColors.mapLandDark : TrackletColors.mapLand,
+        ),
       },
       MapBaseLayerTreatment.campusBuildingFootprint => {
-        'fill-color': _hex(TrackletColors.mapBuilding),
-        'fill-opacity': 0.96,
-        'fill-outline-color': _hex(TrackletColors.mapBuildingOutline),
+        'fill-color': _hex(
+          isDark ? TrackletColors.mapBuildingDark : TrackletColors.mapBuilding,
+        ),
+        'fill-opacity': isDark ? 0.28 : 0.42,
+        'fill-outline-color': _hex(
+          isDark
+              ? TrackletColors.mapBuildingOutlineDark
+              : TrackletColors.mapBuildingOutline,
+        ),
       },
       MapBaseLayerTreatment.subtleRoad => {
-        'line-color': _hex(TrackletColors.mapRoad),
+        'line-color': _hex(
+          isDark ? TrackletColors.mapRoadDark : TrackletColors.mapRoad,
+        ),
         'line-opacity': 0.82,
       },
-      MapBaseLayerTreatment.preserve ||
-      MapBaseLayerTreatment.hideSymbols ||
-      MapBaseLayerTreatment.hideBuildingExtrusions => const {},
+      MapBaseLayerTreatment.hideSymbols => {'visibility': 'none'},
+      MapBaseLayerTreatment.hideBuildingExtrusions => {'visibility': 'none'},
+      MapBaseLayerTreatment.preserve => const {},
     };
   }
 
@@ -118,6 +163,7 @@ abstract final class TrackletMapCartography {
           'kind': label.kind.name,
           'routeStop': label.isRouteStop,
           'selected': label.isSelected,
+          'priority': label.isPriorityLandmark,
         },
       });
     }
@@ -129,26 +175,153 @@ abstract final class TrackletMapCartography {
   /// Stop layers follow building labels and are split by interaction priority.
   /// Selected labels allow overlap; ordinary labels yield through standard
   /// symbol collision placement instead of truncating database names.
-  static List<Map<String, Object?>> labelLayerDefinitions() => [
-    _symbolLayer(
-      id: campusBuildingLabelsLayerId,
-      source: campusBuildingSourceId,
-      minZoom: 15.5,
-      filter: const [
-        '==',
-        ['get', 'kind'],
-        'building',
+  static List<Map<String, Object?>> labelLayerDefinitions({
+    bool isDark = false,
+  }) => [
+    {
+      'id': selectedBuildingHaloLayerId,
+      'type': 'circle',
+      'source': campusBuildingSourceId,
+      'minzoom': 14,
+      'filter': [
+        'all',
+        [
+          '==',
+          ['get', 'kind'],
+          'building',
+        ],
+        [
+          '==',
+          ['get', 'selected'],
+          true,
+        ],
       ],
-      textColor: _hex(TrackletColors.mapBuildingLabel),
+      'paint': {
+        'circle-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14,
+          8,
+          18,
+          11,
+        ],
+        'circle-color': _hex(
+          isDark ? TrackletColors.primaryDark : TrackletColors.primary,
+        ),
+        'circle-opacity': 0.22,
+        'circle-stroke-color': _hex(
+          isDark ? TrackletColors.primaryDark : TrackletColors.primary,
+        ),
+        'circle-stroke-width': 2,
+      },
+    },
+    _symbolLayer(
+      id: selectedBuildingLabelLayerId,
+      source: campusBuildingSourceId,
+      minZoom: 14,
+      filter: const [
+        'all',
+        [
+          '==',
+          ['get', 'kind'],
+          'building',
+        ],
+        [
+          '==',
+          ['get', 'selected'],
+          true,
+        ],
+      ],
+      textColor: _hex(
+        isDark ? TrackletColors.primaryDark : TrackletColors.primary,
+      ),
       textSize: const [
         'interpolate',
         ['linear'],
         ['zoom'],
-        15.5,
+        14,
+        11,
+        18,
+        13,
+      ],
+      isDark: isDark,
+    ),
+    _symbolLayer(
+      id: priorityBuildingLabelsLayerId,
+      source: campusBuildingSourceId,
+      minZoom: 16.25,
+      filter: const [
+        'all',
+        [
+          '==',
+          ['get', 'kind'],
+          'building',
+        ],
+        [
+          '==',
+          ['get', 'selected'],
+          false,
+        ],
+        [
+          '==',
+          ['get', 'priority'],
+          true,
+        ],
+      ],
+      textColor: _hex(
+        isDark
+            ? TrackletColors.mapBuildingLabelDark
+            : TrackletColors.mapBuildingLabel,
+      ),
+      textSize: const [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        16.25,
         10,
         18,
         12,
       ],
+      isDark: isDark,
+    ),
+    _symbolLayer(
+      id: secondaryBuildingLabelsLayerId,
+      source: campusBuildingSourceId,
+      minZoom: 18.25,
+      filter: const [
+        'all',
+        [
+          '==',
+          ['get', 'kind'],
+          'building',
+        ],
+        [
+          '==',
+          ['get', 'selected'],
+          false,
+        ],
+        [
+          '==',
+          ['get', 'priority'],
+          false,
+        ],
+      ],
+      textColor: _hex(
+        isDark
+            ? TrackletColors.mapBuildingLabelDark
+            : TrackletColors.mapBuildingLabel,
+      ),
+      textSize: const [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        18.25,
+        10,
+        20,
+        12,
+      ],
+      isDark: isDark,
     ),
     _symbolLayer(
       id: otherStopLabelsLayerId,
@@ -172,7 +345,9 @@ abstract final class TrackletMapCartography {
           false,
         ],
       ],
-      textColor: _hex(TrackletColors.mapStopLabel),
+      textColor: _hex(
+        isDark ? TrackletColors.mapStopLabelDark : TrackletColors.mapStopLabel,
+      ),
       textSize: const [
         'interpolate',
         ['linear'],
@@ -182,6 +357,7 @@ abstract final class TrackletMapCartography {
         18,
         12,
       ],
+      isDark: isDark,
     ),
     _symbolLayer(
       id: routeStopLabelsLayerId,
@@ -205,7 +381,9 @@ abstract final class TrackletMapCartography {
           true,
         ],
       ],
-      textColor: _hex(TrackletColors.mapRouteStopLabel),
+      textColor: _hex(
+        isDark ? TrackletColors.primaryDark : TrackletColors.mapRouteStopLabel,
+      ),
       textSize: const [
         'interpolate',
         ['linear'],
@@ -233,7 +411,6 @@ abstract final class TrackletMapCartography {
           true,
         ],
       ],
-      textColor: _hex(TrackletColors.mapSelectedStopLabel),
       textSize: const [
         'interpolate',
         ['linear'],
@@ -245,6 +422,12 @@ abstract final class TrackletMapCartography {
       ],
       allowOverlap: true,
       ignorePlacement: true,
+      textColor: _hex(
+        isDark
+            ? TrackletColors.primaryDark
+            : TrackletColors.mapSelectedStopLabel,
+      ),
+      isDark: isDark,
     ),
   ];
 
@@ -262,6 +445,7 @@ abstract final class TrackletMapCartography {
     required List<Object> textSize,
     bool allowOverlap = false,
     bool ignorePlacement = false,
+    bool isDark = false,
   }) => {
     'id': id,
     'type': 'symbol',
@@ -272,12 +456,12 @@ abstract final class TrackletMapCartography {
       'text-field': ['get', 'name'],
       'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
       'text-size': textSize,
-      'text-max-width': 8,
-      'text-padding': 3,
+      'text-max-width': 10,
+      'text-padding': 4,
       'text-allow-overlap': allowOverlap,
       'text-ignore-placement': ignorePlacement,
       'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-      'text-radial-offset': 0.7,
+      'text-radial-offset': 0.75,
       'symbol-sort-key': [
         'case',
         [
@@ -288,18 +472,26 @@ abstract final class TrackletMapCartography {
         0,
         [
           '==',
-          ['get', 'routeStop'],
+          ['get', 'priority'],
           true,
         ],
         1,
+        [
+          '==',
+          ['get', 'routeStop'],
+          true,
+        ],
         2,
+        3,
       ],
     },
     'paint': {
       'text-color': textColor,
-      'text-halo-color': _hex(TrackletColors.mapCanvas),
-      'text-halo-width': 1.5,
-      'text-halo-blur': 0.2,
+      'text-halo-color': _hex(
+        isDark ? TrackletColors.mapCanvasDark : TrackletColors.mapCanvas,
+      ),
+      'text-halo-width': 2.0,
+      'text-halo-blur': 0.3,
     },
   };
 }

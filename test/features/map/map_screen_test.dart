@@ -17,12 +17,10 @@ import 'package:tracklet/data/transit/transit_repository.dart';
 import 'package:tracklet/features/home/providers/home_provider.dart';
 import 'package:tracklet/features/map/map_screen.dart';
 import 'package:tracklet/features/map/widgets/bus_detail_sheet.dart';
-import 'package:tracklet/features/map/widgets/bus_marker_widget.dart';
 import 'package:tracklet/features/map/widgets/map_controls.dart';
 import 'package:tracklet/features/map/widgets/route_selector_card.dart';
 import 'package:tracklet/features/map/widgets/route_stops_sheet.dart';
 import 'package:tracklet/features/map/widgets/stop_detail_sheet.dart';
-import 'package:tracklet/features/map/widgets/stop_marker_widget.dart';
 import 'package:tracklet/services/location/location_service.dart';
 import 'package:tracklet/services/maps/map_adapter.dart';
 import 'package:tracklet/services/maps/map_cartography.dart';
@@ -59,6 +57,7 @@ class TestCampusBuildingRepository implements CampusBuildingRepository {
         name: 'Main Building',
         location: GeoPoint(latitude: 11.32165, longitude: 75.934246),
         category: 'Academic',
+        description: 'Central campus administration',
       ),
     ];
   }
@@ -256,16 +255,24 @@ void main() {
       expect(find.byType(MapControls), findsOneWidget);
       expect(find.byType(RouteSelectorCard), findsOneWidget);
       expect(find.byType(RouteStopsSheet), findsOneWidget);
-      expect(find.byType(StopMarkerWidget), findsNWidgets(3));
-      final markers = tester.widgetList<StopMarkerWidget>(
-        find.byType(StopMarkerWidget),
+      final markers =
+          tester.widget<TrackletMapView>(find.byType(TrackletMapView)).markers;
+      expect(
+        markers.where((marker) => marker.id.startsWith('stop-')),
+        hasLength(3),
       );
       expect(
-        markers.singleWhere((marker) => marker.stop.id == 'stop-3').isRouteStop,
+        markers.singleWhere((marker) => marker.id == 'stop-3').isRouteStop,
         isFalse,
       );
-      expect(find.text('East Campus'), findsOneWidget);
-      expect(find.text('east_campus'), findsNothing);
+      expect(
+        markers.singleWhere((marker) => marker.id == 'stop-1').title,
+        'East Campus',
+      );
+      expect(
+        markers.singleWhere((marker) => marker.id == 'stop-1').subtitle,
+        'east_campus',
+      );
       expect(
         find.textContaining('Road-following path is not available yet'),
         findsNothing,
@@ -283,19 +290,54 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('East Campus'));
+      tester
+          .widget<TrackletMapView>(find.byType(TrackletMapView))
+          .markers
+          .singleWhere((marker) => marker.id == 'stop-1')
+          .onTap!
+          .call();
       await tester.pumpAndSettle();
 
       expect(find.byType(StopDetailSheet), findsOneWidget);
       expect(find.text('East campus bus shelter'), findsOneWidget);
       expect(find.text('east_campus'), findsOneWidget);
-      final markers = tester.widgetList<StopMarkerWidget>(
-        find.byType(StopMarkerWidget),
-      );
+      final markers =
+          tester.widget<TrackletMapView>(find.byType(TrackletMapView)).markers;
       expect(
-        markers.singleWhere((marker) => marker.stop.id == 'stop-1').isSelected,
+        markers.singleWhere((marker) => marker.id == 'stop-1').isSelected,
         isTrue,
       );
+    });
+
+    testWidgets('searching selects and highlights a campus building', (
+      tester,
+    ) async {
+      await tester.pumpTrackletWidget(
+        const MapScreen(),
+        overrides: [
+          transitRepositoryProvider.overrideWithValue(TestTransitRepository()),
+          campusBuildingRepositoryProvider.overrideWithValue(
+            TestCampusBuildingRepository(),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Search campus buildings'));
+      await tester.pumpAndSettle();
+      expect(find.text('Find a campus building'), findsOneWidget);
+      await tester.tap(find.text('Main Building'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Main Building'), findsOneWidget);
+      expect(find.text('Academic'), findsOneWidget);
+      expect(find.text('Central campus administration'), findsOneWidget);
+      final building = tester
+          .widget<TrackletMapView>(find.byType(TrackletMapView))
+          .labels
+          .singleWhere((label) => label.id == 'building-building-main');
+      expect(building.isSelected, isTrue);
+      expect(building.point.latitude, 11.32165);
     });
 
     testWidgets('route picker switches to a database-provided route', (
@@ -481,8 +523,13 @@ void main() {
 
         expect(find.byType(RouteStopsSheet), findsOneWidget);
 
-        // Tap East Campus stop marker to open StopDetailSheet
-        await tester.tap(find.text('East Campus'));
+        // Trigger the same callback Mapbox calls after a rendered-feature hit.
+        tester
+            .widget<TrackletMapView>(find.byType(TrackletMapView))
+            .markers
+            .singleWhere((marker) => marker.id == 'stop-1')
+            .onTap!
+            .call();
         await tester.pumpAndSettle();
 
         expect(find.byType(StopDetailSheet), findsOneWidget);
@@ -587,7 +634,7 @@ void main() {
       final repository = TestTransitRepository();
 
       await tester.pumpTrackletWidget(
-        const MapScreen(),
+        const MapScreen(busBodyColors: {'bus-sim-1': Color(0xff2684ff)}),
         overrides: [
           transitRepositoryProvider.overrideWithValue(repository),
           activeBusesStreamProvider.overrideWith(
@@ -597,9 +644,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(BusMarkerWidget), findsOneWidget);
+      final map = tester.widget<TrackletMapView>(find.byType(TrackletMapView));
+      expect(
+        map.markers.where((marker) => marker.id.startsWith('bus-')),
+        hasLength(1),
+      );
+      final busMarker = map.markers.singleWhere(
+        (marker) => marker.id == 'bus-bus-sim-1',
+      );
+      expect(busMarker.show3dModel, isTrue);
+      expect(busMarker.busBodyColor, const Color(0xff2684ff));
 
-      await tester.tap(find.byType(BusMarkerWidget));
+      busMarker.onTap!.call();
       await tester.pumpAndSettle();
 
       expect(find.byType(BusDetailSheet), findsOneWidget);
@@ -699,7 +755,13 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap bus and follow it
-        await tester.tap(find.byType(BusMarkerWidget));
+        final map = tester.widget<TrackletMapView>(
+          find.byType(TrackletMapView),
+        );
+        map.markers
+            .singleWhere((marker) => marker.id == 'bus-bus-follow-test')
+            .onTap!
+            .call();
         await tester.pumpAndSettle();
         await tester.tap(find.text('More detail'));
         await tester.pumpAndSettle();
@@ -812,7 +874,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.byType(BusMarkerWidget), findsNothing);
+        expect(
+          tester
+              .widget<TrackletMapView>(find.byType(TrackletMapView))
+              .markers
+              .where((marker) => marker.id.startsWith('bus-')),
+          isEmpty,
+        );
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MapScreen)),
