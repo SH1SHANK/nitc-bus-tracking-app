@@ -2,7 +2,6 @@ import 'package:tracklet/design_system/tokens/typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../design_system/components/icons/tracklet_icons.dart';
 import '../../../design_system/components/tracklet_button.dart';
 import '../../../design_system/tokens/colors.dart';
@@ -40,12 +39,7 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
   @override
   void initState() {
     super.initState();
-    final isSimulator =
-        widget.deviceId == AppConfig.defaultSimulatorDeviceId ||
-        widget.deviceId.toUpperCase().contains('SIM');
-    _secretController = TextEditingController(
-      text: isSimulator ? AppConfig.defaultSimulatorSecret : '',
-    );
+    _secretController = TextEditingController();
   }
 
   @override
@@ -87,10 +81,6 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isSimulator =
-        widget.deviceId == AppConfig.defaultSimulatorDeviceId ||
-        widget.deviceId.toUpperCase().contains('SIM');
-
     return AlertDialog(
       shape: const RoundedRectangleBorder(
         borderRadius: TrackletRadii.roundedLg,
@@ -137,37 +127,6 @@ class _TestPingDialogState extends ConsumerState<TestPingDialog> {
                 ),
               ),
               const SizedBox(height: TrackletSpacing.md),
-              if (isSimulator)
-                Container(
-                  padding: const EdgeInsets.all(TrackletSpacing.compactMd),
-                  margin: const EdgeInsets.only(bottom: TrackletSpacing.md),
-                  decoration: BoxDecoration(
-                    color: TrackletColors.primary.withValues(alpha: 0.08),
-                    borderRadius: TrackletRadii.roundedSm,
-                    border: Border.all(
-                      color: TrackletColors.primary.withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        TrackletIcons.checkCircle,
-                        size: 16,
-                        color: TrackletColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Pre-filled with verified hardware test credentials from simulator workbench.',
-                          style: TextStyle(
-                            fontSize: TrackletTypography.fontSize12,
-                            color: TrackletColors.adaptiveTextPrimary(context),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               TextFormField(
                 controller: _secretController,
                 obscureText: _obscureSecret,

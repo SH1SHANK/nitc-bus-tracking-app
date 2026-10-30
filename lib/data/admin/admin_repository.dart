@@ -52,16 +52,6 @@ abstract class AdminRepository {
     required String secret,
   });
 
-  /// Injects a live GPS fix into the Fastify backend / Supabase pipeline.
-  Future<Map<String, dynamic>> injectSimulatedTelemetry({
-    required String deviceId,
-    required String secret,
-    required double latitude,
-    required double longitude,
-    required double speed,
-    required double heading,
-  });
-
   /// Retrieves chronological audit logs.
   Future<List<AdminAuditLog>> getAuditLogs({int limit = 50});
 
@@ -473,102 +463,6 @@ class HttpAdminRepository implements AdminRepository {
       data['latency_ms'] = sw.elapsedMilliseconds;
       data['http_status'] = res.statusCode;
       return data;
-    } catch (e) {
-      sw.stop();
-      return {
-        'ok': false,
-        'code': 'NETWORK_ERROR',
-        'message': e.toString(),
-        'latency_ms': sw.elapsedMilliseconds,
-        'http_status': 503,
-      };
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> injectSimulatedTelemetry({
-    required String deviceId,
-    required String secret,
-    required double latitude,
-    required double longitude,
-    required double speed,
-    required double heading,
-  }) async {
-    final sw = Stopwatch()..start();
-    try {
-      // 1. Authenticate device and acquire Bearer JWT
-      final authRes = await _client
-          .post(
-            Uri.parse('$_baseUrl/api/v1/auth/device'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'device_id': deviceId.trim(),
-              'secret': secret.trim(),
-            }),
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (authRes.statusCode != 200) {
-        sw.stop();
-        final err = jsonDecode(authRes.body) as Map<String, dynamic>;
-        return {
-          'ok': false,
-          'code': err['code'] ?? 'AUTH_FAILED',
-          'message': err['message'] ?? 'Authentication failed',
-          'http_status': authRes.statusCode,
-          'latency_ms': sw.elapsedMilliseconds,
-        };
-      }
-
-      final authData = jsonDecode(authRes.body) as Map<String, dynamic>;
-      final token = authData['token'] as String?;
-      if (token == null) {
-        throw Exception('No JWT token received from backend');
-      }
-
-      // 2. Fetch current epoch and sequence from bus_current_state
-      int epoch = 1;
-      int seq = 1;
-      final stateRes =
-          await _clientOrThrow
-              .from('bus_current_state')
-              .select('epoch, seq')
-              .eq('device_id', deviceId.trim())
-              .maybeSingle();
-      if (stateRes != null) {
-        epoch = (stateRes['epoch'] as num?)?.toInt() ?? 1;
-        seq = ((stateRes['seq'] as num?)?.toInt() ?? 0) + 1;
-      }
-
-      // 3. Post telemetry fix
-      final fixRes = await _client
-          .post(
-            Uri.parse('$_baseUrl/api/v1/telemetry'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode({
-              'device_id': deviceId.trim(),
-              'epoch': epoch,
-              'seq': seq,
-              'timestamp': DateTime.now().toUtc().toIso8601String(),
-              'latitude': double.parse(latitude.toStringAsFixed(6)),
-              'longitude': double.parse(longitude.toStringAsFixed(6)),
-              'speed': double.parse(speed.toStringAsFixed(1)),
-              'heading': double.parse((heading % 360).toStringAsFixed(1)),
-              'accuracy': 4.5,
-            }),
-          )
-          .timeout(const Duration(seconds: 15));
-      sw.stop();
-
-      final fixData = jsonDecode(fixRes.body) as Map<String, dynamic>;
-      fixData['latency_ms'] = sw.elapsedMilliseconds;
-      fixData['seq'] = seq;
-      fixData['epoch'] = epoch;
-      fixData['http_status'] = fixRes.statusCode;
-      return fixData;
     } catch (e) {
       sw.stop();
       return {

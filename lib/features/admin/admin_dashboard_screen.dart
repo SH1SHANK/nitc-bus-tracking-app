@@ -15,7 +15,6 @@ import 'providers/admin_provider.dart';
 import 'widgets/add_admin_dialog.dart';
 import 'widgets/bus_speed_bar_chart.dart';
 import 'widgets/fleet_status_donut_chart.dart';
-import 'widgets/hardware_workbench_card.dart';
 import 'widgets/register_device_dialog.dart';
 import 'widgets/rotate_secret_dialog.dart';
 import 'widgets/telemetry_throughput_chart.dart';
@@ -459,10 +458,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
               ),
               const SizedBox(height: 16),
 
-              // Hardware Simulation & Gateway Workbench Card
-              const HardwareWorkbenchCard(),
-              const SizedBox(height: 24),
-
               const Text(
                 'QUICK ACTIONS',
                 style: TextStyle(
@@ -540,11 +535,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
       data: (devices) {
         final totalActive = devices.where((d) => d.isActive).length;
         final totalInactive = devices.where((d) => !d.isActive).length;
-        final totalSim =
-            devices
-                .where((d) => d.deviceId.toLowerCase().contains('sim'))
-                .length;
-
         final query = _deviceSearchController.text.trim().toLowerCase();
         final filtered =
             devices.where((d) {
@@ -552,10 +542,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                 return false;
               }
               if (_selectedDeviceFilter == 'inactive' && d.isActive) {
-                return false;
-              }
-              if (_selectedDeviceFilter == 'simulated' &&
-                  !d.deviceId.toLowerCase().contains('sim')) {
                 return false;
               }
               if (query.isEmpty) return true;
@@ -624,8 +610,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   _buildDeviceFilterChip('Active', 'active', totalActive),
                   const SizedBox(width: 8),
                   _buildDeviceFilterChip('Inactive', 'inactive', totalInactive),
-                  const SizedBox(width: 8),
-                  _buildDeviceFilterChip('Simulated', 'simulated', totalSim),
                 ],
               ),
             ),

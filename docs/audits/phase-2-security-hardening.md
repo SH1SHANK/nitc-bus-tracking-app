@@ -96,7 +96,7 @@ Fastify’s logger redacts `req.headers.authorization`; route logs inspected con
 
 Before deployment, operations must:
 
-1. Provision the HMAC secret (at least 32 bytes) in both Edge Function environment as `SIMULATOR_CRON_HMAC_SECRET` and Supabase Vault as `telemetry_simulator_hmac_secret`. Store the gateway JWT in Vault as `telemetry_simulator_gateway_jwt`; use the project’s public anon/publishable JWT only for gateway validation, never as the HMAC secret.
+1. Provision the HMAC secret (at least 32 bytes) in both Edge Function environment as `SIMULATOR_CRON_HMAC_SECRET` and Supabase Vault as `telemetry_simulator_hmac_secret`. Store a gateway-accepted anon JWT in Vault as `telemetry_simulator_gateway_jwt` for the `apikey` and `Authorization` headers; never use a service-role credential for this gateway field or use the anon JWT as the HMAC secret.
 2. Create/identify dedicated simulator bus rows and set `is_simulation=true` only for those rows. Pre-provision active device rows assigned to those buses through the authorized device-management process; the simulator does not register or reassign devices.
 3. Set `SIMULATOR_FLEET_JSON` and `RENDER_API_URL` in trusted Edge Function secrets/configuration. Fleet records must contain only the pre-provisioned SIM buses/devices and their device secrets. Keep these values out of SQL, URLs, logs, and the Flutter bundle.
 4. Deploy the secured Edge Function/configuration first. Until the nonce RPC exists, valid signed requests fail closed; the old cron’s headerless requests are rejected by the new gateway JWT requirement.
@@ -139,20 +139,20 @@ No dependency manifest, lockfile, build output, secret, signing value, or produc
 | `flutter analyze` | **Passed** — no issues found. |
 | `flutter test test/core/config/app_config_test.dart --reporter compact` | **Passed** — 4 config tests passed. |
 | `deno test supabase/functions/telemetry-simulator/security_test.ts` | **Passed** — 3 tests: missing/invalid credentials and user JWT denial before nonce storage; expired/malformed/extra-field rejection; valid scheduled signature and replay denial. |
-| `deno check --config supabase/functions/deno.json supabase/functions/telemetry-simulator/index.ts supabase/functions/telemetry-simulator/security_test.ts` | **Passed** — TypeScript check exited 0 after resolving cached dependencies and strict null checks in `index.ts`. |
+| `deno check --config supabase/functions/deno.json supabase/functions/telemetry-simulator/index.ts supabase/functions/telemetry-simulator/security_test.ts` | **Not verified** — blocked by an uncached `@supabase/realtime-js@2.118.0` dependency. No dependency installation was performed. |
 | `npm test` | **Passed** — 7 test files, 45 tests. |
 | `npm run typecheck` | **Passed** — TypeScript check exited 0. |
 | `npm run build` | **Passed** — TypeScript production build exited 0. |
 | `bash -n scripts/vercel-build.sh` | **Passed** — shell syntax valid. |
 | `env -u TRACKLET_ENVIRONMENT -u ENVIRONMENT -u VERCEL_ENV -u SUPABASE_URL -u SUPABASE_ANON_KEY bash scripts/vercel-build.sh` | **Expected rejection** — exit 1 before dependency/build steps because environment selection is missing. |
-| `supabase migration up --local` | **Passed** — applied migration `20261018083234` to the running local Supabase database only. |
-| `supabase db query --local --file supabase/tests/simulator_security_test.sql` | **Passed** — SQL assertion block returned `DO`. |
+| `supabase migration up --local` | **Passed with caveat** — applied migration `20261018083234` to the local database before the final edit that raised the HMAC secret minimum from nonempty to 32 bytes. The final migration file revision was not applied locally. |
+| `supabase db query --local --file supabase/tests/simulator_security_test.sql` | **Passed with caveat** — SQL assertions returned `DO` against the applied local migration revision, before the final HMAC minimum-length edit. |
 | `supabase db query --local --file supabase/tests/rider_telemetry_access_test.sql` | **Passed** — existing rider-access SQL assertion block returned `DO`. |
 | `supabase db test --local supabase/tests/simulator_security_test.sql supabase/tests/rider_telemetry_access_test.sql` | **Not a usable runner for these files** — exit 1, because the repository tests are `DO` assertion scripts, not pgTAP tests with TAP plans; runner reported zero tests/no plan. Both files were then executed successfully with `supabase db query --local --file`. |
-| `supabase db query --local --file supabase/migrations/20261018083234_secure_telemetry_simulator_scheduler.sql` | **CLI limitation** — exit 1: this query command prepares one statement and rejects a multi-statement migration. The migration had already been applied successfully using `supabase migration up --local`; the later edit only tightened the HMAC minimum-length check from nonempty to 32 bytes. |
-| `git diff --check` | **Passed** in both repositories. |
+| `supabase db query --local --file supabase/migrations/20261018083234_secure_telemetry_simulator_scheduler.sql` | **CLI limitation** — exit 1: this query command prepares one statement and rejects a multi-statement migration. The final migration file revision has not been reapplied. |
+| `git diff --check` | **Passed at implementation verification time** in both repositories. The current app and backend worktrees contain subsequent unrelated user edits; current check reports a trailing blank line in `docs/telemetry-integration-changelog.md`, which was not changed for this phase. |
 
-Flutter invoked package resolution during its test/analyze commands. No package manifest or lockfile changes remain. The local SQL test ran against the local Supabase container, not the linked production database.
+Flutter invoked package resolution during its test/analyze commands. At implementation verification time, no package manifest or lockfile changes remained. The local SQL test ran against the local Supabase container, not the linked production database; that container is now stopped, so the final SQL migration revision could not be reapplied or retested during continuation.
 
 ## 10. Rollback considerations
 
@@ -160,11 +160,12 @@ Do not restore the previous Edge Function revision or `verify_jwt=false`; that w
 
 ## 11. Remaining risks and unverified work
 
+- **Follow-up simulator removal is source-only and not deployed.** The Flutter workbench and hard-coded device credentials, Edge Function source, backend CLI simulator, and simulator cron/RPC objects are removed or scheduled for removal in the new migration. Production cron/function state is unchanged until the migration is applied and the hosted Edge Function is deleted; no production operation occurred.
 - **Production remains exposed until secured Edge Function source/configuration is deployed.** Current live version 9 was read-only observed with `verify_jwt=false`; no production call was made.
 - The deployed backend revision, deployed environment variables, and current Render role/rate-limit configuration were not verified.
 - Vault secret presence/values, Edge Function secret presence, cron job state/history, and actual simulation-device provisioning were not inspected. Their values are intentionally not reported.
-- The migration has been applied and tested on the local Supabase stack only; the new migration remains unapplied in the live project.
-- Deno static type checking (`deno check --config supabase/functions/deno.json`) and security unit tests passed with 0 errors. Full Edge Function execution was verified against the Deno runtime with mock clients.
-- The local SQL assertions verify grants, RLS, nonce replay, and projection definitions. No production catalog query or write was performed.
+- The migration remains unapplied in the live project. The final SQL file revision differs from the version applied to the now-stopped local stack only in the 32-byte HMAC minimum check; reapply and rerun SQL assertions against an isolated local stack before release.
+- Deno security unit tests passed; Deno static type checking is not verified because the required package was not cached and dependency installation was avoided. Full deployed Edge Function behavior has not been exercised.
+- The local SQL assertions verified grants, RLS, nonce replay, and projection definitions for the locally applied revision. No production catalog query or write was performed.
 - `stable`/feature-branch divergence means the Fastify filter is not on the documented production release branch yet.
 - F-02 and F-03 remain intentionally deferred. No production deployment occurred.

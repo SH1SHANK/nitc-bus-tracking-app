@@ -3,7 +3,7 @@ import { corsHeaders } from "./cors.ts";
 /**
  * Validates that an incoming worker request is authorized to perform privileged tasks.
  * Authorized callers must provide either:
- *  1. An `x-scheduler-secret` header matching `Deno.env.get("SCHEDULER_SECRET")` (or `TELEMETRY_SIMULATOR_HMAC_SECRET`), OR
+ *  1. An `x-scheduler-secret` header matching `Deno.env.get("SCHEDULER_SECRET")`, OR
  *  2. An `Authorization: Bearer <service_role_key>` header matching `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")`.
  *
  * Regular authenticated user JWTs will fail this check and receive 403 Forbidden.

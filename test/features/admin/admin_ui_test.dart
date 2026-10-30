@@ -205,18 +205,6 @@ class FakeAdminRepository implements AdminRepository {
       'message': 'Session reset successfully',
     };
   }
-
-  @override
-  Future<Map<String, dynamic>> injectSimulatedTelemetry({
-    required String deviceId,
-    required String secret,
-    required double latitude,
-    required double longitude,
-    required double speed,
-    required double heading,
-  }) async {
-    return {'ok': true, 'seq': 51, 'latency_ms': 35, 'http_status': 200};
-  }
 }
 
 void main() {
@@ -269,16 +257,11 @@ void main() {
       expect(find.text('Total Trackers'), findsOneWidget);
       expect(find.text('Fleet Tracker Distribution'), findsOneWidget);
 
-      // Drag down to reveal throughput and hardware workbench charts
+      // Drag down to reveal throughput chart.
       await tester.drag(find.byType(ListView).first, const Offset(0, -600));
       await tester.pumpAndSettle();
 
       expect(find.text('Telemetry Ingestion Throughput'), findsOneWidget);
-
-      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Live Hardware & Telemetry Workbench'), findsOneWidget);
     });
 
     testWidgets(
@@ -300,7 +283,6 @@ void main() {
         expect(find.text('All (1)'), findsOneWidget);
         expect(find.text('Active (1)'), findsOneWidget);
         expect(find.text('Inactive (0)'), findsOneWidget);
-        expect(find.text('Simulated (0)'), findsOneWidget);
 
         // Check device details
         expect(find.text('NITC-BUS-001'), findsOneWidget);

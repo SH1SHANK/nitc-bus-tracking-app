@@ -10,7 +10,7 @@ The Tracklet hardware tier consists of dedicated tracking units installed perman
 
 | Component | Model / Specification | Interface / Protocol | Configuration Source | Verification Status |
 |---|---|---|---|---|
-| **Microcontroller (MCU)** | ESP32-WROOM-32 (Dual-Core Xtensa @ 240 MHz, 520 KB SRAM, 4 MB Flash) | SPI / UART / I2C | Inferred from codebase docs & simulator scripts | **Inferred** |
+| **Microcontroller (MCU)** | ESP32-WROOM-32 (Dual-Core Xtensa @ 240 MHz, 520 KB SRAM, 4 MB Flash) | SPI / UART / I2C | Inferred from codebase documentation | **Inferred** |
 | **GNSS Receiver** | u-blox NEO-6M / NEO-8M or Quectel L76K (NMEA 0183 output) | Hardware UART (e.g., UART2, 9600 / 115200 baud) | NMEA sentences (`$GPRMC`, `$GPGGA`) | **Inferred** |
 | **Cellular Modem** | SIMCom SIM800L (2G GPRS) or SIM7600E (4G LTE Cat-1) | AT commands over UART | APN configuration in firmware | **Inferred** |
 | **Non-Volatile Storage** | ESP32 Internal Flash (SPIFFS / LittleFS / NVS partition) | SPI Flash Controller | Circular FIFO queue for offline batch storage | **Confirmed by API Batch Contract** |
@@ -93,7 +93,7 @@ sequenceDiagram
 
 1. **Hardware Device ID (`device_id`):**
    - Text string, 3 to 64 alphanumeric characters (plus hyphens/underscores).
-   - Format convention: `NITC-BUS-001`, `NITC-BUS-002`, `SIMULATOR-001`.
+   - Format convention: `NITC-BUS-001`, `NITC-BUS-002`.
    - Primary identifier stored in `devices.device_id` and included in JWT `sub` claim.
 2. **Device Secret:**
    - High-entropy pre-shared key (PSK) provisioned into hardware flash during manufacturing/installation.
