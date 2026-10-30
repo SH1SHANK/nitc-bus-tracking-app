@@ -350,13 +350,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             )
             : const Profile(
               id: 'user-nitc-student',
-              name: 'Shashank Mergu',
-              email: 'shashank@nitc.ac.in',
-              rollNumber: 'B210000CS',
-              semester: 'Semester 6',
-              branch: 'Computer Science & Engineering',
-              batch: '2026',
-              hostel: 'MBH II',
+              name: 'Student',
+              username: 'student',
+              email: 'student@nitc.ac.in',
             ));
 
     return PopScope<Object?>(
@@ -475,7 +471,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        isGuest ? 'Guest Rider' : profile.name,
+                                        isGuest
+                                            ? 'Guest Rider'
+                                            : (profile.username != null &&
+                                                    profile
+                                                        .username!
+                                                        .trim()
+                                                        .isNotEmpty
+                                                ? '@${profile.username}'
+                                                : profile.name),
                                         style: TrackletFonts.outfit(
                                           fontSize:
                                               TrackletTypography.fontSize18,
@@ -492,8 +496,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                     if (!isGuest)
                                       InkWell(
                                         onTap:
-                                            () => ChangeDisplayNameDialog.show(
+                                            () => ChangeUsernameDialog.show(
                                               context,
+                                              currentUsername:
+                                                  profile.username ?? '',
                                             ),
                                         borderRadius: TrackletRadii.roundedFull,
                                         child: Container(
@@ -546,8 +552,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                                       child: Text(
                                         isGuest
                                             ? 'Guest Account'
-                                            : (profile.rollNumber ??
-                                                'Student Account'),
+                                            : (profile.username != null &&
+                                                    profile
+                                                        .username!
+                                                        .trim()
+                                                        .isNotEmpty
+                                                ? '@${profile.username}'
+                                                : 'Student Account'),
                                         style: TrackletFonts.robotoMono(
                                           fontSize:
                                               TrackletTypography.fontSize11,
@@ -620,10 +631,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: TrackletSpacing.compactLg),
-                      _buildDivider(context),
-                      const SizedBox(height: TrackletSpacing.md),
-                      if (isGuest)
+                      if (isGuest) ...[
+                        const SizedBox(height: TrackletSpacing.compactLg),
+                        _buildDivider(context),
+                        const SizedBox(height: TrackletSpacing.md),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -645,30 +656,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                               ),
                             ),
                           ],
-                        )
-                      else
-                        Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: [
-                            _buildAcademicPill(
-                              icon: TrackletIcons.graduationCap,
-                              label: profile.semester,
-                            ),
-                            _buildAcademicPill(
-                              icon: TrackletIcons.gitBranch,
-                              label: profile.branch,
-                            ),
-                            _buildAcademicPill(
-                              icon: TrackletIcons.calendar,
-                              label: 'Batch ${profile.batch}',
-                            ),
-                            _buildAcademicPill(
-                              icon: TrackletIcons.building,
-                              label: profile.hostel,
-                            ),
-                          ],
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -1042,7 +1031,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         onTap:
                             () => _launchEmail(
                               'BusTracker Issue Report - [Bus / Route]',
-                              'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.rollNumber ?? "N/A"})',
+                              'Hi Transport Committee,\n\nI noticed an issue with campus transit:\n- Route / Bus: \n- Stop Location: \n- Description:\n\nStudent: ${profile.name} (${profile.username != null ? "@${profile.username}" : profile.email})',
                             ),
                       ),
                       _buildDivider(context),
@@ -1206,36 +1195,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
-  Widget _buildAcademicPill({required IconData icon, required String label}) {
-    final isDark = TrackletColors.isDark(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TrackletSpacing.compactMd,
-        vertical: TrackletSpacing.compact,
-      ),
-      decoration: BoxDecoration(
-        color:
-            isDark
-                ? TrackletColors.darkSurfaceElevated
-                : TrackletColors.background,
-        borderRadius: TrackletRadii.roundedSm,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14.0, color: TrackletColors.primary),
-          const SizedBox(width: TrackletSpacing.compact),
-          Text(
-            label,
-            style: TrackletTypography.bodySmall.copyWith(
-              fontWeight: TrackletTypography.weightSemiBold,
-              color: TrackletColors.adaptiveTextPrimary(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildLocationStatusBadge(LocationPermissionState state) {
     final (label, bgColor, fgColor) = switch (state) {

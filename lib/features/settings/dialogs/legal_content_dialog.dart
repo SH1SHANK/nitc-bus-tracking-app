@@ -231,8 +231,7 @@ Tracklet is built with gratitude to the open-source software community:
 - **flutter_riverpod**: A reactive caching and state-management framework for Dart and Flutter.
 - **go_router**: A declarative routing package for Flutter.
 - **supabase_flutter**: Flutter client for Supabase authentication, database, and realtime updates.
-- **flutter_map & latlong2**: Map rendering toolkit for Leaflet/OSM layers.
-- **flutter_map_mbtiles**: Offline MBTiles raster map provider.
+- **Mapbox Maps SDK for Flutter**: Cross-platform map rendering on Android and web.
 - **geolocator**: Cross-platform geolocation plugin.
 - **Outfit / Satoshi**: Open-source typography typefaces bundled with Tracklet.
 - **moon_design**: Cohesive UI component kit.

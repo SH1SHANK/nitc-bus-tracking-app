@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../services/storage/storage_service.dart';
 import '../supabase/supabase_client_provider.dart';
 import '../transit/transit_cache_metrics.dart';
 import 'profile.dart';
@@ -15,9 +18,13 @@ abstract class ProfileRepository {
 }
 
 class LocalOrSupabaseProfileRepository implements ProfileRepository {
-  LocalOrSupabaseProfileRepository(this._supabase);
+  LocalOrSupabaseProfileRepository(this._supabase, {StorageService? storageService})
+      : _storageService = storageService;
 
   final SupabaseClient? _supabase;
+  final StorageService? _storageService;
+  static const String _persistentProfileKey = 'tracklet_user_profile_cache';
+
   Profile? _cachedProfile;
   String? _cachedUserId;
   Future<Profile>? _inFlightProfile;
@@ -99,6 +106,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         _cachedProfile = Profile(
           id: currentUser.id,
           name: 'Guest Rider',
+          username: 'guest',
           email: '',
           role: 'Guest',
           hasCompletedOnboarding: true,
@@ -109,6 +117,25 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
       if (_cachedProfile != null) {
         TransitCacheMetrics.instance.recordHit('profile');
         return _cachedProfile!;
+      }
+
+      // Restore from persistent disk cache immediately for blazing loading speed
+      if (_storageService != null) {
+        final raw = _storageService.getString(_persistentProfileKey);
+        if (raw != null && raw.isNotEmpty) {
+          try {
+            final map = jsonDecode(raw) as Map<String, dynamic>;
+            if (map['id'] == currentUser.id) {
+              _cachedProfile = Profile.fromJson(map);
+              TransitCacheMetrics.instance.recordHit('profile');
+              // Background revalidate
+              _inFlightProfile = _fetchProfile(client, currentUser).whenComplete(() {
+                _inFlightProfile = null;
+              });
+              return _cachedProfile!;
+            }
+          } catch (_) {}
+        }
       }
 
       final inFlight = _inFlightProfile;
@@ -129,6 +156,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
         const Profile(
           id: 'guest',
           name: 'Student',
+          username: 'student',
           email: 'student@nitc.ac.in',
           role: 'Student',
           hasCompletedOnboarding: false,
@@ -142,6 +170,14 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
       if (data is List && data.isNotEmpty) {
         final row = Map<String, dynamic>.from(data.first as Map);
         _cachedProfile = _mapRowToProfile(row, currentUser);
+        if (_storageService != null) {
+          try {
+            await _storageService.setString(
+              _persistentProfileKey,
+              jsonEncode(_cachedProfile!.toJson()),
+            );
+          } catch (_) {}
+        }
         return _cachedProfile!;
       }
       throw StateError('Authenticated profile record was not returned.');
@@ -154,6 +190,7 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
   void invalidateCache() {
     _cachedProfile = null;
     _inFlightProfile = null;
+    _storageService?.remove(_persistentProfileKey);
   }
 
   @override
@@ -173,9 +210,6 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
           'update_my_profile',
           params: {
             'p_full_name': profile.name,
-            'p_department_id': _departmentNameToId(profile.department),
-            'p_batch': profile.batch,
-            'p_hostel': profile.hostel,
             'p_notification_prefs': {
               'location_permission_granted': profile.locationPermissionGranted,
             },
@@ -184,6 +218,14 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
           },
         );
         _cachedProfile = profile;
+        if (_storageService != null) {
+          try {
+            await _storageService.setString(
+              _persistentProfileKey,
+              jsonEncode(profile.toJson()),
+            );
+          } catch (_) {}
+        }
         AppLogger.info('Profile saved to Supabase');
       } catch (e) {
         AppLogger.error('Error updating profile in Supabase: $e');
@@ -191,6 +233,14 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
       }
     } else {
       _cachedProfile = profile;
+      if (_storageService != null) {
+        try {
+          await _storageService.setString(
+            _persistentProfileKey,
+            jsonEncode(profile.toJson()),
+          );
+        } catch (_) {}
+      }
     }
   }
 
@@ -218,58 +268,32 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
                     (currentUser.email != null && currentUser.email!.isNotEmpty
                         ? currentUser.email!.split('@').first
                         : 'Student'));
-        final deptId = _departmentNameToId(current.department);
 
-        try {
-          await client.rpc<dynamic>(
-            'complete_onboarding',
-            params: {
-              'p_full_name': effectiveName,
-              'p_department_id': deptId,
-              'p_batch':
-                  current.batch.trim().isNotEmpty ? current.batch.trim() : null,
-              'p_hostel':
-                  current.hostel.trim().isNotEmpty
-                      ? current.hostel.trim()
-                      : null,
-              'p_notification_prefs': {
-                'location_permission_granted':
-                    current.locationPermissionGranted,
-              },
-              if (current.username != null &&
-                  current.username!.trim().isNotEmpty)
-                'p_username': current.username!.trim(),
+        await client.rpc<dynamic>(
+          'complete_onboarding',
+          params: {
+            'p_full_name': effectiveName,
+            'p_notification_prefs': {
+              'location_permission_granted':
+                  current.locationPermissionGranted,
             },
-          );
-        } catch (rpcError) {
-          // Fallback for database instances that still enforce non-null academic fields
-          await client.rpc<dynamic>(
-            'complete_onboarding',
-            params: {
-              'p_full_name': effectiveName,
-              'p_department_id': deptId,
-              'p_batch':
-                  current.batch.trim().isNotEmpty
-                      ? current.batch.trim()
-                      : 'B24',
-              'p_hostel':
-                  current.hostel.trim().isNotEmpty
-                      ? current.hostel.trim()
-                      : 'Mega Hostel',
-              'p_notification_prefs': {
-                'location_permission_granted':
-                    current.locationPermissionGranted,
-              },
-              if (current.username != null &&
-                  current.username!.trim().isNotEmpty)
-                'p_username': current.username!.trim(),
-            },
-          );
-        }
+            if (current.username != null &&
+                current.username!.trim().isNotEmpty)
+              'p_username': current.username!.trim(),
+          },
+        );
         _cachedProfile = current.copyWith(
           name: effectiveName,
           hasCompletedOnboarding: completed,
         );
+        if (_storageService != null) {
+          try {
+            await _storageService.setString(
+              _persistentProfileKey,
+              jsonEncode(_cachedProfile!.toJson()),
+            );
+          } catch (_) {}
+        }
         AppLogger.info('Onboarding completed synced to Supabase');
       } catch (e) {
         AppLogger.error('Error completing onboarding in Supabase: $e');
@@ -280,9 +304,18 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
               const Profile(
                 id: 'guest',
                 name: 'Student',
+                username: 'guest',
                 email: 'student@nitc.ac.in',
               ))
           .copyWith(hasCompletedOnboarding: completed);
+      if (_storageService != null) {
+        try {
+          await _storageService.setString(
+            _persistentProfileKey,
+            jsonEncode(_cachedProfile!.toJson()),
+          );
+        } catch (_) {}
+      }
     }
   }
 
@@ -295,23 +328,12 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
           authUser.userMetadata?['username'] as String? ??
           authUser.email?.split('@').first ??
           'student',
-      email: authUser.email ?? 'student@nitc.ac.in',
+      email: row['email'] as String? ?? authUser.email ?? 'student@nitc.ac.in',
       avatarSeed:
           authUser.userMetadata?['avatar_seed'] as String? ??
           row['avatar_seed'] as String? ??
           _cachedProfile?.avatarSeed,
       role: 'Student',
-      department:
-          row['department_name'] as String? ??
-          row['department_id'] as String? ??
-          '',
-      branch:
-          row['department_name'] as String? ??
-          row['department_id'] as String? ??
-          '',
-      batch: row['batch'] as String? ?? '',
-      semester: row['semester'] as String? ?? '',
-      hostel: row['hostel'] as String? ?? '',
       notificationsEnabled: false,
       locationPermissionGranted:
           (row['notification_prefs'] as Map?)?['location_permission_granted']
@@ -320,90 +342,10 @@ class LocalOrSupabaseProfileRepository implements ProfileRepository {
       hasCompletedOnboarding: row['onboarding_completed'] as bool? ?? false,
     );
   }
-
-  String _departmentNameToId(String name) {
-    final clean = name.trim();
-    const idSet = {
-      'AR',
-      'BT',
-      'CA',
-      'CE',
-      'CH',
-      'CS',
-      'CY',
-      'EC',
-      'EE',
-      'EN',
-      'EP',
-      'GS',
-      'HS',
-      'IE',
-      'IK',
-      'MA',
-      'ME',
-      'MS',
-      'MT',
-      'PE',
-      'PH',
-    };
-    if (idSet.contains(clean.toUpperCase())) {
-      return clean.toUpperCase();
-    }
-
-    switch (clean) {
-      case 'Architecture & Planning':
-      case 'Architecture':
-        return 'AR';
-      case 'Biotechnology':
-        return 'BT';
-      case 'Fine Arts & Cultural Activities':
-        return 'CA';
-      case 'Civil Engineering':
-        return 'CE';
-      case 'Chemical Engineering':
-        return 'CH';
-      case 'Computer Science & Engineering':
-      case 'Computer Science':
-        return 'CS';
-      case 'Chemistry':
-        return 'CY';
-      case 'Electronics & Communication Engineering':
-      case 'Electronics & Communication':
-        return 'EC';
-      case 'Electrical Engineering':
-      case 'Electrical & Electronics Engineering':
-        return 'EE';
-      case 'Energy Engineering':
-        return 'EN';
-      case 'Engineering Physics':
-        return 'EP';
-      case 'Global Studies':
-        return 'GS';
-      case 'Humanities & Social Sciences':
-        return 'HS';
-      case 'Industrial Engineering':
-        return 'IE';
-      case 'Indian Knowledge Systems':
-        return 'IK';
-      case 'Mathematics':
-        return 'MA';
-      case 'Mechanical Engineering':
-        return 'ME';
-      case 'Materials Science & Engineering':
-        return 'MS';
-      case 'Metallurgical & Materials Engineering':
-        return 'MT';
-      case 'Production Engineering':
-        return 'PE';
-      case 'Physics':
-        return 'PH';
-      default:
-        return clean.isNotEmpty ? clean : 'CS';
-    }
-  }
 }
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
-  return LocalOrSupabaseProfileRepository(supabase);
+  final storage = ref.watch(storageServiceProvider);
+  return LocalOrSupabaseProfileRepository(supabase, storageService: storage);
 });

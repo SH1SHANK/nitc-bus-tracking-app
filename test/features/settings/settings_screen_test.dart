@@ -18,14 +18,8 @@ class _TestProfileRepo implements ProfileRepository {
     id: 'test-user-1',
     name: 'Shashank Mergu',
     username: 'shashank',
-    rollNumber: 'B210000CS',
     email: 'shashank@nitc.ac.in',
     role: 'Student',
-    department: 'Computer Science & Engineering',
-    branch: 'Computer Science & Engineering',
-    batch: '2026',
-    semester: 'Semester 6',
-    hostel: 'MBH II',
     notificationsEnabled: true,
     locationPermissionGranted: false,
     hasCompletedOnboarding: true,
@@ -57,7 +51,7 @@ class _TestProfileRepo implements ProfileRepository {
 void main() {
   group('SettingsScreen Widget Tests', () {
     testWidgets(
-      'renders all core settings sections with academic profile data',
+      'renders all core settings sections with user profile data',
       (tester) async {
         final mockRepo = _TestProfileRepo();
         await tester.pumpTrackletWidget(
@@ -68,12 +62,8 @@ void main() {
 
         expect(find.text('App Settings'), findsOneWidget);
         expect(find.text('Student Profile'), findsOneWidget);
-        expect(find.text('Shashank Mergu'), findsWidgets);
-        expect(find.text('B210000CS'), findsOneWidget);
-        expect(find.text('Semester 6'), findsOneWidget);
-        expect(find.text('Computer Science & Engineering'), findsOneWidget);
-        expect(find.text('Batch 2026'), findsOneWidget);
-        expect(find.text('MBH II'), findsOneWidget);
+        expect(find.text('@shashank'), findsWidgets);
+        expect(find.text('shashank@nitc.ac.in'), findsOneWidget);
 
         expect(find.text('Account & Security'), findsOneWidget);
         expect(find.text('Location & Permissions'), findsOneWidget);

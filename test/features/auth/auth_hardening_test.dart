@@ -113,9 +113,6 @@ void main() {
         expect(profile.name, 'Student');
         expect(profile.email, 'student@nitc.ac.in');
         expect(profile.hasCompletedOnboarding, isFalse);
-        expect(profile.department, isEmpty);
-        expect(profile.hostel, isEmpty);
-        expect(profile.batch, isEmpty);
       },
     );
 

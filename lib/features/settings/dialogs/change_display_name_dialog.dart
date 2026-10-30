@@ -62,11 +62,7 @@ class _ChangeDisplayNameDialogState
             id: 'user-nitc-student',
             name: text,
             email: 'student@nitc.ac.in',
-            rollNumber: 'B210000CS',
-            semester: 'Semester 6',
-            branch: 'Computer Science & Engineering',
-            batch: '2026',
-            hostel: 'MBH II',
+            username: 'student',
           );
       final updated = currentProfile.copyWith(name: text);
       await ref.read(profileRepositoryProvider).saveProfile(updated);

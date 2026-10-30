@@ -6,7 +6,6 @@ import '../../../data/profile/profile.dart';
 import '../../../design_system/components/tracklet_card.dart';
 import '../../../design_system/components/voxel_avatar.dart';
 import '../../../design_system/tokens/colors.dart';
-import '../../../design_system/tokens/radii.dart';
 import '../../../design_system/tokens/spacing.dart';
 import '../../../design_system/tokens/typography.dart';
 import '../dialogs/avatar_picker_sheet.dart';
@@ -104,52 +103,7 @@ class ProfileHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: TrackletSpacing.md),
-          Divider(color: TrackletColors.adaptiveDivider(context)),
-          const SizedBox(height: TrackletSpacing.md),
-
-          // Academic Tags
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _ProfileBadge(label: profile.branch),
-              _ProfileBadge(label: profile.batch),
-              _ProfileBadge(label: profile.semester),
-              if (profile.hostel.isNotEmpty)
-                _ProfileBadge(label: profile.hostel),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProfileBadge extends StatelessWidget {
-  const _ProfileBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: TrackletSpacing.sm,
-        vertical: TrackletSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: TrackletColors.adaptiveSurfaceElevated(context),
-        borderRadius: TrackletRadii.roundedFull,
-        border: Border.all(color: TrackletColors.adaptiveBorder(context)),
-      ),
-      child: Text(
-        label,
-        style: TrackletTypography.labelSmall.copyWith(
-          color: TrackletColors.adaptiveTextSecondary(context),
-          fontSize: TrackletTypography.fontSize11,
-          fontWeight: TrackletTypography.weightSemiBold,
-        ),
       ),
     );
   }

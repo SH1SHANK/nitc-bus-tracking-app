@@ -240,15 +240,7 @@ void main() {
 
         expect(completed, isTrue);
         expect(mockProfileRepo.savedProfile?.name, 'Ananya Sharma');
-        expect(
-          mockProfileRepo.savedProfile?.branch,
-          'Computer Science & Engineering',
-        );
-        expect(mockProfileRepo.savedProfile?.batch, 'B26');
-        expect(
-          mockProfileRepo.savedProfile?.hostel,
-          'Ladies Hostel (LH - Main Block)',
-        );
+        expect(mockProfileRepo.savedProfile?.username, 'ananya');
         expect(mockProfileRepo.onboardingCompleted, isTrue);
       },
     );
